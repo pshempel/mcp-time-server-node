@@ -1,10 +1,10 @@
 {
-  "name": "mcp-time-server",
+  "name": "mcp-time-server-node",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for comprehensive time operations",
+  "description": "Node.js MCP server providing comprehensive time and timezone operations",
   "main": "dist/index.js",
   "bin": {
-    "mcp-time-server": "./dist/index.js"
+    "mcp-time-server-node": "./dist/index.js"
   },
   "files": [
     "dist/",

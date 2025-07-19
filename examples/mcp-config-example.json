@@ -2,7 +2,7 @@
   "mcpServers": {
     "time-server": {
       "command": "node",
-      "args": ["/path/to/mcp-time-server/dist/index.js"],
+      "args": ["/path/to/mcp-time-server-node/dist/index.js"],
       "env": {
         "NODE_ENV": "production",
         "RATE_LIMIT": "100",

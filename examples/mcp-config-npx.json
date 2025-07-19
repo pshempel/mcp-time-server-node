@@ -2,7 +2,7 @@
   "mcpServers": {
     "time-server": {
       "command": "npx",
-      "args": ["-y", "mcp-time-server"],
+      "args": ["-y", "mcp-time-server-node"],
       "env": {
         "NODE_ENV": "production"
       }

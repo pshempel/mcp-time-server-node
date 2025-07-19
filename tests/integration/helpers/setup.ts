@@ -223,7 +223,7 @@ export async function createTestEnvironment(options?: {
 
   const server = new Server(
     {
-      name: 'mcp-time-server',
+      name: 'mcp-time-server-node',
       version: '1.0.0',
     },
     {
@@ -348,7 +348,7 @@ export async function createTestEnvironmentWithInterceptor(options?: {
 
   const server = new Server(
     {
-      name: 'mcp-time-server',
+      name: 'mcp-time-server-node',
       version: '1.0.0',
     },
     {

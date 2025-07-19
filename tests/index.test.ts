@@ -26,7 +26,7 @@ describe('MCP Time Server', () => {
 
     server = new Server(
       {
-        name: 'mcp-time-server',
+        name: 'mcp-time-server-node',
         version: '1.0.0',
       },
       {

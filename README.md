@@ -1,6 +1,6 @@
-# MCP Time Server
+# MCP Time Server Node
 
-A comprehensive time manipulation server implementing the Model Context Protocol (MCP) for LLMs like Claude. This server provides powerful time-related operations including timezone conversions, date arithmetic, business day calculations, and more.
+A comprehensive Node.js time manipulation server implementing the Model Context Protocol (MCP) for LLMs like Claude. This server provides powerful time-related operations including timezone conversions, date arithmetic, business day calculations, and more.
 
 ## Features
 
@@ -19,7 +19,7 @@ A comprehensive time manipulation server implementing the Model Context Protocol
 ### Using npm (recommended)
 
 ```bash
-npm install -g mcp-time-server
+npm install -g mcp-time-server-node
 ```
 
 ### Using Claude Code (claude mcp add)
@@ -28,10 +28,10 @@ Add the server to Claude Code:
 
 ```bash
 # For npm-published version (when available)
-claude mcp add mcp-time-server
+claude mcp add mcp-time-server-node
 
 # For local development/testing
-claude mcp add /path/to/mcp-time-server/dist/index.js --name time-server
+claude mcp add /path/to/mcp-time-server-node/dist/index.js --name time-server
 ```
 
 ### Using Claude Desktop
@@ -43,7 +43,7 @@ Manually add to your `claude_desktop_config.json`:
   "mcpServers": {
     "time-server": {
       "command": "npx",
-      "args": ["-y", "mcp-time-server"],
+      "args": ["-y", "mcp-time-server-node"],
       "env": {
         "NODE_ENV": "production"
       }
@@ -231,7 +231,7 @@ The server returns structured errors with codes:
 
 ```bash
 git clone https://github.com/pshempel/mcp-time-node.git
-cd mcp-time-server
+cd mcp-time-server-node
 npm install
 npm run build
 npm test

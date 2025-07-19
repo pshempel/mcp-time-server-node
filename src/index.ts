@@ -207,7 +207,7 @@ async function main(): Promise<void> {
   // Create server
   const server = new Server(
     {
-      name: 'mcp-time-server',
+      name: 'mcp-time-server-node',
       version: '1.0.0',
     },
     {
@@ -289,7 +289,7 @@ async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  console.error('MCP Time Server running on stdio');
+  console.error('MCP Time Server Node running on stdio');
 }
 
 // Run the server

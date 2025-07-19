@@ -62,7 +62,7 @@ If the server doesn't appear in Claude:
 
 ## Server Details
 
-- **Name**: mcp-time-server
+- **Name**: mcp-time-server-node
 - **Version**: 1.0.0
 - **Protocol**: MCP v2025-06-18
 - **Entry Point**: dist/index.js
