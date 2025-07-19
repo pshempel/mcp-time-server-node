@@ -1,0 +1,47 @@
+.claude/
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Test coverage
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sessions
+sessions/
+
+# CLAUDE.md (project instructions)
+CLAUDE.md
+
+# Claude-specific documentation
+NEXT_SESSION_CHECKLIST.md
+NEXT_SESSION_NOTES.md
+SESSION_*_NOTES.md
+PROJECT_STATUS.md
+docs/PROJECT_STATUS.md
+docs/PACKAGING_AND_TESTING_PLAN.md

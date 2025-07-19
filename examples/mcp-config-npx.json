@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "time-server": {
+      "command": "npx",
+      "args": ["-y", "mcp-time-server"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
