@@ -553,7 +553,7 @@ describe('nextOccurrence', () => {
       });
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('next_occurrence_'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         3600, // 1 hour
       );
@@ -751,7 +751,7 @@ describe('nextOccurrence', () => {
 
       // Should include system timezone in cache key when no timezone provided
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('America/Chicago'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         3600,
       );

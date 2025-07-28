@@ -18,18 +18,25 @@ import {
 } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { cache, CacheTTL } from '../cache/timeCache';
-import { validateTimezone, createError } from '../utils/validation';
+import { hashCacheKey } from '../cache/cacheKeyHash';
+import { validateTimezone, createError, validateDateString } from '../utils/validation';
 import { getConfig } from '../utils/config';
 import { TimeServerErrorCodes } from '../types';
 import type { NextOccurrenceParams, NextOccurrenceResult } from '../types';
 
 export function nextOccurrence(params: NextOccurrenceParams): NextOccurrenceResult {
+  // Validate string length first
+  if (params.start_from && typeof params.start_from === 'string') {
+    validateDateString(params.start_from, 'start_from');
+  }
+
   const pattern = params.pattern.toLowerCase();
   const config = getConfig();
   const timezone = params.timezone === '' ? 'UTC' : (params.timezone ?? config.defaultTimezone);
 
   // Generate cache key - use effective timezone
-  const cacheKey = `next_occurrence_${pattern}_${params.start_from ?? 'now'}_${params.day_of_week ?? ''}_${params.day_of_month ?? ''}_${params.time ?? ''}_${timezone}`;
+  const rawCacheKey = `next_occurrence_${pattern}_${params.start_from ?? 'now'}_${params.day_of_week ?? ''}_${params.day_of_month ?? ''}_${params.time ?? ''}_${timezone}`;
+  const cacheKey = hashCacheKey(rawCacheKey);
 
   // Check cache
   const cached = cache.get<NextOccurrenceResult>(cacheKey);

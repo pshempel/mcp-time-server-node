@@ -376,7 +376,7 @@ describe('subtractTime', () => {
       });
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('subtract_'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         3600, // 1 hour
       );
@@ -413,7 +413,7 @@ describe('subtractTime', () => {
 
       // Cache key should include the system timezone
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('subtract_2025-01-15T10:30:00_2_hours_America/New_York'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         3600,
       );

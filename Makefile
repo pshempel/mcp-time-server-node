@@ -1,4 +1,4 @@
-.PHONY: help install build test test-watch coverage lint lint-fix clean verify commit-tool dev
+.PHONY: help install build test test-watch test-quick coverage lint lint-fix clean deep-clean fix-jest reset verify commit-tool dev
 
 # Default target
 help:
@@ -11,9 +11,15 @@ help:
 	@echo "  lint         - Run ESLint"
 	@echo "  lint-fix     - Run ESLint with auto-fix"
 	@echo "  clean        - Clean build artifacts and coverage"
+	@echo "  deep-clean   - Clean everything including node_modules"
+	@echo "  fix-jest     - Fix Jest module resolution issues"
+	@echo "  reset        - Full environment reset (deep-clean + reinstall)"
 	@echo "  verify       - Run all checks (lint, test, build)"
 	@echo "  commit-tool  - Commit a new tool implementation"
 	@echo "  dev          - Start development mode"
+	@echo "  run          - Run the MCP server"
+	@echo "  pack         - Create npm package (mcp-time-server-*.tgz)"
+	@echo "  setup        - Initial setup (install + build)"
 
 # Install dependencies
 install:
@@ -25,6 +31,15 @@ build: clean
 
 # Run tests
 test:
+	npm test
+
+# Run tests with MCP reload reminder
+test-verify:
+	npm run test:verify
+
+# Quick test after fixing issues
+test-quick: fix-jest
+	@echo "🧪 Running tests after Jest fix..."
 	npm test
 
 # Run tests in watch mode for TDD
@@ -47,9 +62,33 @@ lint-fix:
 clean:
 	rm -rf dist coverage
 
+# Deep clean - for module resolution issues
+deep-clean: clean
+	@echo "🧹 Deep cleaning for module resolution issues..."
+	rm -rf node_modules package-lock.json
+	npx jest --clearCache 2>/dev/null || true
+	@echo "✅ Deep clean complete"
+
+# Reset - full environment reset
+reset: deep-clean
+	@echo "🔄 Full environment reset..."
+	npm install
+	npm run build
+	@echo "✅ Reset complete. Run 'make test' to verify"
+
+# Fix Jest issues specifically
+fix-jest:
+	@echo "🔧 Fixing Jest module resolution..."
+	npx jest --clearCache
+	rm -rf dist
+	npm run build
+	@echo "✅ Jest fix applied. Running tests..."
+	npm test || echo "⚠️  If tests still fail, try 'make reset'"
+
 # Run all verification steps (useful before commits)
 verify: lint test build
 	@echo "✅ All checks passed!"
+	@node scripts/post-test-reminder.js
 
 # Helper for committing a new tool
 commit-tool:
@@ -121,7 +160,7 @@ tdd-cycle:
 	fi
 
 # Quick status check
-.PHONY: status check-coverage todo
+.PHONY: status check-coverage todo verify-holidays
 
 status:
 	@echo "📊 Project Status:"
@@ -141,6 +180,13 @@ check-coverage:
 todo:
 	@echo "📝 TODO items in code:"
 	@grep -r "TODO\|FIXME\|XXX" src tests --exclude-dir=node_modules 2>/dev/null || echo "No TODOs found"
+
+verify-holidays:
+	@echo "🎯 Verifying Holiday Data"
+	@echo "========================"
+	@npm test holidays.verification
+	@echo "\n✅ Holiday verification complete!"
+	@echo "📚 See: docs/verified-behaviors/holiday-automated-verification.md"
 
 # Development helpers
 .PHONY: clean-research watch-all pre-commit

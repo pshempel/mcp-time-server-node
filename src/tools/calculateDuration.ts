@@ -1,7 +1,8 @@
 import { differenceInMilliseconds, parseISO, isValid } from 'date-fns';
 import { toDate } from 'date-fns-tz';
 import { cache, CacheTTL } from '../cache/timeCache';
-import { validateTimezone, createError } from '../utils/validation';
+import { hashCacheKey } from '../cache/cacheKeyHash';
+import { validateTimezone, createError, validateDateString } from '../utils/validation';
 import { getConfig } from '../utils/config';
 import { TimeServerErrorCodes } from '../types';
 import type { CalculateDurationParams, CalculateDurationResult } from '../types';
@@ -10,12 +11,22 @@ const validUnits = ['auto', 'milliseconds', 'seconds', 'minutes', 'hours', 'days
 
 export function calculateDuration(params: CalculateDurationParams): CalculateDurationResult {
   const { start_time, end_time } = params;
+
+  // Validate string lengths first
+  if (typeof start_time === 'string') {
+    validateDateString(start_time, 'start_time');
+  }
+  if (typeof end_time === 'string') {
+    validateDateString(end_time, 'end_time');
+  }
+
   const unit = params.unit ?? 'auto';
   const config = getConfig();
   const timezone = params.timezone === '' ? 'UTC' : (params.timezone ?? config.defaultTimezone);
 
   // Generate cache key
-  const cacheKey = `duration_${start_time}_${end_time}_${unit}_${timezone}`;
+  const rawCacheKey = `duration_${start_time}_${end_time}_${unit}_${timezone}`;
+  const cacheKey = hashCacheKey(rawCacheKey);
 
   // Check cache
   const cached = cache.get<CalculateDurationResult>(cacheKey);

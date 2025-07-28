@@ -387,7 +387,7 @@ describe('calculateDuration', () => {
       });
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('duration_'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         3600, // 1 hour
       );

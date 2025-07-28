@@ -162,7 +162,7 @@ describe('getCurrentTime', () => {
       getCurrentTime(params);
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('current_America/Chicago'),
+        expect.stringMatching(/^[a-f0-9]{64}$/), // SHA-256 hash
         expect.any(Object),
         1,
       );

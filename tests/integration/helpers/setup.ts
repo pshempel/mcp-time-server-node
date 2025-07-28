@@ -12,6 +12,8 @@ import {
   getBusinessDays,
   nextOccurrence,
   formatTime,
+  calculateBusinessHours,
+  daysUntil,
 } from '../../../src/tools/index';
 import { SlidingWindowRateLimiter } from '../../../src/utils/rateLimit';
 import { createInterceptedTransport, MessageInterceptor } from './interceptor';
@@ -193,6 +195,58 @@ const TOOL_DEFINITIONS = [
       required: ['time', 'format'],
     },
   },
+  {
+    name: 'calculate_business_hours',
+    description: 'Calculate business hours between two times',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        start_time: { type: 'string' as const, description: 'Start time' },
+        end_time: { type: 'string' as const, description: 'End time' },
+        business_hours: {
+          type: 'object' as const,
+          description: 'Business hours definition (default: 9 AM - 5 PM)',
+        },
+        timezone: {
+          type: 'string' as const,
+          description: 'Timezone for calculation (default: system timezone)',
+        },
+        holidays: {
+          type: 'array' as const,
+          items: { type: 'string' as const },
+          description: 'Array of holiday dates',
+        },
+        include_weekends: {
+          type: 'boolean' as const,
+          description: 'Include weekends in calculation (default: false)',
+        },
+      },
+      required: ['start_time', 'end_time'],
+    },
+  },
+  {
+    name: 'days_until',
+    description: 'Calculate days until a target date/event',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        target_date: {
+          type: ['string', 'number'] as const,
+          description: 'Target date (ISO string, natural language, or Unix timestamp)',
+        },
+        timezone: {
+          type: 'string' as const,
+          description: 'Timezone for calculation (default: system timezone)',
+        },
+        format_result: {
+          type: 'boolean' as const,
+          description:
+            'Return formatted string (e.g., "in 5 days") instead of number (default: false)',
+        },
+      },
+      required: ['target_date'],
+    },
+  },
 ];
 
 // Tool function mapping
@@ -205,6 +259,8 @@ const TOOL_FUNCTIONS: Record<string, (params: any) => any> = {
   get_business_days: getBusinessDays as (params: any) => any,
   next_occurrence: nextOccurrence as (params: any) => any,
   format_time: formatTime as (params: any) => any,
+  calculate_business_hours: calculateBusinessHours as (params: any) => any,
+  days_until: daysUntil as (params: any) => any,
 };
 
 export async function createTestEnvironment(options?: {

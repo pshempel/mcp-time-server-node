@@ -1,19 +1,36 @@
-import { eachDayOfInterval, isWeekend, parseISO, isSameDay, isValid } from 'date-fns';
+import { eachDayOfInterval, isWeekend, parseISO, isValid } from 'date-fns';
 import { toDate } from 'date-fns-tz';
 import { cache, CacheTTL } from '../cache/timeCache';
-import { validateTimezone, createError } from '../utils/validation';
+import { hashCacheKey } from '../cache/cacheKeyHash';
+import {
+  validateTimezone,
+  createError,
+  validateArrayLength,
+  validateDateString,
+  LIMITS,
+} from '../utils/validation';
 import { getConfig } from '../utils/config';
 import { TimeServerErrorCodes } from '../types';
 import type { GetBusinessDaysParams, GetBusinessDaysResult } from '../types';
+import { getHolidaysForYear } from '../data/holidays';
 
 export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysResult {
-  const { start_date, end_date, holidays = [] } = params;
+  const { start_date, end_date, holidays = [], holiday_calendar, custom_holidays = [] } = params;
+
+  // Validate string lengths and array lengths first
+  validateDateString(start_date, 'start_date');
+  validateDateString(end_date, 'end_date');
+  validateArrayLength(holidays, LIMITS.MAX_ARRAY_LENGTH, 'holidays');
+  validateArrayLength(custom_holidays, LIMITS.MAX_ARRAY_LENGTH, 'custom_holidays');
+
   const excludeWeekends = params.exclude_weekends ?? true;
+  const includeObserved = params.include_observed ?? true;
   const config = getConfig();
   const timezone = params.timezone === '' ? 'UTC' : (params.timezone ?? config.defaultTimezone);
 
   // Generate cache key
-  const cacheKey = `business_${start_date}_${end_date}_${excludeWeekends}_${timezone}_${holidays.join(',')}`;
+  const rawCacheKey = `business_${start_date}_${end_date}_${excludeWeekends}_${timezone}_${holidays.join(',')}_${holiday_calendar ?? ''}_${includeObserved}_${custom_holidays.join(',')}`;
+  const cacheKey = hashCacheKey(rawCacheKey);
 
   // Check cache
   const cached = cache.get<GetBusinessDaysResult>(cacheKey);
@@ -73,16 +90,81 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
   const startDate = parseDate(start_date, 'start_date');
   const endDate = parseDate(end_date, 'end_date');
 
-  // Parse holiday dates
-  const holidayDates: Date[] = [];
+  // Collect all holiday dates
+  const allHolidayDates = new Set<string>(); // Use Set to avoid duplicates
+
+  // Add calendar holidays if specified
+  if (holiday_calendar) {
+    // Validate holiday_calendar parameter
+    if (holiday_calendar.includes('\0') || holiday_calendar.includes('\x00')) {
+      throw {
+        error: createError(
+          TimeServerErrorCodes.INVALID_PARAMETER,
+          'Invalid holiday_calendar: contains null bytes',
+          { holiday_calendar },
+        ),
+      };
+    }
+
+    // Validate it's a reasonable country code (2-3 uppercase letters)
+    if (!/^[A-Z]{2,3}$/.test(holiday_calendar)) {
+      throw {
+        error: createError(
+          TimeServerErrorCodes.INVALID_PARAMETER,
+          'Invalid holiday_calendar: must be a 2-3 letter country code',
+          { holiday_calendar },
+        ),
+      };
+    }
+
+    // Get holidays for the years covered by the date range
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
+
+    for (let year = startYear; year <= endYear; year++) {
+      const calendarHolidays = getHolidaysForYear(holiday_calendar, year);
+      for (const holiday of calendarHolidays) {
+        // Use observed date if available and include_observed is true
+        const dateToUse =
+          includeObserved && holiday.observedDate ? holiday.observedDate : holiday.date;
+        // Add holiday date string - holidays outside range won't match days anyway
+        allHolidayDates.add(dateToUse.toDateString());
+      }
+    }
+  }
+
+  // Add custom holidays
+  for (const customHoliday of custom_holidays) {
+    try {
+      const holidayDate = parseISO(customHoliday);
+      if (!isValid(holidayDate)) {
+        throw new Error('Invalid date');
+      }
+      allHolidayDates.add(holidayDate.toDateString());
+    } catch (error) {
+      throw {
+        error: createError(
+          TimeServerErrorCodes.INVALID_DATE_FORMAT,
+          `Invalid custom holiday date: ${customHoliday}`,
+          {
+            holiday: customHoliday,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        ),
+      };
+    }
+  }
+
+  // Add legacy holidays parameter for backward compatibility
   for (let i = 0; i < holidays.length; i++) {
+    // eslint-disable-next-line security/detect-object-injection -- Array index access
     const holiday = holidays[i];
     try {
       const holidayDate = parseISO(holiday);
       if (!isValid(holidayDate)) {
         throw new Error('Invalid date');
       }
-      holidayDates.push(holidayDate);
+      allHolidayDates.add(holidayDate.toDateString());
     } catch (error) {
       throw {
         error: createError(
@@ -113,11 +195,11 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
 
   for (const day of days) {
     const isWeekendDay = isWeekend(day);
-    const isHoliday = holidayDates.some((h) => isSameDay(day, h));
+    const isHolidayDay = allHolidayDates.has(day.toDateString());
 
     if (isWeekendDay) {
       weekendDays++;
-    } else if (isHoliday) {
+    } else if (isHolidayDay) {
       holidayCount++;
     } else {
       businessDays++;

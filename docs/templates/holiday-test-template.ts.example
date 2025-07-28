@@ -1,0 +1,68 @@
+// Template for testing new holiday implementations
+// CRITICAL: Read docs/verified-behaviors/date-timezone-design-reference.md first!
+
+import { getHolidaysForYear, isHoliday } from '../../src/data/holidays';
+
+describe('Country (XX) Holidays', () => {
+  describe('2025 Holidays', () => {
+    const holidays2025 = [
+      { name: 'Holiday Name', englishName: 'English Name', date: '2025-01-01' },
+      // Add more holidays...
+    ];
+
+    it('should return correct number of holidays', () => {
+      const result = getHolidaysForYear('XX', 2025);
+      expect(result).toHaveLength(holidays2025.length);
+    });
+
+    holidays2025.forEach(({ name, englishName, date }) => {
+      it(`should include ${englishName} on ${date}`, () => {
+        const result = getHolidaysForYear('XX', 2025);
+        const holiday = result.find(h => 
+          h.name === name || h.name === englishName
+        );
+        expect(holiday).toBeDefined();
+        expect(holiday?.date.toISOString().split('T')[0]).toBe(date);
+      });
+    });
+  });
+
+  describe('isHoliday function', () => {
+    it('should recognize XX holidays', () => {
+      // CRITICAL: Use local timezone date constructor!
+      // new Date(year, month, day) NOT new Date('YYYY-MM-DD')
+      
+      // ✅ CORRECT - matches how holidays are created internally
+      expect(isHoliday(new Date(2025, 0, 1), 'XX')).toBe(true); // Jan 1
+      expect(isHoliday(new Date(2025, 11, 25), 'XX')).toBe(true); // Dec 25
+      
+      // ❌ WRONG - creates UTC date which may be different day
+      // expect(isHoliday(new Date('2025-01-01'), 'XX')).toBe(true);
+      
+      // Non-holidays
+      expect(isHoliday(new Date(2025, 0, 2), 'XX')).toBe(false); // Jan 2
+    });
+  });
+
+  // If the country has special observation rules (like Monday-moving)
+  describe('Special observation rules', () => {
+    it('should handle weekend holidays correctly', () => {
+      // Use local timezone dates for all comparisons
+      const result = getHolidaysForYear('XX', 2025);
+      const movedHoliday = result.find(h => h.name === 'Holiday Name');
+      
+      // Check the date was moved correctly
+      expect(movedHoliday?.date.getDay()).toBe(1); // Monday
+      expect(movedHoliday?.date.toISOString().split('T')[0]).toBe('2025-01-01');
+    });
+  });
+});
+
+/*
+REMINDERS:
+1. Always use new Date(year, month, day) for test dates
+2. Month is 0-indexed (0 = January, 11 = December)
+3. Compare dates using toDateString() or individual components
+4. Test both the actual holiday date and isHoliday function
+5. For moved holidays, test both original and moved dates
+*/
