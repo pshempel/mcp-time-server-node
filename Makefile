@@ -58,6 +58,15 @@ lint:
 lint-fix:
 	npm run lint -- --fix
 
+# Python linting for stress tests
+lint-python:
+	@echo "🐍 Linting Python stress tests..."
+	@if command -v flake8 >/dev/null 2>&1; then \
+		flake8 tests/stress/ || true; \
+	else \
+		echo "⚠️  flake8 not installed. Install with: sudo apt install python3-flake8"; \
+	fi
+
 # Clean build artifacts
 clean:
 	rm -rf dist coverage
