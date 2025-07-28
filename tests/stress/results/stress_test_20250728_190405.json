@@ -1,0 +1,86 @@
+{
+  "test_info": {
+    "scenario": "cache_flood",
+    "description": "Flood cache with unique timezone requests",
+    "duration": 10,
+    "start_time": "2025-07-28T19:04:05.172463",
+    "server_command": "node dist/index.js"
+  },
+  "memory_snapshots": [
+    {
+      "time": 0,
+      "memory_mb": 125.79296875,
+      "requests_so_far": 0
+    },
+    {
+      "time": 10.002397298812866,
+      "memory_mb": 146.9375,
+      "requests_so_far": 933
+    }
+  ],
+  "request_batches": [
+    {
+      "time": 1.095883846282959,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 126.79296875
+    },
+    {
+      "time": 2.162929058074951,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 126.79296875
+    },
+    {
+      "time": 3.226184368133545,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 126.79296875
+    },
+    {
+      "time": 4.291100740432739,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 127.16796875
+    },
+    {
+      "time": 5.355832815170288,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 127.16796875
+    },
+    {
+      "time": 6.422176122665405,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 129.4375
+    },
+    {
+      "time": 7.496048212051392,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 134.8125
+    },
+    {
+      "time": 8.5675630569458,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 140.4375
+    },
+    {
+      "time": 9.638461589813232,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 145.6875
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "total_requests": 933,
+    "errors": 0,
+    "duration": 10.002397298812866,
+    "memory_start": 125.79296875,
+    "memory_end": 146.9375,
+    "memory_leak_detected": false
+  }
+}
