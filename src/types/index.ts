@@ -98,6 +98,9 @@ export interface GetBusinessDaysParams {
   exclude_weekends?: boolean;
   holidays?: string[];
   timezone?: string;
+  holiday_calendar?: string;
+  include_observed?: boolean;
+  custom_holidays?: string[];
 }
 
 export interface GetBusinessDaysResult {
@@ -133,3 +136,44 @@ export interface FormatTimeResult {
   formatted: string;
   original: string;
 }
+
+// Business hours types
+export interface BusinessHours {
+  start: { hour: number; minute: number };
+  end: { hour: number; minute: number };
+}
+
+export interface WeeklyBusinessHours {
+  [dayOfWeek: number]: BusinessHours | null; // 0-6, Sunday=0, null=closed
+}
+
+export interface CalculateBusinessHoursParams {
+  start_time: string;
+  end_time: string;
+  business_hours?: BusinessHours | WeeklyBusinessHours;
+  timezone?: string;
+  holidays?: string[];
+  include_weekends?: boolean;
+}
+
+export interface DayBusinessHours {
+  date: string;
+  day_of_week: string;
+  business_minutes: number;
+  is_weekend: boolean;
+  is_holiday: boolean;
+}
+
+export interface CalculateBusinessHoursResult {
+  total_business_minutes: number;
+  total_business_hours: number;
+  breakdown: DayBusinessHours[];
+}
+
+export interface DaysUntilParams {
+  target_date: string | number;
+  timezone?: string;
+  format_result?: boolean;
+}
+
+export type DaysUntilResult = number | string;

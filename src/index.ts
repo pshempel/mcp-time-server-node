@@ -12,6 +12,8 @@ import {
   getBusinessDays,
   nextOccurrence,
   formatTime,
+  calculateBusinessHours,
+  daysUntil,
 } from './tools/index.js';
 import { SlidingWindowRateLimiter } from './utils/rateLimit.js';
 import { configureServer } from './utils/serverConfig.js';
@@ -181,6 +183,58 @@ export const TOOL_DEFINITIONS = [
       required: ['time', 'format'],
     },
   },
+  {
+    name: 'calculate_business_hours',
+    description: 'Calculate business hours between two times',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        start_time: { type: 'string' as const, description: 'Start time' },
+        end_time: { type: 'string' as const, description: 'End time' },
+        business_hours: {
+          type: 'object' as const,
+          description: 'Business hours definition (default: 9 AM - 5 PM)',
+        },
+        timezone: {
+          type: 'string' as const,
+          description: 'Timezone for calculation (default: system timezone)',
+        },
+        holidays: {
+          type: 'array' as const,
+          items: { type: 'string' as const },
+          description: 'Array of holiday dates',
+        },
+        include_weekends: {
+          type: 'boolean' as const,
+          description: 'Include weekends in calculation (default: false)',
+        },
+      },
+      required: ['start_time', 'end_time'],
+    },
+  },
+  {
+    name: 'days_until',
+    description: 'Calculate days until a target date/event',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        target_date: {
+          type: ['string', 'number'] as const,
+          description: 'Target date (ISO string, natural language, or Unix timestamp)',
+        },
+        timezone: {
+          type: 'string' as const,
+          description: 'Timezone for calculation (default: system timezone)',
+        },
+        format_result: {
+          type: 'boolean' as const,
+          description:
+            'Return formatted string (e.g., "in 5 days") instead of number (default: false)',
+        },
+      },
+      required: ['target_date'],
+    },
+  },
 ];
 
 // Tool function mapping - wrapping each function to handle unknown params
@@ -198,6 +252,9 @@ const TOOL_FUNCTIONS: Record<string, (params: unknown) => unknown> = {
   next_occurrence: (params: unknown) =>
     nextOccurrence(params as Parameters<typeof nextOccurrence>[0]),
   format_time: (params: unknown) => formatTime(params as Parameters<typeof formatTime>[0]),
+  calculate_business_hours: (params: unknown) =>
+    calculateBusinessHours(params as Parameters<typeof calculateBusinessHours>[0]),
+  days_until: (params: unknown) => daysUntil(params as Parameters<typeof daysUntil>[0]),
 };
 
 async function main(): Promise<void> {
@@ -247,7 +304,11 @@ async function main(): Promise<void> {
     const { name, arguments: args } = request.params;
 
     try {
-      // Get the tool function
+      // Get the tool function - validate against known tools
+      if (!Object.prototype.hasOwnProperty.call(TOOL_FUNCTIONS, name)) {
+        throw new Error(`Unknown tool: ${name}`);
+      }
+      // eslint-disable-next-line security/detect-object-injection -- Tool name validated above
       const toolFunction = TOOL_FUNCTIONS[name];
       if (!toolFunction) {
         throw new Error(`Unknown tool: ${name}`);

@@ -9,6 +9,7 @@ A comprehensive Node.js time manipulation server implementing the Model Context 
 - ➕➖ **Date Arithmetic**: Add or subtract time periods from dates
 - 📊 **Duration Calculations**: Calculate time between dates in various units
 - 💼 **Business Days**: Calculate business days excluding weekends and holidays
+- ⏱️ **Business Hours**: Calculate working hours between timestamps with timezone support
 - 🔄 **Recurring Events**: Find next occurrences of recurring patterns
 - 📝 **Flexible Formatting**: Format times in relative, calendar, or custom formats
 - 🚀 **High Performance**: Response times < 10ms with intelligent caching
@@ -29,9 +30,10 @@ Add the server to Claude Code:
 ```bash
 # For npm-published version (when available)
 claude mcp add mcp-time-server-node
-
+```
+```bash
 # For local development/testing
-claude mcp add /path/to/mcp-time-server-node/dist/index.js --name time-server
+claude mcp add tim-server /path/to/mcp-time-server-node/dist/index.js
 ```
 
 ### Using Claude Desktop
@@ -58,15 +60,17 @@ For testing before npm publish:
 
 ```bash
 # Build the project
-npm run build
-
+make build
+```
+```bash
 # Test directly
 echo '{"jsonrpc":"2.0","method":"tools/list","id":1,"params":{}}' | node dist/index.js
-
-# Or add to Claude Code for local testing
-claude mcp add $(pwd)/dist/index.js --name time-server-local
 ```
-
+```bash
+# Or add to Claude Code for local testing
+cd mcp-time-server-node
+claude mcp add time-server-local $(pwd)/dist/index.js 
+``` 
 ## Available Tools
 
 ### 1. `get_current_time`
@@ -200,6 +204,33 @@ Format time in various human-readable formats.
 }
 ```
 
+### 9. `calculate_business_hours`
+Calculate business hours between two times.
+
+**Parameters:**
+- `start_time` (required): Start time
+- `end_time` (required): End time
+- `business_hours` (optional): Business hours definition (default: 9 AM - 5 PM)
+  - Can be a single object: `{ start: { hour: 9, minute: 0 }, end: { hour: 17, minute: 0 } }`
+  - Or weekly schedule: `{ 0: null, 1: { start: {...}, end: {...} }, ... }` (0=Sunday, 6=Saturday)
+- `timezone` (optional): Timezone for calculation
+- `holidays` (optional): Array of holiday dates
+- `include_weekends` (optional): Include weekends in calculation (default: false)
+
+**Example:**
+```json
+{
+  "start_time": "2025-01-20T08:00:00",
+  "end_time": "2025-01-24T18:00:00",
+  "business_hours": {
+    "start": { "hour": 9, "minute": 0 },
+    "end": { "hour": 17, "minute": 30 }
+  },
+  "holidays": ["2025-01-22"],
+  "timezone": "America/New_York"
+}
+```
+
 ## Environment Variables
 
 - `NODE_ENV`: Set to "production" for production use
@@ -232,17 +263,20 @@ The server returns structured errors with codes:
 ```bash
 git clone https://github.com/pshempel/mcp-time-node.git
 cd mcp-time-server-node
-npm install
-npm run build
-npm test
+make setup    # Install dependencies and build
+make test     # Run all tests
 ```
 
 ### Running tests
 
 ```bash
-npm test                 # Run all tests
-npm run test:coverage   # Run with coverage
-npm run test:watch      # Run in watch mode
+make test         # Run all tests
+make coverage     # Run with coverage report
+make test-watch   # Run in watch mode for TDD
+
+# If tests fail unexpectedly:
+make test-quick   # Fix Jest issues and run tests
+make reset        # Full environment reset
 ```
 
 ## Contributing

@@ -10,7 +10,8 @@ import {
 } from 'date-fns';
 import { formatInTimeZone, toDate } from 'date-fns-tz';
 import { cache, CacheTTL } from '../cache/timeCache';
-import { validateTimezone, createError } from '../utils/validation';
+import { hashCacheKey } from '../cache/cacheKeyHash';
+import { validateTimezone, createError, validateDateInput } from '../utils/validation';
 import { getConfig } from '../utils/config';
 import { TimeServerErrorCodes } from '../types';
 import type { AddTimeParams, AddTimeResult } from '../types';
@@ -26,11 +27,16 @@ const unitFunctions = {
 
 export function addTime(params: AddTimeParams): AddTimeResult {
   const { time, amount, unit } = params;
+
+  // Validate date input with strict type checking
+  validateDateInput(time, 'time');
+
   const config = getConfig();
   const timezone = params.timezone === '' ? 'UTC' : (params.timezone ?? config.defaultTimezone);
 
   // Generate cache key
-  const cacheKey = `add_${time}_${amount}_${unit}_${timezone}`;
+  const rawCacheKey = `add_${time}_${amount}_${unit}_${timezone}`;
+  const cacheKey = hashCacheKey(rawCacheKey);
 
   // Check cache
   const cached = cache.get<AddTimeResult>(cacheKey);
@@ -39,7 +45,7 @@ export function addTime(params: AddTimeParams): AddTimeResult {
   }
 
   // Validate unit
-  if (!unitFunctions[unit]) {
+  if (!Object.prototype.hasOwnProperty.call(unitFunctions, unit)) {
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_PARAMETER,
@@ -122,6 +128,7 @@ export function addTime(params: AddTimeParams): AddTimeResult {
   }
 
   // Perform the addition
+  // eslint-disable-next-line security/detect-object-injection -- Unit validated earlier
   const addFunction = unitFunctions[unit];
   const resultDate = addFunction(inputDate, amount);
 

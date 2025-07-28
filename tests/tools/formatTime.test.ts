@@ -390,7 +390,7 @@ describe('formatTime', () => {
       });
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('format_time_'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         300, // 5 minutes
       );
@@ -597,7 +597,7 @@ describe('formatTime', () => {
 
       // Should include system timezone in cache key when no timezone provided
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('America/Chicago'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         300, // CacheTTL.TIMEZONE_CONVERT = 5 minutes
       );

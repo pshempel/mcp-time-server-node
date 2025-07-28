@@ -1,11 +1,17 @@
 import { formatInTimeZone } from 'date-fns-tz';
 import { cache, CacheTTL } from '../cache/timeCache';
-import { validateTimezone, createError } from '../utils/validation';
+import { hashCacheKey } from '../cache/cacheKeyHash';
+import { validateTimezone, createError, validateStringLength, LIMITS } from '../utils/validation';
 import { getConfig } from '../utils/config';
 import { TimeServerErrorCodes } from '../types';
 import type { GetCurrentTimeParams, GetCurrentTimeResult } from '../types';
 
 export function getCurrentTime(params: GetCurrentTimeParams): GetCurrentTimeResult {
+  // Validate format string length first
+  if (params.format) {
+    validateStringLength(params.format, LIMITS.MAX_FORMAT_LENGTH, 'format');
+  }
+
   // Default values - use system default if no timezone specified
   const config = getConfig();
   const timezone = params.timezone === '' ? 'UTC' : (params.timezone ?? config.defaultTimezone);
@@ -13,7 +19,8 @@ export function getCurrentTime(params: GetCurrentTimeParams): GetCurrentTimeResu
   const includeOffset = params.include_offset !== false;
 
   // Generate cache key
-  const cacheKey = `current_${timezone}_${formatStr}_${includeOffset}`;
+  const rawCacheKey = `current_${timezone}_${formatStr}_${includeOffset}`;
+  const cacheKey = hashCacheKey(rawCacheKey);
 
   // Check cache
   const cached = cache.get<GetCurrentTimeResult>(cacheKey);

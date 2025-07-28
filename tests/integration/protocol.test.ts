@@ -16,7 +16,7 @@ describe('MCP Protocol Communication', () => {
         );
 
         expect(response.tools).toBeDefined();
-        expect(response.tools.length).toBe(8);
+        expect(response.tools.length).toBe(10);
       } finally {
         await cleanup();
       }

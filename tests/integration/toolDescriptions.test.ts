@@ -83,6 +83,16 @@ describe('Tool Descriptions Integration', () => {
       expect(convertTimezoneSchema?.properties?.to_timezone?.description).toBe(
         'Target IANA timezone',
       );
+
+      // Check days_until is listed
+      const daysUntilTool = tools.find((t) => t.name === 'days_until');
+      expect(daysUntilTool).toBeDefined();
+      expect(daysUntilTool?.description).toBe('Calculate days until a target date/event');
+      const daysUntilSchema = daysUntilTool?.inputSchema as any;
+      expect(daysUntilSchema?.properties?.timezone?.description).toBe(
+        'Timezone for calculation (default: system timezone)',
+      );
+      expect(daysUntilSchema?.required).toEqual(['target_date']);
     } finally {
       await cleanup();
     }

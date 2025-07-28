@@ -482,7 +482,7 @@ describe('getBusinessDays', () => {
       });
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('business_'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         86400, // 24 hours
       );

@@ -308,7 +308,7 @@ describe('convertTimezone', () => {
       });
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringContaining('convert_'),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
         300, // 5 minutes
       );

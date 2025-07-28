@@ -34,7 +34,7 @@ yarn-error.log*
 
 # Sessions
 sessions/
-
+todos/
 # CLAUDE.md (project instructions)
 CLAUDE.md
 

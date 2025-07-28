@@ -1,6 +1,7 @@
 import { addTime } from './addTime';
 import type { SubtractTimeParams, SubtractTimeResult } from '../types';
 import { cache, CacheTTL } from '../cache/timeCache';
+import { hashCacheKey } from '../cache/cacheKeyHash';
 import { getConfig } from '../utils/config';
 
 export function subtractTime(params: SubtractTimeParams): SubtractTimeResult {
@@ -11,7 +12,8 @@ export function subtractTime(params: SubtractTimeParams): SubtractTimeResult {
   const effectiveTimezone = timezone === '' ? 'UTC' : (timezone ?? config.defaultTimezone);
 
   // Generate cache key
-  const cacheKey = `subtract_${time}_${amount}_${unit}_${effectiveTimezone}`;
+  const rawCacheKey = `subtract_${time}_${amount}_${unit}_${effectiveTimezone}`;
+  const cacheKey = hashCacheKey(rawCacheKey);
 
   // Check cache
   const cached = cache.get<SubtractTimeResult>(cacheKey);

@@ -1,16 +1,33 @@
 import { parseISO, isValid } from 'date-fns';
 import { formatInTimeZone, getTimezoneOffset, toDate } from 'date-fns-tz';
 import { cache, CacheTTL } from '../cache/timeCache';
-import { validateTimezone, createError } from '../utils/validation';
+import { hashCacheKey } from '../cache/cacheKeyHash';
+import {
+  validateTimezone,
+  createError,
+  validateDateString,
+  validateStringLength,
+  LIMITS,
+} from '../utils/validation';
 import { TimeServerErrorCodes } from '../types';
 import type { ConvertTimezoneParams, ConvertTimezoneResult } from '../types';
 
 export function convertTimezone(params: ConvertTimezoneParams): ConvertTimezoneResult {
   const { time, from_timezone, to_timezone } = params;
+
+  // Validate string lengths first
+  if (typeof time === 'string') {
+    validateDateString(time, 'time');
+  }
+  if (params.format) {
+    validateStringLength(params.format, LIMITS.MAX_FORMAT_LENGTH, 'format');
+  }
+
   const format = params.format ?? "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
   // Generate cache key
-  const cacheKey = `convert_${time}_${from_timezone}_${to_timezone}_${format}`;
+  const rawCacheKey = `convert_${time}_${from_timezone}_${to_timezone}_${format}`;
+  const cacheKey = hashCacheKey(rawCacheKey);
 
   // Check cache
   const cached = cache.get<ConvertTimezoneResult>(cacheKey);
