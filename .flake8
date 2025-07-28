@@ -1,0 +1,18 @@
+[flake8]
+max-line-length = 100
+exclude = 
+    __pycache__,
+    .git,
+    dist,
+    node_modules,
+    coverage
+ignore = 
+    # W293: blank line contains whitespace (not critical)
+    W293,
+    # W292: no newline at end of file (editor specific)
+    W292
+# Focus on real issues:
+# E: Python errors
+# F: PyFlakes errors (undefined names, unused imports, etc)
+# W291: trailing whitespace
+# E302/E305: blank lines (but only as warnings)

@@ -1,0 +1,86 @@
+{
+  "test_info": {
+    "scenario": "invalid_requests",
+    "description": "Send invalid requests to test error handling",
+    "duration": 10,
+    "start_time": "2025-07-28T19:04:46.721602",
+    "server_command": "node dist/index.js"
+  },
+  "memory_snapshots": [
+    {
+      "time": 0,
+      "memory_mb": 142.76171875,
+      "requests_so_far": 0
+    },
+    {
+      "time": 10.002270936965942,
+      "memory_mb": 163.97265625,
+      "requests_so_far": 934
+    }
+  ],
+  "request_batches": [
+    {
+      "time": 1.0779483318328857,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.26171875
+    },
+    {
+      "time": 2.147796869277954,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.88671875
+    },
+    {
+      "time": 3.217578411102295,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.88671875
+    },
+    {
+      "time": 4.286529064178467,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.88671875
+    },
+    {
+      "time": 5.354250431060791,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 144.01171875
+    },
+    {
+      "time": 6.41947078704834,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 146.38671875
+    },
+    {
+      "time": 7.488617420196533,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 151.63671875
+    },
+    {
+      "time": 8.55824899673462,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 156.84765625
+    },
+    {
+      "time": 9.62814450263977,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 162.22265625
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "total_requests": 934,
+    "errors": 0,
+    "duration": 10.002270936965942,
+    "memory_start": 142.76171875,
+    "memory_end": 163.97265625,
+    "memory_leak_detected": false
+  }
+}

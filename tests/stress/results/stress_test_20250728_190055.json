@@ -1,0 +1,86 @@
+{
+  "test_info": {
+    "scenario": "standard",
+    "description": "Standard memory leak test with normal requests",
+    "duration": 10,
+    "start_time": "2025-07-28T19:00:55.714210",
+    "server_command": "node dist/index.js"
+  },
+  "memory_snapshots": [
+    {
+      "time": 0,
+      "memory_mb": 141.8515625,
+      "requests_so_far": 0
+    },
+    {
+      "time": 10.010531902313232,
+      "memory_mb": 164.39453125,
+      "requests_so_far": 935
+    }
+  ],
+  "request_batches": [
+    {
+      "time": 1.0832910537719727,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.1015625
+    },
+    {
+      "time": 2.1509456634521484,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.26953125
+    },
+    {
+      "time": 3.2164299488067627,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.64453125
+    },
+    {
+      "time": 4.279271125793457,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.64453125
+    },
+    {
+      "time": 5.34320330619812,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 143.76953125
+    },
+    {
+      "time": 6.411747455596924,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 146.51953125
+    },
+    {
+      "time": 7.488948106765747,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 151.89453125
+    },
+    {
+      "time": 8.55681824684143,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 157.76953125
+    },
+    {
+      "time": 9.627275228500366,
+      "requests": 100,
+      "errors": 0,
+      "avg_memory": 163.14453125
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "total_requests": 935,
+    "errors": 0,
+    "duration": 10.010531902313232,
+    "memory_start": 141.8515625,
+    "memory_end": 164.39453125,
+    "memory_leak_detected": false
+  }
+}

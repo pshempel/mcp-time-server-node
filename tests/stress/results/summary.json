@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "timestamp": "2025-07-28T19:00:55.714210",
+      "scenario": "standard",
+      "duration": 10.010531902313232,
+      "total_requests": 935,
+      "errors": 0,
+      "memory_start": 141.8515625,
+      "memory_end": 164.39453125,
+      "memory_leak_detected": false,
+      "results_file": "stress_test_20250728_190055.json"
+    },
+    {
+      "timestamp": "2025-07-28T19:04:05.172463",
+      "scenario": "cache_flood",
+      "duration": 10.002397298812866,
+      "total_requests": 933,
+      "errors": 0,
+      "memory_start": 125.79296875,
+      "memory_end": 146.9375,
+      "memory_leak_detected": false,
+      "results_file": "stress_test_20250728_190405.json"
+    },
+    {
+      "timestamp": "2025-07-28T19:04:46.721602",
+      "scenario": "invalid_requests",
+      "duration": 10.002270936965942,
+      "total_requests": 934,
+      "errors": 0,
+      "memory_start": 142.76171875,
+      "memory_end": 163.97265625,
+      "memory_leak_detected": false,
+      "results_file": "stress_test_20250728_190446.json"
+    }
+  ]
+}
