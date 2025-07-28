@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "timestamp": "2025-07-28T19:00:55.714210",
+      "scenario": "standard",
+      "duration": 10.010531902313232,
+      "total_requests": 935,
+      "errors": 0,
+      "memory_start": 141.8515625,
+      "memory_end": 164.39453125,
+      "memory_leak_detected": false,
+      "results_file": "stress_test_20250728_190055.json"
+    }
+  ]
+}
