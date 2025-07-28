@@ -12,8 +12,11 @@ A comprehensive Node.js time manipulation server implementing the Model Context 
 - ⏱️ **Business Hours**: Calculate working hours between timestamps with timezone support
 - 🔄 **Recurring Events**: Find next occurrences of recurring patterns
 - 📝 **Flexible Formatting**: Format times in relative, calendar, or custom formats
+- 📅 **Days Until**: Calculate days until any date or event
 - 🚀 **High Performance**: Response times < 10ms with intelligent caching
-- 🔒 **Rate Limiting**: Configurable rate limits to prevent abuse
+- 🔒 **Security Hardened**: Input validation, cache key hashing, ESLint security rules
+- 🛡️ **Rate Limiting**: Configurable rate limits to prevent abuse
+- ✅ **Thoroughly Tested**: 703+ tests with 100% coverage
 
 ## Installation
 
@@ -227,6 +230,22 @@ Calculate business hours between two times.
     "end": { "hour": 17, "minute": 30 }
   },
   "holidays": ["2025-01-22"],
+  "timezone": "America/New_York"
+}
+```
+
+### 10. `days_until`
+Calculate days until a target date or event.
+
+**Parameters:**
+- `target_date` (required): Target date (ISO string, natural language like "next Christmas", or Unix timestamp)
+- `timezone` (optional): Timezone for calculation (default: system timezone)
+- `format_result` (optional): Return formatted string instead of number (default: false)
+
+**Example:**
+```json
+{
+  "target_date": "2025-12-25",
   "timezone": "America/New_York"
 }
 ```
