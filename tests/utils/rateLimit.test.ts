@@ -29,7 +29,19 @@ describe('SlidingWindowRateLimiter', () => {
       process.env.RATE_LIMIT_WINDOW = '120000';
 
       rateLimiter = new SlidingWindowRateLimiter();
-      // Should use 200 requests per 120000ms (2 minutes)
+
+      // Verify the rate limiter read the environment variables
+      const info = rateLimiter.getInfo();
+      expect(info.limit).toBe(200);
+      expect(info.window).toBe(120000);
+
+      // Should be able to make 200 requests
+      for (let i = 0; i < 200; i++) {
+        expect(rateLimiter.checkLimit()).toBe(true);
+      }
+
+      // 201st request should be blocked
+      expect(rateLimiter.checkLimit()).toBe(false);
 
       delete process.env.RATE_LIMIT;
       delete process.env.RATE_LIMIT_WINDOW;

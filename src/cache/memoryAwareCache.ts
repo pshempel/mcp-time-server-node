@@ -1,7 +1,9 @@
-import NodeCache from 'node-cache';
 import { EventEmitter } from 'events';
 
-interface MemoryAwareCacheOptions extends NodeCache.Options {
+import NodeCache from 'node-cache';
+import type { Options } from 'node-cache';
+
+interface MemoryAwareCacheOptions extends Options {
   maxMemory?: number; // Maximum memory in bytes (default: 10MB)
   evictOnFull?: boolean; // Evict oldest entries when full (default: false)
 }

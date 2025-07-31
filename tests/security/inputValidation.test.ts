@@ -59,16 +59,17 @@ describe('Security - Input Validation', () => {
       it('should accept date strings up to 100 characters', () => {
         const maxDate = '2024-01-01T00:00:00.000Z' + 'x'.repeat(76);
 
-        try {
-          convertTimezone({
+        // This should NOT throw - JavaScript Date parsing ignores trailing characters
+        // The test verifies that length validation doesn't reject strings under 100 chars
+        expect(() => {
+          const result = convertTimezone({
             time: maxDate,
             from_timezone: 'UTC',
             to_timezone: 'UTC',
           });
-        } catch (e: any) {
-          // Should fail date parsing, not length
-          expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_DATE_FORMAT);
-        }
+          // Verify it parsed correctly, ignoring the extra characters
+          expect(result.original).toBe('2024-01-01T00:00:00.000Z');
+        }).not.toThrow();
       });
     });
 

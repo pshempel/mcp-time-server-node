@@ -1,6 +1,6 @@
+import { hashCacheKey } from './cacheKeyHash';
 import { MemoryAwareCache } from './memoryAwareCache';
 import type { MemoryStats } from './memoryAwareCache';
-import { hashCacheKey } from './cacheKeyHash';
 
 // Cache TTL by operation type (in seconds)
 export const CacheTTL = {

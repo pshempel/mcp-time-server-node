@@ -1,31 +1,16 @@
 import { getDay, addDays, lastDayOfMonth, isValid } from 'date-fns';
 
-// Types
+import { debug } from '../utils/debug';
+
+// Types (keeping same as original)
 export interface Holiday {
   name: string;
   type: 'fixed' | 'floating' | 'easter-based';
-
-  // For 'fixed' holidays: month (1-12) and day (1-31) are required
   month?: number;
   day?: number;
-
-  // For 'floating' holidays: month, weekday (0=Sun to 6=Sat), and occurrence are required
-  // occurrence: 1=first, 2=second, 3=third, 4=fourth, -1=last
-  // Special: -2 is used for Victoria Day (Monday on or before May 24)
   weekday?: number;
   occurrence?: number;
-
-  // For 'easter-based' holidays: offset from Easter Sunday (negative = before, positive = after)
-  // Examples: Good Friday = -2, Easter Monday = 1
   offset?: number;
-
-  // Observation rules when holiday falls on weekend:
-  // 'always' = no adjustment
-  // 'never' = no substitute day given
-  // 'us_federal' = Sat→Fri, Sun→Mon
-  // 'uk_bank' = Sat→Mon, Sun→Mon
-  // 'au_public' = Sat→Sat (no change), Sun→Mon
-  // 'cl_monday' = Chile's Monday-moving rule: Tue/Wed/Thu→previous Mon, Sat/Sun→next Mon, Mon/Fri→no change
   observe?: 'always' | 'never' | 'us_federal' | 'uk_bank' | 'au_public' | 'cl_monday';
 }
 
@@ -35,11 +20,7 @@ export interface CalculatedHoliday {
   observedDate?: Date;
 }
 
-// Holiday definitions by country
-// To add a new country:
-// 1. Add country code as key (e.g., 'FR', 'DE', 'JP')
-// 2. Define holidays array following the Holiday interface above
-// 3. Test with getHolidaysForYear('XX', 2025) to verify dates
+// Holiday data
 const HOLIDAY_DATA: Record<string, Holiday[]> = {
   US: [
     { name: "New Year's Day", type: 'fixed', month: 1, day: 1, observe: 'us_federal' },
@@ -224,9 +205,194 @@ const HOLIDAY_DATA: Record<string, Holiday[]> = {
   ],
 };
 
+// Helper functions for calculateFloatingHoliday
+function calculateVictoriaDay(year: number): Date {
+  debug.holidays('Calculating Victoria Day for %d', year);
+  const may24 = new Date(year, 4, 24); // May is month 4
+  const dayOfWeek = getDay(may24);
+  const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const result = addDays(may24, -daysToSubtract);
+  debug.holidays(
+    'Victoria Day: May 24 is %s, observed on %s',
+    may24.toDateString(),
+    result.toDateString()
+  );
+  return result;
+}
+
+function calculateLastOccurrence(year: number, month: number, weekday: number): Date {
+  debug.holidays('Calculating last occurrence of weekday %d in month %d/%d', weekday, month, year);
+  const lastDay = lastDayOfMonth(new Date(year, month - 1));
+  const lastDayOfWeek = getDay(lastDay);
+
+  let daysBack = lastDayOfWeek - weekday;
+  if (daysBack < 0) {
+    daysBack += 7;
+  }
+
+  const result = addDays(lastDay, -daysBack);
+  debug.holidays(
+    'Last %s of month: %s',
+    // eslint-disable-next-line security/detect-object-injection -- weekday is validated 0-6 from getDay()
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][weekday],
+    result.toDateString()
+  );
+  return result;
+}
+
+function calculateNthOccurrence(
+  year: number,
+  month: number,
+  weekday: number,
+  occurrence: number
+): Date | null {
+  debug.holidays(
+    'Calculating occurrence %d of weekday %d in month %d/%d',
+    occurrence,
+    weekday,
+    month,
+    year
+  );
+  const firstDay = new Date(year, month - 1, 1);
+  const firstDayOfWeek = getDay(firstDay);
+
+  let daysUntilTarget = weekday - firstDayOfWeek;
+  if (daysUntilTarget < 0) {
+    daysUntilTarget += 7;
+  }
+
+  const targetDate = addDays(firstDay, daysUntilTarget + (occurrence - 1) * 7);
+
+  // Check if still in same month
+  if (targetDate.getMonth() !== month - 1) {
+    debug.holidays('Target date %s is not in month %d', targetDate.toDateString(), month);
+    return null;
+  }
+
+  debug.holidays('Nth occurrence result: %s', targetDate.toDateString());
+  return targetDate;
+}
+
+export function calculateFloatingHoliday(holiday: Holiday, year: number): Date | null {
+  debug.holidays('calculateFloatingHoliday called for %s in %d', holiday.name, year);
+
+  if (
+    holiday.type !== 'floating' ||
+    !holiday.month ||
+    holiday.weekday === undefined ||
+    holiday.occurrence === undefined
+  ) {
+    debug.holidays('Invalid floating holiday configuration');
+    return null;
+  }
+
+  // Special case for Victoria Day (Monday on or before May 24)
+  if (holiday.name === 'Victoria Day' && holiday.month === 5) {
+    return calculateVictoriaDay(year);
+  }
+
+  if (holiday.occurrence === -1) {
+    return calculateLastOccurrence(year, holiday.month, holiday.weekday);
+  } else {
+    return calculateNthOccurrence(year, holiday.month, holiday.weekday, holiday.occurrence);
+  }
+}
+
+// Helper functions for getObservedDate
+function applyUSFederalRule(date: Date, dayOfWeek: number): Date {
+  if (dayOfWeek === 6) {
+    debug.holidays('US Federal: Saturday -> Friday');
+    return addDays(date, -1); // Saturday -> Friday
+  }
+  if (dayOfWeek === 0) {
+    debug.holidays('US Federal: Sunday -> Monday');
+    return addDays(date, 1); // Sunday -> Monday
+  }
+  return date;
+}
+
+function applyUKBankRule(date: Date, dayOfWeek: number): Date {
+  if (dayOfWeek === 6) {
+    debug.holidays('UK Bank: Saturday -> Monday');
+    return addDays(date, 2); // Saturday -> Monday
+  }
+  if (dayOfWeek === 0) {
+    debug.holidays('UK Bank: Sunday -> Monday');
+    return addDays(date, 1); // Sunday -> Monday
+  }
+  return date;
+}
+
+function applyAUPublicRule(date: Date, dayOfWeek: number): Date {
+  if (dayOfWeek === 0) {
+    debug.holidays('AU Public: Sunday -> Monday');
+    return addDays(date, 1); // Sunday -> Monday
+  }
+  return date; // Saturday stays Saturday
+}
+
+function applyChileMondayRule(date: Date, dayOfWeek: number): Date {
+  // Chile Monday-moving rule (Ley 19.973):
+  // Tuesday, Wednesday, Thursday -> Previous Monday
+  // Saturday, Sunday -> Next Monday
+  // Monday, Friday -> No change (already creates long weekend)
+
+  if (dayOfWeek >= 2 && dayOfWeek <= 4) {
+    // Tue(2), Wed(3), Thu(4) -> move to previous Monday
+    debug.holidays(
+      'Chile Monday: %s -> previous Monday',
+      // eslint-disable-next-line security/detect-object-injection -- dayOfWeek is validated 0-6 from getDay()
+      ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek]
+    );
+    return addDays(date, -(dayOfWeek - 1));
+  } else if (dayOfWeek === 0) {
+    // Sunday -> next Monday
+    debug.holidays('Chile Monday: Sunday -> next Monday');
+    return addDays(date, 1);
+  } else if (dayOfWeek === 6) {
+    // Saturday -> next Monday
+    debug.holidays('Chile Monday: Saturday -> next Monday');
+    return addDays(date, 2);
+  }
+  // Monday(1) or Friday(5) -> no change
+  debug.holidays(
+    'Chile Monday: %s -> no change',
+    // eslint-disable-next-line security/detect-object-injection -- dayOfWeek is validated 0-6 from getDay()
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek]
+  );
+  return date;
+}
+
+export function getObservedDate(date: Date, rule: string): Date {
+  debug.holidays('getObservedDate called for %s with rule %s', date.toDateString(), rule);
+  const dayOfWeek = getDay(date);
+
+  switch (rule) {
+    case 'us_federal':
+      return applyUSFederalRule(date, dayOfWeek);
+
+    case 'uk_bank':
+      return applyUKBankRule(date, dayOfWeek);
+
+    case 'au_public':
+      return applyAUPublicRule(date, dayOfWeek);
+
+    case 'cl_monday':
+      return applyChileMondayRule(date, dayOfWeek);
+
+    case 'never':
+    case 'always':
+    default:
+      debug.holidays('No observation rule change for rule: %s', rule);
+      return date;
+  }
+}
+
+// Export other functions unchanged (just add debug statements)
 export function getHolidayDefinitions(country: string): Holiday[] {
-  // Defense in depth: only allow known country codes
+  debug.holidays('getHolidayDefinitions called for country: %s', country);
   if (!Object.prototype.hasOwnProperty.call(HOLIDAY_DATA, country)) {
+    debug.holidays('Unknown country code: %s', country);
     return [];
   }
   // eslint-disable-next-line security/detect-object-injection -- Country validated above
@@ -234,7 +400,10 @@ export function getHolidayDefinitions(country: string): Holiday[] {
 }
 
 export function calculateFixedHoliday(holiday: Holiday, year: number): Date | null {
+  debug.holidays('calculateFixedHoliday called for %s in %d', holiday.name, year);
+
   if (holiday.type !== 'fixed' || !holiday.month || !holiday.day) {
+    debug.holidays('Invalid fixed holiday configuration');
     return null;
   }
 
@@ -242,63 +411,16 @@ export function calculateFixedHoliday(holiday: Holiday, year: number): Date | nu
 
   // Check if date is valid (e.g., Feb 29 in non-leap year)
   if (!isValid(date) || date.getDate() !== holiday.day) {
+    debug.holidays('Invalid date: %d/%d/%d', holiday.month, holiday.day, year);
     return null;
   }
 
+  debug.holidays('Fixed holiday date: %s', date.toDateString());
   return date;
 }
 
-export function calculateFloatingHoliday(holiday: Holiday, year: number): Date | null {
-  if (
-    holiday.type !== 'floating' ||
-    !holiday.month ||
-    holiday.weekday === undefined ||
-    holiday.occurrence === undefined
-  ) {
-    return null;
-  }
-
-  // Special case for Victoria Day (Monday on or before May 24)
-  if (holiday.name === 'Victoria Day' && holiday.month === 5) {
-    const may24 = new Date(year, 4, 24); // May is month 4
-    const dayOfWeek = getDay(may24);
-    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    return addDays(may24, -daysToSubtract);
-  }
-
-  if (holiday.occurrence === -1) {
-    // Last occurrence of weekday in month
-    const lastDay = lastDayOfMonth(new Date(year, holiday.month - 1));
-    const lastDayOfWeek = getDay(lastDay);
-
-    let daysBack = lastDayOfWeek - holiday.weekday;
-    if (daysBack < 0) {
-      daysBack += 7;
-    }
-
-    return addDays(lastDay, -daysBack);
-  } else {
-    // Nth occurrence of weekday in month
-    const firstDay = new Date(year, holiday.month - 1, 1);
-    const firstDayOfWeek = getDay(firstDay);
-
-    let daysUntilTarget = holiday.weekday - firstDayOfWeek;
-    if (daysUntilTarget < 0) {
-      daysUntilTarget += 7;
-    }
-
-    const targetDate = addDays(firstDay, daysUntilTarget + (holiday.occurrence - 1) * 7);
-
-    // Check if still in same month
-    if (targetDate.getMonth() !== holiday.month - 1) {
-      return null;
-    }
-
-    return targetDate;
-  }
-}
-
 export function calculateEaster(year: number): { year: number; month: number; day: number } {
+  debug.holidays('calculateEaster called for year %d', year);
   // Gauss's Easter Algorithm (Computus)
   const a = year % 19;
   const b = Math.floor(year / 100);
@@ -315,67 +437,25 @@ export function calculateEaster(year: number): { year: number; month: number; da
   const month = Math.floor((h + l - 7 * m + 114) / 31);
   const day = ((h + l - 7 * m + 114) % 31) + 1;
 
+  debug.holidays('Easter date: %d/%d/%d', month, day, year);
   return { year, month, day };
 }
 
 export function getEasterBasedHoliday(holiday: Holiday, year: number): Date {
+  debug.holidays('getEasterBasedHoliday called for %s in %d', holiday.name, year);
   const easter = calculateEaster(year);
   // Create Easter date (month is 1-indexed from algorithm, Date expects 0-indexed)
   const easterDate = new Date(year, easter.month - 1, easter.day);
 
   // Apply offset if specified (default to 0 for Easter Sunday)
   const offset = holiday.offset ?? 0;
-  return addDays(easterDate, offset);
-}
-
-export function getObservedDate(date: Date, rule: string): Date {
-  const dayOfWeek = getDay(date);
-
-  switch (rule) {
-    case 'us_federal':
-      if (dayOfWeek === 6) return addDays(date, -1); // Saturday -> Friday
-      if (dayOfWeek === 0) return addDays(date, 1); // Sunday -> Monday
-      break;
-
-    case 'uk_bank':
-      if (dayOfWeek === 6) return addDays(date, 2); // Saturday -> Monday
-      if (dayOfWeek === 0) return addDays(date, 1); // Sunday -> Monday
-      break;
-
-    case 'au_public':
-      // Australian rules: Sunday -> Monday, Saturday stays Saturday
-      if (dayOfWeek === 0) return addDays(date, 1); // Sunday -> Monday
-      break;
-
-    case 'cl_monday':
-      // Chile Monday-moving rule (Ley 19.973):
-      // Tuesday, Wednesday, Thursday -> Previous Monday
-      // Saturday, Sunday -> Next Monday
-      // Monday, Friday -> No change (already creates long weekend)
-      if (dayOfWeek >= 2 && dayOfWeek <= 4) {
-        // Tue(2), Wed(3), Thu(4) -> move to previous Monday
-        return addDays(date, -(dayOfWeek - 1));
-      } else if (dayOfWeek === 0) {
-        // Sunday -> next Monday
-        return addDays(date, 1);
-      } else if (dayOfWeek === 6) {
-        // Saturday -> next Monday
-        return addDays(date, 2);
-      }
-      // Monday(1) or Friday(5) -> no change
-      break;
-
-    case 'never':
-    case 'always':
-    default:
-      // Return original date
-      break;
-  }
-
-  return date;
+  const result = addDays(easterDate, offset);
+  debug.holidays('Easter-based holiday %s: %s', holiday.name, result.toDateString());
+  return result;
 }
 
 export function getHolidaysForYear(country: string, year: number): CalculatedHoliday[] {
+  debug.holidays('getHolidaysForYear called for %s in %d', country, year);
   const definitions = getHolidayDefinitions(country);
   const holidays: CalculatedHoliday[] = [];
 
@@ -419,30 +499,35 @@ export function getHolidaysForYear(country: string, year: number): CalculatedHol
     }
   }
 
+  debug.holidays('Found %d holidays for %s in %d', holidays.length, country, year);
   return holidays;
 }
 
 export function isHoliday(
   date: Date,
   country: string,
-  options: { checkObserved?: boolean } = {},
+  options: { checkObserved?: boolean } = {}
 ): boolean {
+  debug.holidays('isHoliday called for %s in %s', date.toDateString(), country);
   const year = date.getFullYear();
   const holidays = getHolidaysForYear(country, year);
 
   for (const holiday of holidays) {
     // Check actual date
     if (holiday.date.toDateString() === date.toDateString()) {
+      debug.holidays('Date %s is holiday: %s', date.toDateString(), holiday.name);
       return true;
     }
 
     // Check observed date if requested
     if (options.checkObserved && holiday.observedDate) {
       if (holiday.observedDate.toDateString() === date.toDateString()) {
+        debug.holidays('Date %s is observed holiday: %s', date.toDateString(), holiday.name);
         return true;
       }
     }
   }
 
+  debug.holidays('Date %s is not a holiday', date.toDateString());
   return false;
 }

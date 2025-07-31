@@ -1,6 +1,6 @@
 import { createTestEnvironment } from '../helpers/setup';
 import { callTool } from '../helpers/tools';
-import { addDays, subDays } from 'date-fns';
+import { addDays, subDays, format } from 'date-fns';
 
 describe('days_until integration', () => {
   it('should calculate days until a future date', async () => {
@@ -8,7 +8,7 @@ describe('days_until integration', () => {
 
     try {
       const futureDate = addDays(new Date(), 7);
-      const dateString = futureDate.toISOString().split('T')[0];
+      const dateString = format(futureDate, 'yyyy-MM-dd');
 
       const result = await callTool(client, 'days_until', {
         target_date: dateString,
@@ -24,7 +24,7 @@ describe('days_until integration', () => {
     const { client, cleanup } = await createTestEnvironment();
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
 
       const result = await callTool(client, 'days_until', {
         target_date: today,
@@ -41,7 +41,7 @@ describe('days_until integration', () => {
 
     try {
       const pastDate = subDays(new Date(), 5);
-      const dateString = pastDate.toISOString().split('T')[0];
+      const dateString = format(pastDate, 'yyyy-MM-dd');
 
       const result = await callTool(client, 'days_until', {
         target_date: dateString,
@@ -57,7 +57,7 @@ describe('days_until integration', () => {
     const { client, cleanup } = await createTestEnvironment();
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
 
       const result = await callTool(client, 'days_until', {
         target_date: today,
@@ -75,7 +75,7 @@ describe('days_until integration', () => {
 
     try {
       const tomorrow = addDays(new Date(), 1);
-      const dateString = tomorrow.toISOString().split('T')[0];
+      const dateString = format(tomorrow, 'yyyy-MM-dd');
 
       const result = await callTool(client, 'days_until', {
         target_date: dateString,
@@ -93,7 +93,7 @@ describe('days_until integration', () => {
 
     try {
       const futureDate = addDays(new Date(), 10);
-      const dateString = futureDate.toISOString().split('T')[0];
+      const dateString = format(futureDate, 'yyyy-MM-dd');
 
       const result = await callTool(client, 'days_until', {
         target_date: dateString,

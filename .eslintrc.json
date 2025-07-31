@@ -4,15 +4,19 @@
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module",
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.eslint.json"
   },
-  "plugins": ["@typescript-eslint", "security"],
+  "plugins": ["@typescript-eslint", "security", "jest", "import"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:@typescript-eslint/strict",
-    "plugin:security/recommended-legacy"
+    "plugin:security/recommended-legacy",
+    "plugin:jest/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript"
   ],
   "rules": {
     "@typescript-eslint/explicit-function-return-type": "error",
@@ -25,9 +29,62 @@
     "@typescript-eslint/no-unnecessary-type-assertion": "error",
     "@typescript-eslint/prefer-nullish-coalescing": "error",
     "@typescript-eslint/prefer-optional-chain": "error",
+    "@typescript-eslint/no-unsafe-assignment": "error",
+    "@typescript-eslint/no-unsafe-member-access": "error",
+    "@typescript-eslint/no-unsafe-call": "error",
+    "@typescript-eslint/no-unsafe-return": "error",
+    "@typescript-eslint/no-unsafe-argument": "error",
     "no-console": ["warn", { "allow": ["error"] }],
     "prefer-const": "error",
-    "no-var": "error"
+    "no-var": "error",
+    "complexity": ["error", 10],
+    "max-lines-per-function": [
+      "error",
+      { "max": 50, "skipBlankLines": true, "skipComments": true }
+    ],
+    "max-depth": ["error", 4],
+    "max-nested-callbacks": ["error", 3],
+    "jest/expect-expect": [
+      "error",
+      {
+        "assertFunctionNames": ["expect", "request.*.expect"]
+      }
+    ],
+    "jest/no-disabled-tests": "error",
+    "jest/no-focused-tests": "error",
+    "jest/no-identical-title": "error",
+    "jest/valid-expect": "error",
+    "jest/valid-expect-in-promise": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "import/no-duplicates": "error",
+    "import/no-unresolved": "error",
+    "import/no-cycle": "error",
+    "import/newline-after-import": "error"
   },
-  "ignorePatterns": ["dist", "node_modules", "coverage", "*.js"]
+  "overrides": [
+    {
+      "files": ["tests/**/*.test.ts", "tests/**/*.test.js"],
+      "env": {
+        "jest": true
+      }
+    }
+  ],
+  "ignorePatterns": ["dist", "node_modules", "coverage", "*.js"],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "project": "./tsconfig.eslint.json"
+      }
+    }
+  }
 }

@@ -1,0 +1,1035 @@
+=== TEST ASSERTION ANALYSIS REPORT ===
+
+Total Tests Analyzed: 912
+Fake Tests (No Assertions): 0
+Suspicious Tests: 449
+Tests with Only Trivial Assertions: 365
+
+⚠️  TESTS WITH ONLY TRIVIAL ASSERTIONS:
+  tests/index.test.ts:41 - "should create server with correct info"
+    Line 42: expect(server).toBeDefined();
+  tests/index.test.ts:46 - "should register tool handlers"
+    Line 57: expect(true).toBe(true);
+  tests/index.test.ts:223 - "should return correct tool names"
+    Line 233: expect(toolNames).toEqual([
+  tests/index.test.ts:560 - "should read configuration from environment variables"
+    Line 565: expect(process.env.CACHE_SIZE).toBe('5000');
+    Line 566: expect(process.env.RATE_LIMIT).toBe('50');
+  tests/index.rateLimit.test.ts:250 - "should create rate limiter with environment configuration"
+    Line 260: expect(MockedRateLimiter).toHaveBeenCalled();
+  tests/utils/validation.test.ts:134 - "should create error with all fields"
+    Line 141: expect(error).toEqual({
+  tests/utils/validation.test.ts:148 - "should create error without details"
+    Line 151: expect(error).toEqual({
+  tests/utils/serverConfig.test.ts:30 - "should increase process maxListeners to 20"
+    Line 36: expect(process.getMaxListeners()).toBe(20);
+  tests/utils/serverConfig.test.ts:41 - "should return current configuration"
+    Line 47: expect(config).toEqual({
+  tests/utils/serverConfig.test.ts:55 - "should not emit warning with configured limits"
+    Line 81: expect(maxListenerWarnings).toHaveLength(0);
+  tests/utils/rateLimit.test.ts:15 - "should create rate limiter with default values"
+    Line 17: expect(rateLimiter).toBeDefined();
+  tests/utils/rateLimit.test.ts:21 - "should create rate limiter with custom values"
+    Line 23: expect(rateLimiter).toBeDefined();
+  tests/utils/rateLimit.test.ts:57 - "should allow requests under the limit"
+    Line 58: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 59: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 60: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 61: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 62: expect(rateLimiter.checkLimit()).toBe(true);
+  tests/utils/rateLimit.test.ts:65 - "should deny requests over the limit"
+    Line 68: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 72: expect(rateLimiter.checkLimit()).toBe(false);
+  tests/utils/rateLimit.test.ts:75 - "should allow requests after window expires"
+    Line 82: expect(rateLimiter.checkLimit()).toBe(false);
+    Line 88: expect(rateLimiter.checkLimit()).toBe(true);
+  tests/utils/rateLimit.test.ts:91 - "should use sliding window algorithm"
+    Line 105: expect(rateLimiter.checkLimit()).toBe(false);
+    Line 112: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 113: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 114: expect(rateLimiter.checkLimit()).toBe(true);
+    Line 117: expect(rateLimiter.checkLimit()).toBe(false);
+  tests/utils/rateLimit.test.ts:127 - "should return current usage count"
+    Line 128: expect(rateLimiter.getCurrentUsage()).toBe(0);
+    Line 131: expect(rateLimiter.getCurrentUsage()).toBe(1);
+    Line 135: expect(rateLimiter.getCurrentUsage()).toBe(3);
+  tests/utils/rateLimit.test.ts:138 - "should exclude expired requests from count"
+    Line 141: expect(rateLimiter.getCurrentUsage()).toBe(2);
+    Line 146: expect(rateLimiter.getCurrentUsage()).toBe(0);
+  tests/utils/rateLimit.test.ts:156 - "should return 0 when under limit"
+    Line 158: expect(rateLimiter.getRetryAfter()).toBe(0);
+  tests/utils/rateLimit.test.ts:161 - "should return time until oldest request expires"
+    Line 170: expect(rateLimiter.checkLimit()).toBe(false);
+    Line 174: expect(rateLimiter.getRetryAfter()).toBe(7);
+  tests/utils/rateLimit.test.ts:177 - "should handle edge case of no requests"
+    Line 178: expect(rateLimiter.getRetryAfter()).toBe(0);
+  tests/utils/rateLimit.test.ts:187 - "should clear all request history"
+    Line 192: expect(rateLimiter.getCurrentUsage()).toBe(3);
+    Line 196: expect(rateLimiter.getCurrentUsage()).toBe(0);
+    Line 197: expect(rateLimiter.checkLimit()).toBe(true);
+  tests/utils/rateLimit.test.ts:202 - "should clean up old timestamps automatically"
+    Line 211: expect(rateLimiter.getCurrentUsage()).toBe(100);
+    Line 220: expect(rateLimiter.getCurrentUsage()).toBe(1);
+  tests/utils/rateLimit.test.ts:230 - "should return rate limiter information"
+    Line 237: expect(info).toEqual({
+  tests/utils/rateLimit.test.ts:246 - "should show retry after when at limit"
+    Line 254: expect(info).toEqual({
+  tests/utils/rateLimit.debug.test.ts:28 - "should log rate limiter creation when debug is enabled"
+    Line 39: expect(output).toContain('mcp:rate-limit');
+    Line 40: expect(output).toContain('Creating rate limiter');
+    Line 41: expect(output).toContain('limit: 5');
+    Line 42: expect(output).toContain('window: 10000ms');
+  tests/utils/rateLimit.debug.test.ts:45 - "should log when requests are allowed"
+    Line 53: expect(output).toContain('Request allowed');
+    Line 54: expect(output).toContain('usage: 1/2');
+  tests/utils/rateLimit.debug.test.ts:57 - "should log when rate limit is exceeded"
+    Line 67: expect(output).toContain('Rate limit exceeded');
+    Line 68: expect(output).toContain('usage: 2/2');
+    Line 69: expect(output).toContain('retry after:');
+  tests/utils/rateLimit.debug.test.ts:72 - "should not log when debug is disabled"
+    Line 79: expect(stderrOutput).toHaveLength(0);
+  tests/utils/rateLimit.debug.test.ts:82 - "should log cleanup operations"
+    Line 98: expect(output).toContain('Cleaned up');
+    Line 99: expect(output).toContain('old requests');
+  tests/utils/debug.test.ts:38 - "should output to stderr when DEBUG env is set"
+    Line 45: expect(output).toContain('mcp:server');
+    Line 46: expect(output).toContain('test message');
+  tests/utils/debug.test.ts:49 - "should not output when DEBUG env is not set"
+    Line 55: expect(stderrOutput).toHaveLength(0);
+  tests/utils/debug.test.ts:58 - "should support multiple namespaces"
+    Line 67: expect(output).toContain('server message');
+    Line 68: expect(output).toContain('rate limit message');
+    Line 69: expect(output).not.toContain('tools message');
+  tests/utils/debug.test.ts:72 - "should support wildcard namespace"
+    Line 81: expect(output).toContain('server message');
+    Line 82: expect(output).toContain('rate limit message');
+    Line 83: expect(output).toContain('tools message');
+  tests/utils/debug.test.ts:88 - "should log environment variables when debug is enabled"
+    Line 97: expect(output).toContain('=== MCP Server Environment ===');
+    Line 98: expect(output).toContain('RATE_LIMIT: 50');
+    Line 99: expect(output).toContain('RATE_LIMIT_WINDOW: 30000');
+    Line 100: expect(output).toContain('DEBUG: mcp:init');
+  tests/utils/debug.test.ts:103 - "should show defaults when environment variables are not set"
+    Line 112: expect(output).toContain('RATE_LIMIT: 100 (default)');
+    Line 113: expect(output).toContain('RATE_LIMIT_WINDOW: 60000 (default)');
+  tests/utils/debug.test.ts:116 - "should not log when debug is disabled"
+    Line 122: expect(stderrOutput).toHaveLength(0);
+  tests/utils/debug.test.ts:127 - "should format objects for debug output"
+    Line 136: expect(output).toContain('Test object:');
+    Line 137: expect(output).toContain('foo');
+    Line 138: expect(output).toContain('bar');
+    Line 139: expect(output).toContain('nested');
+    Line 140: expect(output).toContain('42');
+  tests/utils/debug.test.ts:143 - "should not output when namespace is disabled"
+    Line 149: expect(stderrOutput).toHaveLength(0);
+  tests/utils/debug.test.ts:154 - "should be able to debug rate limit operations"
+    Line 165: expect(output).toContain('Creating rate limiter with limit=100, window=60000ms');
+    Line 166: expect(output).toContain('Request allowed. Current usage: 1/100');
+    Line 167: expect(output).toContain('Rate limit exceeded. Retry after: 45s');
+  tests/utils/config.test.ts:236 - "should return a complete TimeServerConfig object"
+    Line 238: expect(config).toHaveProperty('defaultTimezone');
+    Line 239: expect(typeof config.defaultTimezone).toBe('string');
+  tests/tools/subtractTime.test.ts:286 - "should throw error for invalid time format"
+    Line 289: expect(() =>
+  tests/tools/subtractTime.test.ts:306 - "should throw error for invalid unit"
+    Line 309: expect(() =>
+  tests/tools/subtractTime.test.ts:326 - "should throw error for invalid timezone"
+    Line 329: expect(() =>
+  tests/tools/subtractTime.test.ts:347 - "should throw error for NaN amount"
+    Line 350: expect(() =>
+  tests/tools/subtractTime.test.ts:422 - "should use different cache keys for different parameters"
+    Line 439: expect(calls[0][0]).not.toBe(calls[1][0]); // Different cache keys
+  tests/tools/subtractTime.test.ts:444 - "should always include all required fields"
+    Line 454: expect(result).toHaveProperty('original');
+    Line 455: expect(result).toHaveProperty('result');
+    Line 456: expect(result).toHaveProperty('unix_original');
+    Line 457: expect(result).toHaveProperty('unix_result');
+    Line 460: expect(typeof result.original).toBe('string');
+    Line 461: expect(typeof result.result).toBe('string');
+    Line 462: expect(typeof result.unix_original).toBe('number');
+    Line 463: expect(typeof result.unix_result).toBe('number');
+  tests/tools/nextOccurrenceWrapper.test.ts:18 - "should return correct shape with next, unix, and days_until"
+    Line 24: expect(result).toHaveProperty('next');
+    Line 25: expect(result).toHaveProperty('unix');
+    Line 26: expect(result).toHaveProperty('days_until');
+    Line 27: expect(typeof result.next).toBe('string');
+    Line 28: expect(typeof result.unix).toBe('number');
+    Line 29: expect(typeof result.days_until).toBe('number');
+  tests/tools/nextOccurrenceWrapper.test.ts:203 - "should cache results with same parameters"
+    Line 212: expect(result1).toEqual(result2);
+  tests/tools/nextOccurrence.test.ts:356 - "should handle pattern case-insensitively"
+    Line 360: expect(() =>
+  tests/tools/nextOccurrence.test.ts:419 - "should throw error for invalid pattern"
+    Line 422: expect(() =>
+  tests/tools/nextOccurrence.test.ts:437 - "should throw error for invalid day_of_week"
+    Line 440: expect(() =>
+  tests/tools/nextOccurrence.test.ts:456 - "should throw error for invalid day_of_month"
+    Line 459: expect(() =>
+    Line 474: expect(() =>
+  tests/tools/nextOccurrence.test.ts:490 - "should throw error for invalid time format"
+    Line 493: expect(() =>
+    Line 508: expect(() =>
+  tests/tools/nextOccurrence.test.ts:524 - "should throw error for invalid timezone"
+    Line 527: expect(() =>
+  tests/tools/nextOccurrence.test.ts:543 - "should throw error for invalid start_from date"
+    Line 546: expect(() =>
+  tests/tools/nextOccurrence.test.ts:593 - "should use different cache keys for different parameters"
+    Line 611: expect(calls[0][0]).not.toBe(calls[1][0]);
+    Line 612: expect(calls[1][0]).not.toBe(calls[2][0]);
+  tests/tools/nextOccurrence.test.ts:617 - "should return all required fields"
+    Line 624: expect(result).toHaveProperty('next');
+    Line 625: expect(result).toHaveProperty('unix');
+    Line 626: expect(result).toHaveProperty('days_until');
+    Line 627: expect(typeof result.next).toBe('string');
+    Line 628: expect(typeof result.unix).toBe('number');
+    Line 629: expect(typeof result.days_until).toBe('number');
+  tests/tools/getCurrentTime.test.ts:187 - "should use different cache keys for different parameters"
+    Line 194: expect(calls[0][0]).not.toBe(calls[1][0]); // Different cache keys
+  tests/tools/getCurrentTime.test.ts:231 - "should always include all required fields"
+    Line 240: expect(result).toHaveProperty('time');
+    Line 241: expect(result).toHaveProperty('timezone');
+    Line 242: expect(result).toHaveProperty('offset');
+    Line 243: expect(result).toHaveProperty('unix');
+    Line 244: expect(result).toHaveProperty('iso');
+    Line 247: expect(typeof result.time).toBe('string');
+    Line 248: expect(typeof result.timezone).toBe('string');
+    Line 249: expect(typeof result.offset).toBe('string');
+    Line 250: expect(typeof result.unix).toBe('number');
+    Line 251: expect(typeof result.iso).toBe('string');
+  tests/tools/getBusinessDays.test.ts:383 - "should throw error for invalid start date"
+    Line 386: expect(() =>
+  tests/tools/getBusinessDays.test.ts:402 - "should throw error for invalid end date"
+    Line 405: expect(() =>
+  tests/tools/getBusinessDays.test.ts:421 - "should throw error for invalid timezone"
+    Line 424: expect(() =>
+  tests/tools/getBusinessDays.test.ts:441 - "should throw error for invalid holiday date"
+    Line 444: expect(() =>
+  tests/tools/getBusinessDays.test.ts:509 - "should use different cache keys for different parameters"
+    Line 530: expect(calls[0][0]).not.toBe(calls[1][0]); // Different keys
+    Line 531: expect(calls[1][0]).not.toBe(calls[2][0]);
+  tests/tools/getBusinessDays.test.ts:536 - "should return all required fields"
+    Line 544: expect(result).toHaveProperty('total_days');
+    Line 545: expect(result).toHaveProperty('business_days');
+    Line 546: expect(result).toHaveProperty('weekend_days');
+    Line 547: expect(result).toHaveProperty('holiday_count');
+    Line 548: expect(typeof result.total_days).toBe('number');
+    Line 549: expect(typeof result.business_days).toBe('number');
+    Line 550: expect(typeof result.weekend_days).toBe('number');
+    Line 551: expect(typeof result.holiday_count).toBe('number');
+  tests/tools/getBusinessDays.test.ts:554 - "should ensure counts add up correctly"
+    Line 564: expect(result.business_days + result.weekend_days + result.holiday_count).toBe(
+  tests/tools/getBusinessDays.holiday.test.ts:180 - "should cache results with holiday calendar in key"
+    Line 191: expect(result2).toEqual(result1);
+  tests/tools/formatTime.test.ts:250 - "should handle various input time formats"
+    Line 261: expect(() =>
+  tests/tools/formatTime.test.ts:285 - "should throw error for invalid format type"
+    Line 288: expect(() =>
+  tests/tools/formatTime.test.ts:304 - "should throw error for missing custom_format when format is custom"
+    Line 307: expect(() =>
+  tests/tools/formatTime.test.ts:323 - "should throw error for empty custom_format"
+    Line 326: expect(() =>
+  tests/tools/formatTime.test.ts:343 - "should throw error for invalid time"
+    Line 346: expect(() =>
+  tests/tools/formatTime.test.ts:362 - "should throw error for invalid timezone"
+    Line 365: expect(() =>
+  tests/tools/formatTime.test.ts:415 - "should use different cache keys for different parameters"
+    Line 436: expect(calls[0][0]).not.toBe(calls[1][0]);
+    Line 437: expect(calls[1][0]).not.toBe(calls[2][0]);
+  tests/tools/formatTime.test.ts:493 - "should return all required fields"
+    Line 501: expect(result).toHaveProperty('formatted');
+    Line 502: expect(result).toHaveProperty('original');
+    Line 503: expect(typeof result.formatted).toBe('string');
+    Line 504: expect(typeof result.original).toBe('string');
+  tests/tools/daysUntil.test.ts:11 - "should calculate days until a future date"
+    Line 17: expect(result).toBe(7);
+  tests/tools/daysUntil.test.ts:20 - "should return 0 for today"
+    Line 24: expect(result).toBe(0);
+  tests/tools/daysUntil.test.ts:27 - "should return negative days for past dates"
+    Line 32: expect(result).toBe(-5);
+  tests/tools/daysUntil.test.ts:35 - "should handle dates far in the future"
+    Line 37: expect(result).toBeGreaterThan(1000); // At least 1000 days away
+  tests/tools/daysUntil.test.ts:42 - "should accept ISO date format"
+    Line 47: expect(result).toBe(1);
+  tests/tools/daysUntil.test.ts:50 - "should accept ISO datetime format"
+    Line 55: expect(result).toBe(1);
+  tests/tools/daysUntil.test.ts:58 - "should handle natural language dates"
+    Line 64: expect(result).toBe(1);
+  tests/tools/daysUntil.test.ts:69 - "should use system timezone when not specified"
+    Line 74: expect(result).toBe(1);
+  tests/tools/daysUntil.test.ts:77 - "should use UTC when timezone is empty string"
+    Line 85: expect(result).toBe(1);
+  tests/tools/daysUntil.test.ts:88 - "should use specified timezone"
+    Line 98: expect(result).toBeGreaterThan(0);
+  tests/tools/daysUntil.test.ts:103 - "should return plain number by default"
+    Line 108: expect(typeof result).toBe('number');
+    Line 109: expect(result).toBe(1);
+  tests/tools/daysUntil.test.ts:112 - "should format as "
+    Line 119: expect(result).toBe('Today');
+  tests/tools/daysUntil.test.ts:122 - "should format as "
+    Line 130: expect(result).toBe('Tomorrow');
+  tests/tools/daysUntil.test.ts:133 - "should format as "
+    Line 141: expect(result).toBe('Yesterday');
+  tests/tools/daysUntil.test.ts:144 - "should format as "
+    Line 152: expect(result).toBe('in 10 days');
+  tests/tools/daysUntil.test.ts:155 - "should format as "
+    Line 163: expect(result).toBe('5 days ago');
+  tests/tools/daysUntil.test.ts:168 - "should handle same day different times as 0 days"
+    Line 176: expect(result).toBe(0);
+  tests/tools/daysUntil.test.ts:179 - "should handle leap year dates"
+    Line 182: expect(typeof result).toBe('number');
+    Line 184: expect(result).toBeLessThan(0);
+  tests/tools/daysUntil.test.ts:187 - "should handle year boundaries"
+    Line 190: expect(result).toBeGreaterThan(0);
+  tests/tools/daysUntil.test.ts:215 - "should throw error for invalid timezone"
+    Line 216: expect(() =>
+    Line 228: expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
+    Line 229: expect(e.error.message).toContain('Invalid timezone');
+  tests/tools/daysUntil.test.ts:235 - "should calculate days until Christmas 2025"
+    Line 242: expect(result).toBeGreaterThan(0);
+    Line 243: expect(result).toBeLessThan(365);
+  tests/tools/daysUntil.test.ts:246 - "should handle event planning scenario"
+    Line 257: expect(result).toBe('in 30 days');
+  tests/tools/daysUntil.test.ts:260 - "should handle deadline tracking"
+    Line 268: expect(result).toBe(14);
+  tests/tools/daysUntil-refactor.test.ts:28 - "should parse Unix timestamp string"
+    Line 30: expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+  tests/tools/daysUntil-refactor.test.ts:33 - "should parse numeric Unix timestamp"
+    Line 35: expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+  tests/tools/daysUntil-refactor.test.ts:38 - "should parse ISO date string"
+    Line 40: expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+  tests/tools/daysUntil-refactor.test.ts:60 - "should return same date for UTC timezone"
+    Line 63: expect(result).toBe(date);
+  tests/tools/daysUntil-refactor.test.ts:66 - "should convert to specified timezone"
+    Line 70: expect(result).not.toBe(date);
+    Line 72: expect(result.valueOf()).toBeDefined();
+  tests/tools/convertTimezone.test.ts:210 - "should throw error for invalid from_timezone"
+    Line 213: expect(() =>
+    Line 221: expect(() =>
+  tests/tools/convertTimezone.test.ts:238 - "should throw error for invalid to_timezone"
+    Line 241: expect(() =>
+  tests/tools/convertTimezone.test.ts:258 - "should throw error for invalid time format"
+    Line 261: expect(() =>
+  tests/tools/convertTimezone.test.ts:278 - "should throw error for invalid custom format"
+    Line 281: expect(() =>
+  tests/tools/convertTimezone.test.ts:337 - "should use different cache keys for different parameters"
+    Line 354: expect(calls[0][0]).not.toBe(calls[1][0]); // Different cache keys
+  tests/tools/convertTimezone.test.ts:359 - "should always include all required fields"
+    Line 369: expect(result).toHaveProperty('original');
+    Line 370: expect(result).toHaveProperty('converted');
+    Line 371: expect(result).toHaveProperty('from_offset');
+    Line 372: expect(result).toHaveProperty('to_offset');
+    Line 373: expect(result).toHaveProperty('difference');
+    Line 376: expect(typeof result.original).toBe('string');
+    Line 377: expect(typeof result.converted).toBe('string');
+    Line 378: expect(typeof result.from_offset).toBe('string');
+    Line 379: expect(typeof result.to_offset).toBe('string');
+    Line 380: expect(typeof result.difference).toBe('number');
+  tests/tools/convertTimezone-formatting.test.ts:7 - "should preserve explicit offset format"
+    Line 14: expect(result).toBe('2021-01-01T05:00:00.000+05:00');
+  tests/tools/convertTimezone-formatting.test.ts:17 - "should add milliseconds if missing with explicit offset"
+    Line 20: expect(result).toBe('2021-01-01T05:00:00.000+05:00');
+  tests/tools/convertTimezone-formatting.test.ts:23 - "should format time without explicit offset"
+    Line 26: expect(result).toContain('2020-12-31T19:00:00');
+    Line 27: expect(result).toContain('-05:00');
+  tests/tools/convertTimezone-formatting.test.ts:30 - "should format UTC time"
+    Line 33: expect(result).toBe('2021-01-01T00:00:00.000Z');
+  tests/tools/convertTimezone-formatting.test.ts:37 - "should log formatting attempts"
+    Line 39: expect(result).toBeDefined();
+  tests/tools/convertTimezone-formatting.test.ts:45 - "should extract explicit offset from time string"
+    Line 52: expect(result).toBe('+05:00');
+  tests/tools/convertTimezone-formatting.test.ts:55 - "should return Z for Z suffix"
+    Line 58: expect(result).toBe('Z');
+  tests/tools/convertTimezone-formatting.test.ts:61 - "should return Z for UTC timezone"
+    Line 64: expect(result).toBe('Z');
+  tests/tools/convertTimezone-formatting.test.ts:67 - "should format offset for timezone"
+    Line 70: expect(result).toBe('-05:00');
+  tests/tools/convertTimezone-formatting.test.ts:73 - "should handle negative offsets"
+    Line 80: expect(result).toBe('-08:00');
+  tests/tools/convertTimezone-formatting.test.ts:84 - "should log extraction attempts"
+    Line 86: expect(result).toBeDefined();
+  tests/tools/calculateDuration.test.ts:301 - "should throw error for invalid start time"
+    Line 304: expect(() =>
+  tests/tools/calculateDuration.test.ts:320 - "should throw error for invalid end time"
+    Line 323: expect(() =>
+  tests/tools/calculateDuration.test.ts:339 - "should throw error for invalid timezone"
+    Line 342: expect(() =>
+  tests/tools/calculateDuration.test.ts:359 - "should throw error for invalid unit parameter"
+    Line 362: expect(() =>
+  tests/tools/calculateDuration.test.ts:417 - "should use different cache keys for different parameters"
+    Line 432: expect(calls[0][0]).not.toBe(calls[1][0]); // Different cache keys
+  tests/tools/calculateDuration-parsing.test.ts:5 - "should parse valid Unix timestamp string"
+    Line 7: expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+  tests/tools/calculateDuration-parsing.test.ts:20 - "should parse ISO string with Z suffix"
+    Line 22: expect(result.toISOString()).toBe('2025-01-01T12:00:00.000Z');
+  tests/tools/calculateDuration-parsing.test.ts:25 - "should parse ISO string with offset"
+    Line 27: expect(result.toISOString()).toBe('2025-01-01T17:00:00.000Z');
+  tests/tools/calculateDuration-parsing.test.ts:30 - "should parse ISO string with positive offset"
+    Line 32: expect(result.toISOString()).toBe('2025-01-01T03:00:00.000Z');
+  tests/tools/calculateDuration-parsing.test.ts:37 - "should use provided timezone for local time string"
+    Line 41: expect(result).toBeInstanceOf(Date);
+  tests/tools/calculateDuration-parsing.test.ts:44 - "should handle date-only strings with timezone"
+    Line 46: expect(result).toBeInstanceOf(Date);
+  tests/tools/calculateDuration-parsing.test.ts:66 - "should log parsing attempts"
+    Line 70: expect(result).toBeInstanceOf(Date);
+  tests/tools/calculateDuration-calculation.test.ts:67 - "should format with auto unit"
+    Line 69: expect(result).toBe('1 day 1 hour 1 minute 1 second');
+  tests/tools/calculateDuration-calculation.test.ts:72 - "should format with seconds unit"
+    Line 74: expect(result).toBe('90061 seconds');
+  tests/tools/calculateDuration-calculation.test.ts:77 - "should format with minutes unit"
+    Line 79: expect(result).toBe('1501.0166666666667 minutes');
+  tests/tools/calculateDuration-calculation.test.ts:82 - "should format with hours unit"
+    Line 84: expect(result).toBe('25.016944444444444 hours');
+  tests/tools/calculateDuration-calculation.test.ts:87 - "should format with days unit"
+    Line 89: expect(result).toBe('1.042372685185185 days');
+  tests/tools/calculateDuration-calculation.test.ts:92 - "should format negative durations with auto"
+    Line 95: expect(result).toBe('-1 day 1 hour 1 minute 1 second');
+  tests/tools/calculateDuration-calculation.test.ts:98 - "should format zero duration"
+    Line 108: expect(result).toBe('0 seconds');
+  tests/tools/calculateDuration-calculation.test.ts:111 - "should format milliseconds unit"
+    Line 113: expect(result).toBe('90061000 milliseconds');
+  tests/tools/calculateDuration-calculation.test.ts:116 - "should handle sub-second durations with auto"
+    Line 126: expect(result).toBe('0 seconds');
+  tests/tools/calculateDuration-calculation.test.ts:131 - "should log calculation values"
+    Line 137: expect(values).toBeDefined();
+    Line 140: expect(formatted).toBeDefined();
+  tests/tools/calculateBusinessHours.test.ts:392 - "should use different cache keys for different parameters"
+    Line 411: expect(firstCall).not.toBe(secondCall);
+  tests/tools/addTime.test.ts:301 - "should throw error for invalid time format"
+    Line 304: expect(() =>
+  tests/tools/addTime.test.ts:321 - "should throw error for invalid unit"
+    Line 324: expect(() =>
+  tests/tools/addTime.test.ts:341 - "should throw error for invalid timezone"
+    Line 344: expect(() =>
+  tests/tools/addTime.test.ts:362 - "should throw error for NaN amount"
+    Line 365: expect(() =>
+  tests/tools/addTime.test.ts:382 - "should throw error for Infinity amount"
+    Line 385: expect(() =>
+  tests/tools/addTime.test.ts:439 - "should use different cache keys for different parameters"
+    Line 456: expect(calls[0][0]).not.toBe(calls[1][0]); // Different cache keys
+  tests/tools/addTime.test.ts:461 - "should always include all required fields"
+    Line 471: expect(result).toHaveProperty('original');
+    Line 472: expect(result).toHaveProperty('result');
+    Line 473: expect(result).toHaveProperty('unix_original');
+    Line 474: expect(result).toHaveProperty('unix_result');
+    Line 477: expect(typeof result.original).toBe('string');
+    Line 478: expect(typeof result.result).toBe('string');
+    Line 479: expect(typeof result.unix_original).toBe('number');
+    Line 480: expect(typeof result.unix_result).toBe('number');
+  tests/tools/addTime-validation.test.ts:20 - "should throw with correct error code and message"
+    Line 25: expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
+    Line 26: expect(error.error.message).toContain('Invalid unit: weeks');
+    Line 27: expect(error.error.message).toContain(
+    Line 30: expect(error.error.details).toEqual({ unit: 'weeks' });
+  tests/tools/addTime-validation.test.ts:54 - "should throw with correct error code and message"
+    Line 59: expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
+    Line 60: expect(error.error.message).toContain('Invalid amount: NaN');
+    Line 61: expect(error.error.message).toContain('Must be a finite number');
+    Line 62: expect(error.error.details).toEqual({ amount: NaN });
+  tests/tools/addTime-parsing-helpers.test.ts:11 - "should parse valid Unix timestamp"
+    Line 13: expect(result).toEqual(new Date('2025-01-01T00:00:00.000Z'));
+  tests/tools/addTime-parsing-helpers.test.ts:16 - "should return null for non-numeric strings"
+    Line 18: expect(result).toBeNull();
+  tests/tools/addTime-parsing-helpers.test.ts:21 - "should return null for invalid timestamps"
+    Line 23: expect(result).toBeNull();
+  tests/tools/addTime-parsing-helpers.test.ts:26 - "should handle timestamps with leading/trailing spaces"
+    Line 28: expect(result).toBeNull(); // Only pure digits allowed
+  tests/tools/addTime-formatting.test.ts:148 - "should log formatting attempts"
+    Line 168: expect(result).toBeDefined();
+  tests/security/mcp-attack-vectors.test.ts:156 - "should handle extremely large date ranges"
+    Line 167: expect(typeof result.business_days).toBe('number');
+    Line 171: expect(error).toBeDefined();
+  tests/security/mcp-attack-vectors.test.ts:218 - "should ignore constructor.prototype in parameters"
+    Line 230: expect(result).toBeDefined();
+    Line 231: expect((Object.prototype as any).polluted).toBeUndefined();
+  tests/security/mcp-attack-vectors.test.ts:271 - "should handle negative amount overflow"
+    Line 283: expect(result).toBeDefined();
+    Line 286: expect(error).toBeDefined();
+  tests/security/inputValidation.test.ts:22 - "should accept timezone strings up to 100 characters"
+    Line 30: expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
+  tests/security/inputValidation.test.ts:36 - "should reject date strings over 100 characters"
+    Line 39: expect(() =>
+    Line 54: expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
+    Line 55: expect(e.error.message).toContain('exceeds maximum length');
+  tests/security/inputValidation.test.ts:114 - "should reject holiday arrays with more than 365 items"
+    Line 117: expect(() =>
+    Line 132: expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
+    Line 133: expect(e.error.message).toContain('exceeds maximum array length');
+  tests/security/inputValidation.test.ts:216 - "should handle arrays with mixed valid/invalid dates"
+    Line 224: expect(() =>
+    Line 239: expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
+    Line 240: expect(e.error.message).toContain('exceeds maximum length');
+  tests/security/cacheKeySanitization.test.ts:32 - "should generate different hashes for different inputs"
+    Line 42: expect(key1).not.toBe(key2);
+    Line 43: expect(key1).toMatch(/^[a-f0-9]{64}$/);
+    Line 44: expect(key2).toMatch(/^[a-f0-9]{64}$/);
+  tests/security/cacheKeySanitization.test.ts:47 - "should handle filesystem-problematic characters in cache keys"
+    Line 65: expect(actualKey).toMatch(/^[a-f0-9]{64}$/);
+    Line 66: expect(actualKey).not.toContain('/');
+    Line 67: expect(actualKey).not.toContain(':');
+    Line 68: expect(actualKey).not.toContain(' ');
+  tests/security/cacheKeySanitization.test.ts:72 - "should handle timezone strings with various valid characters"
+    Line 92: expect(actualKey).toMatch(/^[a-f0-9]{64}$/);
+    Line 94: expect(actualKey).not.toMatch(/[/_+\-A-Z]/);
+  tests/security/cacheKeySanitization.test.ts:111 - "should handle all parameter combinations"
+    Line 122: expect(actualKey).toMatch(/^[a-f0-9]{64}$/);
+    Line 124: expect(actualKey).not.toContain('America');
+    Line 125: expect(actualKey).not.toContain('false');
+    Line 126: expect(actualKey).not.toContain('yyyy');
+  tests/security/cacheKeySanitization.test.ts:129 - "should produce consistent hashes for the same input"
+    Line 147: expect(key1).toBe(key2);
+  tests/security/cacheKeySanitization.test.ts:150 - "should work correctly with cache get operations"
+    Line 162: expect(setKey).toBe(getKey);
+    Line 163: expect(setKey).toMatch(/^[a-f0-9]{64}$/);
+    Line 164: expect(result1).toEqual(result2);
+  tests/security/cacheKeySanitization.test.ts:169 - "should use the same hashing method across all tools"
+    Line 186: expect(actualKey).toMatch(/^[a-f0-9]{64}$/);
+  tests/security/cacheKeySanitization.test.ts:192 - "should hash keys efficiently"
+    Line 205: expect(perCall).toBeLessThan(1);
+  tests/performance/benchmark.test.ts:18 - "getCurrentTime - cached"
+    Line 30: expect(durationMs).toBeLessThan(5); // Increased from 1ms to account for SHA-256 hashing
+  tests/performance/benchmark.test.ts:33 - "getBusinessDays - cached"
+    Line 50: expect(durationMs).toBeLessThan(5); // Increased from 1ms to account for SHA-256 hashing
+  tests/performance/benchmark.test.ts:55 - "getCurrentTime - fresh"
+    Line 61: expect(durationMs).toBeLessThan(10);
+  tests/performance/benchmark.test.ts:64 - "convertTimezone - fresh"
+    Line 74: expect(durationMs).toBeLessThan(10);
+  tests/performance/benchmark.test.ts:77 - "calculateDuration - fresh"
+    Line 87: expect(durationMs).toBeLessThan(10);
+  tests/performance/benchmark.test.ts:92 - "getBusinessDays with holidays - fresh"
+    Line 104: expect(durationMs).toBeLessThan(50);
+  tests/performance/benchmark.test.ts:107 - "calculateBusinessHours with holidays - fresh"
+    Line 119: expect(durationMs).toBeLessThan(50);
+  tests/performance/benchmark.test.ts:122 - "getBusinessDays with Easter holidays - fresh"
+    Line 133: expect(durationMs).toBeLessThan(50);
+  tests/performance/benchmark.test.ts:138 - "100 getCurrentTime calls should average < 1ms each"
+    Line 152: expect(avgMs).toBeLessThan(5); // Increased from 1ms to account for SHA-256 hashing
+  tests/meta/test-quality.test.ts:41 - "async tests should properly await their assertions"
+    Line 53: if (nextLines.includes('expect(') && !nextLines.includes('await')) {
+    Line 63: expect(issues).toEqual([]);
+  tests/meta/test-quality.test.ts:84 - "no test should use console.log instead of assertions"
+    Line 115: if (line.includes('expect(')) hasExpect = true;
+    Line 122: expect(issues).toEqual([]);
+  tests/meta/test-quality.test.ts:134 - "should generate a comprehensive test quality report"
+    Line 139: expect(report).toContain('TEST ASSERTION ANALYSIS REPORT');
+    Line 140: expect(report).toContain('Total Tests Analyzed:');
+    Line 141: expect(report).toContain('RECOMMENDATIONS');
+    Line 150: expect(fs.existsSync(reportPath)).toBe(true);
+    Line 151: expect(fs.existsSync(path.join(process.cwd(), 'test-assertion-report.json'))).toBe(true);
+  tests/integration/toolDescriptions.test.ts:5 - "should return tool descriptions with system timezone as default"
+    Line 22: expect(getCurrentTimeTool).toBeDefined();
+    Line 24: expect(getCurrentTimeSchema?.properties?.timezone?.description).toBe(
+    Line 30: expect(addTimeTool).toBeDefined();
+    Line 32: expect(addTimeSchema?.properties?.timezone?.description).toBe(
+    Line 38: expect(subtractTimeTool).toBeDefined();
+    Line 40: expect(subtractTimeSchema?.properties?.timezone?.description).toBe(
+    Line 46: expect(calculateDurationTool).toBeDefined();
+    Line 48: expect(calculateDurationSchema?.properties?.timezone?.description).toBe(
+    Line 54: expect(getBusinessDaysTool).toBeDefined();
+    Line 56: expect(getBusinessDaysSchema?.properties?.timezone?.description).toBe(
+    Line 62: expect(nextOccurrenceTool).toBeDefined();
+    Line 64: expect(nextOccurrenceSchema?.properties?.timezone?.description).toBe(
+    Line 70: expect(formatTimeTool).toBeDefined();
+    Line 72: expect(formatTimeSchema?.properties?.timezone?.description).toBe(
+    Line 78: expect(convertTimezoneTool).toBeDefined();
+    Line 80: expect(convertTimezoneSchema?.properties?.from_timezone?.description).toBe(
+    Line 83: expect(convertTimezoneSchema?.properties?.to_timezone?.description).toBe(
+    Line 89: expect(daysUntilTool).toBeDefined();
+    Line 90: expect(daysUntilTool?.description).toBe('Calculate days until a target date/event');
+    Line 92: expect(daysUntilSchema?.properties?.timezone?.description).toBe(
+    Line 95: expect(daysUntilSchema?.required).toEqual(['target_date']);
+  tests/integration/setup.test.ts:7 - "should create linked transport pair"
+    Line 9: expect(clientTransport).toBeDefined();
+    Line 10: expect(serverTransport).toBeDefined();
+  tests/integration/setup.test.ts:15 - "should connect client and server"
+    Line 18: expect(client).toBeDefined();
+    Line 19: expect(server).toBeDefined();
+  tests/integration/setup.test.ts:42 - "should create environment with custom rate limits"
+    Line 52: expect(process.env.RATE_LIMIT).toBe('10');
+    Line 53: expect(process.env.RATE_LIMIT_WINDOW).toBe('5000');
+    Line 58: expect(process.env.RATE_LIMIT).toBe(originalRateLimit);
+    Line 59: expect(process.env.RATE_LIMIT_WINDOW).toBe(originalWindow);
+  tests/integration/maxListeners.test.ts:12 - "should handle many concurrent requests without MaxListenersExceededWarning"
+    Line 38: expect(maxListenerWarnings).toHaveLength(0);
+  tests/integration/maxListeners.test.ts:48 - "should handle rapid sequential requests without warnings"
+    Line 68: expect(maxListenerWarnings).toHaveLength(0);
+  tests/integration/advanced.test.ts:6 - "should handle concurrent requests"
+    Line 18: expect(results[0]).toHaveProperty('timezone', 'UTC');
+    Line 19: expect(results[1]).toHaveProperty('result');
+    Line 20: expect(results[2]).toHaveProperty('formatted');
+  tests/integration/advanced.test.ts:53 - "should handle concurrent requests with different tools"
+    Line 83: expect(results[0]).toHaveProperty('timezone');
+    Line 84: expect(results[1]).toHaveProperty('converted');
+    Line 85: expect(results[2]).toHaveProperty('result');
+    Line 86: expect(results[3]).toHaveProperty('hours', 24);
+    Line 87: expect(results[4]).toHaveProperty('business_days');
+  tests/integration/advanced.test.ts:93 - "should handle concurrent requests with errors"
+    Line 108: expect(results[0]).toHaveProperty('timezone');
+    Line 111: expect(results[1]).toBeInstanceOf(Error);
+    Line 112: expect(results[1]).toHaveProperty('code', 'INVALID_DATE_FORMAT');
+    Line 115: expect(results[2]).toHaveProperty('formatted');
+  tests/integration/advanced.test.ts:123 - "should maintain message order"
+    Line 134: expect(requests[0].params.name).toBe('get_current_time');
+    Line 135: expect(requests[1].params.name).toBe('add_time');
+  tests/integration/advanced.test.ts:172 - "should match request and response IDs"
+    Line 186: expect(request).toBeDefined();
+    Line 187: expect(response).toBeDefined();
+    Line 188: expect(response?.id).toBe(request?.id);
+  tests/integration/advanced.test.ts:194 - "should handle interleaved concurrent requests correctly"
+    Line 207: expect(results[0].timezone).toBe('UTC');
+    Line 208: expect(results[1].timezone).toBe('America/New_York');
+    Line 209: expect(results[2].timezone).toBe('Asia/Tokyo');
+    Line 214: expect(new Set(ids).size).toBe(ids.length);
+  tests/integration/advanced.test.ts:222 - "should handle rapid sequential requests"
+    Line 242: expect(results).toHaveLength(10);
+    Line 244: expect(result).toHaveProperty('timezone');
+    Line 248: expect(totalTime).toBeLessThan(1000);
+  tests/integration/advanced.test.ts:254 - "should handle mixed concurrent and sequential requests"
+    Line 282: expect(seq1).toHaveProperty('timezone');
+    Line 283: expect(seq2).toHaveProperty('result');
+    Line 284: expect(concurrentResults[0]).toHaveProperty('formatted');
+    Line 285: expect(concurrentResults[1]).toHaveProperty('hours');
+    Line 286: expect(seq3).toHaveProperty('business_days');
+  tests/edge-cases/timezone-boundaries.test.ts:77 - "should handle fall back correctly"
+    Line 89: expect(beforeDST).toBe(afterDST);
+  tests/edge-cases/timezone-boundaries.test.ts:102 - "should handle year transition correctly"
+    Line 109: expect(todayResult).toBe(0);
+    Line 110: expect(tomorrowResult).toBe(1);
+  tests/edge-cases/timezone-boundaries.test.ts:113 - "should handle leap year correctly"
+    Line 120: expect(feb29Result).toBe(1);
+    Line 121: expect(mar1Result).toBe(2);
+  tests/data/holidays.verification.test.ts:115 - "should have ${expected.name} on ${expected.date}"
+    Line 127: expect(holiday).toBeDefined();
+    Line 130: expect(actualDateStr).toBe(expected.date);
+  tests/data/holidays.verification.test.ts:144 - "should have ${expected.name} on ${expected.date}"
+    Line 155: expect(holiday).toBeDefined();
+    Line 158: expect(actualDateStr).toBe(expected.date);
+  tests/data/holidays.verification.test.ts:165 - "should correctly calculate fixed date holidays"
+    Line 168: expect(july4?.date.toISOString().split('T')[0]).toBe('2025-07-04');
+  tests/data/holidays.verification.test.ts:171 - "should correctly calculate nth weekday holidays"
+    Line 174: expect(mlk?.date.toISOString().split('T')[0]).toBe('2025-01-20');
+    Line 175: expect(mlk?.date.getDay()).toBe(1); // Monday
+  tests/data/holidays.verification.test.ts:178 - "should correctly calculate last weekday holidays"
+    Line 181: expect(memorial?.date.toISOString().split('T')[0]).toBe('2025-05-26');
+    Line 182: expect(memorial?.date.getDay()).toBe(1); // Monday
+  tests/data/holidays.verification.test.ts:185 - "should correctly calculate Easter-based holidays"
+    Line 190: expect(goodFriday?.date.toISOString().split('T')[0]).toBe('2025-04-18');
+    Line 191: expect(easterMonday?.date.toISOString().split('T')[0]).toBe('2025-04-21');
+  tests/data/holidays.verification.test.ts:194 - "should correctly calculate Victoria Day (special rule)"
+    Line 197: expect(victoria?.date.toISOString().split('T')[0]).toBe('2025-05-19');
+    Line 198: expect(victoria?.date.getDay()).toBe(1); // Monday
+  tests/data/holidays.verification.test.ts:203 - "should have consistent holiday counts across years"
+    Line 210: expect(Math.abs(holidays2025.length - holidays2026.length)).toBeLessThanOrEqual(1);
+  tests/data/holidays.verification.test.ts:214 - "should calculate weekday holidays correctly across years"
+    Line 223: expect(mlk2025?.date.getDay()).toBe(1); // Monday
+    Line 224: expect(mlk2026?.date.getDay()).toBe(1); // Monday
+    Line 225: expect(mlk2025?.date.getDate()).toBeGreaterThanOrEqual(15);
+    Line 226: expect(mlk2025?.date.getDate()).toBeLessThanOrEqual(21);
+    Line 227: expect(mlk2026?.date.getDate()).toBeGreaterThanOrEqual(15);
+    Line 228: expect(mlk2026?.date.getDate()).toBeLessThanOrEqual(21);
+  tests/data/holidays.ve-cl.test.ts:32 - "should return correct number of holidays"
+    Line 34: expect(result).toHaveLength(12);
+  tests/data/holidays.ve-cl.test.ts:38 - "should include ${englishName} on ${date}"
+    Line 43: expect(holiday).toBeDefined();
+    Line 44: expect(holiday?.date.toISOString().split('T')[0]).toBe(date);
+  tests/data/holidays.ve-cl.test.ts:48 - "should calculate Carnival dates based on Easter"
+    Line 54: expect(carnivalMonday?.date.toISOString().split('T')[0]).toBe('2025-03-03');
+    Line 55: expect(carnivalTuesday?.date.toISOString().split('T')[0]).toBe('2025-03-04');
+  tests/data/holidays.ve-cl.test.ts:60 - "should calculate different Carnival dates for 2026"
+    Line 66: expect(carnivalMonday?.date.toISOString().split('T')[0]).toBe('2026-02-16');
+    Line 67: expect(carnivalTuesday?.date.toISOString().split('T')[0]).toBe('2026-02-17');
+  tests/data/holidays.ve-cl.test.ts:72 - "should recognize VE holidays"
+    Line 74: expect(isHoliday(new Date(2025, 0, 1), 'VE')).toBe(true); // Jan 1
+    Line 75: expect(isHoliday(new Date(2025, 2, 3), 'VE')).toBe(true); // March 3 - Carnival Monday
+    Line 76: expect(isHoliday(new Date(2025, 11, 25), 'VE')).toBe(true); // Dec 25
+    Line 77: expect(isHoliday(new Date(2025, 0, 2), 'VE')).toBe(false); // Jan 2
+  tests/data/holidays.ve-cl.test.ts:125 - "should return correct number of holidays"
+    Line 127: expect(result).toHaveLength(16);
+  tests/data/holidays.ve-cl.test.ts:131 - "should include ${englishName} on ${date}${originalDate ? "
+    Line 139: expect(holiday).toBeDefined();
+    Line 140: expect(holiday?.date.toISOString().split('T')[0]).toBe(date);
+  tests/data/holidays.ve-cl.test.ts:146 - "should move Sunday holidays to Monday"
+    Line 151: expect(sanPedro?.date.toISOString().split('T')[0]).toBe('2025-06-30');
+    Line 152: expect(sanPedro?.date.getDay()).toBe(1); // Monday
+    Line 156: expect(encuentro?.date.toISOString().split('T')[0]).toBe('2025-10-13');
+    Line 157: expect(encuentro?.date.getDay()).toBe(1); // Monday
+  tests/data/holidays.ve-cl.test.ts:160 - "should move Tuesday/Wednesday/Thursday holidays to previous Monday"
+    Line 165: expect(sanPedro2027?.date.toISOString().split('T')[0]).toBe('2027-06-28'); // Previous Monday
+    Line 166: expect(sanPedro2027?.date.getDay()).toBe(1); // Monday
+  tests/data/holidays.ve-cl.test.ts:169 - "should move Saturday holidays to Monday"
+    Line 174: expect(encuentro2024?.date.toISOString().split('T')[0]).toBe('2024-10-14'); // Next Monday
+    Line 175: expect(encuentro2024?.date.getDay()).toBe(1); // Monday
+  tests/data/holidays.ve-cl.test.ts:178 - "should not move Friday holidays (already creates long weekend)"
+    Line 182: expect(encuentro2029?.date.toISOString().split('T')[0]).toBe('2029-10-12'); // Stays on Friday
+    Line 183: expect(encuentro2029?.date.getDay()).toBe(5); // Friday
+  tests/data/holidays.ve-cl.test.ts:186 - "should not move Monday holidays"
+    Line 190: expect(sanPedro2026?.date.toISOString().split('T')[0]).toBe('2026-06-29'); // Stays on Monday
+    Line 191: expect(sanPedro2026?.date.getDay()).toBe(1); // Monday
+  tests/data/holidays.ve-cl.test.ts:196 - "should recognize CL holidays including moved ones"
+    Line 198: expect(isHoliday(new Date(2025, 0, 1), 'CL')).toBe(true); // Jan 1
+    Line 199: expect(isHoliday(new Date(2025, 5, 30), 'CL')).toBe(true); // June 30 - Moved San Pedro
+    Line 200: expect(isHoliday(new Date(2025, 5, 29), 'CL')).toBe(false); // June 29 - Original date, not a holiday
+    Line 201: expect(isHoliday(new Date(2025, 9, 13), 'CL')).toBe(true); // Oct 13 - Moved Encuentro
+    Line 202: expect(isHoliday(new Date(2025, 9, 12), 'CL')).toBe(false); // Oct 12 - Original date, not a holiday
+  tests/data/holidays.test.ts:36 - "should return empty array for unknown country"
+    Line 38: expect(unknownHolidays).toEqual([]);
+  tests/data/holidays.test.ts:43 - "should calculate fixed holiday date for a year"
+    Line 53: expect(date).toEqual(new Date(2025, 6, 4)); // July 4, 2025
+  tests/data/holidays.test.ts:56 - "should handle leap year for Feb 29"
+    Line 66: expect(date2024).toEqual(new Date(2024, 1, 29));
+    Line 69: expect(date2025).toBeNull(); // Not a leap year
+  tests/data/holidays.test.ts:74 - "should calculate MLK Day (3rd Monday in January)"
+    Line 85: expect(date2025).toEqual(new Date(2025, 0, 20)); // January 20, 2025
+    Line 88: expect(date2024).toEqual(new Date(2024, 0, 15)); // January 15, 2024
+  tests/data/holidays.test.ts:91 - "should calculate Thanksgiving (4th Thursday in November)"
+    Line 102: expect(date2025).toEqual(new Date(2025, 10, 27)); // November 27, 2025
+  tests/data/holidays.test.ts:105 - "should calculate Memorial Day (last Monday in May)"
+    Line 116: expect(date2025).toEqual(new Date(2025, 4, 26)); // May 26, 2025
+  tests/data/holidays.test.ts:119 - "should return null for non-existent occurrence"
+    Line 130: expect(date).toBeNull();
+  tests/data/holidays.test.ts:135 - "should apply US Federal observation rules"
+    Line 139: expect(observed).toEqual(new Date(2026, 6, 3)); // Friday
+    Line 144: expect(observed2).toEqual(new Date(2027, 6, 5)); // Monday
+    Line 149: expect(observed3).toEqual(july4_2025);
+  tests/data/holidays.test.ts:152 - "should apply UK Bank holiday rules"
+    Line 156: expect(observed).toEqual(new Date(2027, 11, 27)); // Monday
+    Line 161: expect(observed2).toEqual(new Date(2027, 11, 27)); // Monday
+  tests/data/holidays.test.ts:164 - "should not observe when rule is "
+    Line 167: expect(observed).toEqual(saturday);
+  tests/data/holidays.test.ts:170 - "should always use actual date when rule is "
+    Line 173: expect(observed).toEqual(weekday);
+  tests/data/holidays.test.ts:193 - "should include observed dates when different from actual"
+    Line 198: expect(july4).toBeDefined();
+    Line 199: expect(july4!.date.toISOString().split('T')[0]).toBe('2026-07-04');
+    Line 200: expect(july4!.observedDate?.toISOString().split('T')[0]).toBe('2026-07-03');
+  tests/data/holidays.test.ts:203 - "should return empty array for unknown country"
+    Line 205: expect(holidays).toEqual([]);
+  tests/data/holidays.easter.test.ts:7 - "should calculate Easter date for known years"
+    Line 21: expect(result).toEqual({ year, month, day });
+  tests/data/holidays.easter.test.ts:42 - "should calculate Good Friday (2 days before Easter)"
+    Line 52: expect(goodFriday2025).toEqual(new Date(2025, 3, 18)); // month is 0-indexed
+    Line 56: expect(goodFriday2024).toEqual(new Date(2024, 2, 29));
+  tests/data/holidays.easter.test.ts:59 - "should calculate Easter Monday (1 day after Easter)"
+    Line 69: expect(easterMonday2025).toEqual(new Date(2025, 3, 21));
+    Line 73: expect(easterMonday2024).toEqual(new Date(2024, 3, 1));
+  tests/data/holidays.easter.test.ts:76 - "should calculate Easter Sunday (offset 0)"
+    Line 85: expect(easterSunday2025).toEqual(new Date(2025, 3, 20));
+  tests/data/holidays.easter.test.ts:88 - "should calculate Easter Saturday (1 day before Easter)"
+    Line 97: expect(easterSaturday2025).toEqual(new Date(2025, 3, 19));
+  tests/data/holidays.easter.test.ts:100 - "should handle holidays with no offset (default to 0)"
+    Line 108: expect(easter2025).toEqual(new Date(2025, 3, 20));
+  tests/data/holidays.easter.test.ts:111 - "should handle large offsets for other Easter-based holidays"
+    Line 121: expect(ascension2025).toEqual(new Date(2025, 4, 29)); // May 29
+    Line 132: expect(pentecost2025).toEqual(new Date(2025, 5, 8)); // June 8
+  tests/data/holidays.easter.test.ts:139 - "should include Easter-based holidays for UK"
+    Line 146: expect(goodFriday?.date).toEqual(new Date(2025, 3, 18));
+    Line 147: expect(easterMonday?.date).toEqual(new Date(2025, 3, 21));
+  tests/data/holidays.easter.test.ts:150 - "should include Easter-based holidays for AU"
+    Line 158: expect(goodFriday?.date).toEqual(new Date(2025, 3, 18));
+    Line 159: expect(easterSaturday?.date).toEqual(new Date(2025, 3, 19));
+    Line 160: expect(easterMonday?.date).toEqual(new Date(2025, 3, 21));
+  tests/data/holidays.easter.test.ts:163 - "should include Good Friday for CA"
+    Line 168: expect(goodFriday?.date).toEqual(new Date(2025, 3, 18));
+  tests/data/holidays.ca-au.test.ts:13 - "should have New Year"
+    Line 14: expect(holidayMap.has('2025-01-01')).toBe(true);
+    Line 15: expect(holidayMap.get('2025-01-01')?.name).toBe("New Year's Day");
+  tests/data/holidays.ca-au.test.ts:18 - "should have Canada Day on July 1"
+    Line 19: expect(holidayMap.has('2025-07-01')).toBe(true);
+    Line 20: expect(holidayMap.get('2025-07-01')?.name).toBe('Canada Day');
+  tests/data/holidays.ca-au.test.ts:23 - "should have Victoria Day on Monday before May 25"
+    Line 24: expect(holidayMap.has('2025-05-19')).toBe(true);
+    Line 25: expect(holidayMap.get('2025-05-19')?.name).toBe('Victoria Day');
+  tests/data/holidays.ca-au.test.ts:28 - "should have Labour Day on first Monday in September"
+    Line 29: expect(holidayMap.has('2025-09-01')).toBe(true);
+    Line 30: expect(holidayMap.get('2025-09-01')?.name).toBe('Labour Day');
+  tests/data/holidays.ca-au.test.ts:33 - "should have Thanksgiving on second Monday in October"
+    Line 34: expect(holidayMap.has('2025-10-13')).toBe(true);
+    Line 35: expect(holidayMap.get('2025-10-13')?.name).toBe('Thanksgiving Day');
+  tests/data/holidays.ca-au.test.ts:38 - "should have Christmas Day"
+    Line 39: expect(holidayMap.has('2025-12-25')).toBe(true);
+    Line 40: expect(holidayMap.get('2025-12-25')?.name).toBe('Christmas Day');
+  tests/data/holidays.ca-au.test.ts:43 - "should have Boxing Day"
+    Line 44: expect(holidayMap.has('2025-12-26')).toBe(true);
+    Line 45: expect(holidayMap.get('2025-12-26')?.name).toBe('Boxing Day');
+  tests/data/holidays.ca-au.test.ts:48 - "should have Remembrance Day"
+    Line 49: expect(holidayMap.has('2025-11-11')).toBe(true);
+    Line 50: expect(holidayMap.get('2025-11-11')?.name).toBe('Remembrance Day');
+  tests/data/holidays.ca-au.test.ts:55 - "should calculate Victoria Day correctly for multiple years"
+    Line 67: expect(victoriaDay).toBeDefined();
+    Line 68: expect(victoriaDay!.date.toISOString().split('T')[0]).toBe(expected);
+  tests/data/holidays.ca-au.test.ts:74 - "should observe Canada Day on Monday when it falls on Sunday"
+    Line 78: expect(canadaDay?.date.toISOString().split('T')[0]).toBe('2029-07-01');
+    Line 79: expect(canadaDay?.observedDate?.toISOString().split('T')[0]).toBe('2029-07-02');
+  tests/data/holidays.ca-au.test.ts:84 - "should identify Canadian holidays"
+    Line 85: expect(isHoliday(new Date(2025, 6, 1), 'CA')).toBe(true); // July is month 6
+    Line 86: expect(isHoliday(new Date(2025, 6, 2), 'CA')).toBe(false);
+    Line 88: expect(isHoliday(new Date(2029, 6, 2), 'CA', { checkObserved: true })).toBe(true); // Canada Day observed
+  tests/data/holidays.ca-au.test.ts:103 - "should have New Year"
+    Line 104: expect(holidayMap.has('2025-01-01')).toBe(true);
+    Line 105: expect(holidayMap.get('2025-01-01')?.name).toBe("New Year's Day");
+  tests/data/holidays.ca-au.test.ts:108 - "should have Australia Day on January 26"
+    Line 109: expect(holidayMap.has('2025-01-26')).toBe(true);
+    Line 110: expect(holidayMap.get('2025-01-26')?.name).toBe('Australia Day');
+  tests/data/holidays.ca-au.test.ts:113 - "should have Anzac Day on April 25"
+    Line 114: expect(holidayMap.has('2025-04-25')).toBe(true);
+    Line 115: expect(holidayMap.get('2025-04-25')?.name).toBe('Anzac Day');
+  tests/data/holidays.ca-au.test.ts:118 - "should have Queen"
+    Line 119: expect(holidayMap.has('2025-06-09')).toBe(true);
+    Line 120: expect(holidayMap.get('2025-06-09')?.name).toBe("Queen's Birthday");
+  tests/data/holidays.ca-au.test.ts:123 - "should have Christmas Day"
+    Line 124: expect(holidayMap.has('2025-12-25')).toBe(true);
+    Line 125: expect(holidayMap.get('2025-12-25')?.name).toBe('Christmas Day');
+  tests/data/holidays.ca-au.test.ts:128 - "should have Boxing Day"
+    Line 129: expect(holidayMap.has('2025-12-26')).toBe(true);
+    Line 130: expect(holidayMap.get('2025-12-26')?.name).toBe('Boxing Day');
+  tests/data/holidays.ca-au.test.ts:135 - "should observe Australia Day on Monday when it falls on Sunday"
+    Line 139: expect(australiaDay?.date.toISOString().split('T')[0]).toBe('2025-01-26');
+    Line 140: expect(australiaDay?.observedDate?.toISOString().split('T')[0]).toBe('2025-01-27');
+  tests/data/holidays.ca-au.test.ts:143 - "should NOT observe on Monday when holiday falls on Saturday"
+    Line 148: expect(anzacDay?.date.toISOString().split('T')[0]).toBe('2026-04-25');
+    Line 149: expect(anzacDay?.observedDate).toBeUndefined(); // No Monday observation
+  tests/data/holidays.ca-au.test.ts:154 - "should identify Australian holidays"
+    Line 155: expect(isHoliday(new Date(2025, 0, 26), 'AU')).toBe(true); // January is month 0
+    Line 156: expect(isHoliday(new Date(2025, 0, 27), 'AU')).toBe(false); // Not the actual date
+    Line 158: expect(isHoliday(new Date(2025, 0, 27), 'AU', { checkObserved: true })).toBe(true); // Australia Day observed
+  tests/data/holidays-refactor.test.ts:6 - "should handle Victoria Day special case"
+    Line 25: expect(result).toEqual(expected);
+  tests/data/holidays-refactor.test.ts:29 - "should handle last occurrence correctly"
+    Line 40: expect(result).toEqual(new Date(2025, 4, 26)); // Last Monday in May
+  tests/data/holidays-refactor.test.ts:43 - "should handle nth occurrence that exceeds month"
+    Line 54: expect(result).toBeNull();
+  tests/data/holidays-refactor.test.ts:57 - "should return null for invalid holiday type"
+    Line 68: expect(result).toBeNull();
+  tests/cache/memoryAwareCache.test.ts:19 - "should create cache with default 10MB limit"
+    Line 21: expect(defaultCache.getMemoryStats().maxMemory).toBe(10 * 1024 * 1024);
+  tests/cache/memoryAwareCache.test.ts:24 - "should accept custom memory limit"
+    Line 25: expect(cache.getMemoryStats().maxMemory).toBe(1024);
+  tests/cache/memoryAwareCache.test.ts:42 - "should calculate object size consistently"
+    Line 53: expect(size2).toBe(size1);
+  tests/cache/memoryAwareCache.test.ts:56 - "should reduce memory usage when deleting entries"
+    Line 59: expect(afterAdd).toBeGreaterThan(0);
+    Line 64: expect(afterDel).toBe(0);
+  tests/cache/memoryAwareCache.test.ts:69 - "should reject set when memory limit would be exceeded"
+    Line 76: expect(result).toBe(false);
+    Line 77: expect(cache.has('overflow')).toBe(false);
+    Line 78: expect(cache.has('big')).toBe(true);
+  tests/cache/memoryAwareCache.test.ts:81 - "should emit memory warning at 90% usage"
+    Line 83: expect(stats.usedMemory / stats.maxMemory).toBeGreaterThanOrEqual(0.9);
+  tests/cache/memoryAwareCache.test.ts:91 - "should evict oldest entries when eviction enabled"
+    Line 105: expect(evictCache.has('old1')).toBe(false);
+    Line 106: expect(evictCache.has('new')).toBe(true);
+  tests/cache/memoryAwareCache.test.ts:112 - "should return accurate memory statistics"
+    Line 118: expect(stats).toMatchObject({
+    Line 126: expect(stats.usedMemory + stats.availableMemory).toBe(stats.maxMemory);
+  tests/cache/memoryAwareCache.test.ts:142 - "should handle various data types"
+    Line 156: expect(memory).toBeGreaterThan(0);
+    Line 157: expect(memory).toBeLessThan(1024); // Should fit in our 1KB cache
+  tests/cache/memoryAwareCache.test.ts:161 - "should account for key size in memory calculation"
+    Line 174: expect(longKeyMemory).toBeGreaterThan(shortKeyMemory);
+  tests/tools/recurrence/YearlyRecurrence.test.ts:10 - "should calculate next year for regular date"
+    Line 18: expect(result).toEqual(new Date('2025-06-15T10:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:21 - "should handle leap year Feb 29"
+    Line 30: expect(result).toEqual(new Date('2025-02-28T10:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:33 - "should preserve exact time"
+    Line 41: expect(result).toEqual(new Date('2025-06-15T14:30:45.123Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:44 - "should handle year-end dates"
+    Line 52: expect(result).toEqual(new Date('2025-12-31T23:59:59Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:57 - "should find next occurrence of specific date in future"
+    Line 68: expect(result).toEqual(new Date('2024-12-25T00:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:71 - "should advance to next year if date has passed"
+    Line 82: expect(result).toEqual(new Date('2025-01-01T00:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:85 - "should handle Feb 29 in specific date mode"
+    Line 96: expect(result).toEqual(new Date('2025-02-28T00:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:99 - "should handle current day being target day"
+    Line 110: expect(result).toEqual(new Date('2025-12-25T00:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:115 - "should set specific time for same-date pattern"
+    Line 124: expect(result).toEqual(new Date('2025-06-15T14:30:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:127 - "should set specific time for specific-date pattern"
+    Line 138: expect(result).toEqual(new Date('2024-12-25T08:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:141 - "should check time when on same day"
+    Line 153: expect(result).toEqual(new Date('2025-12-25T14:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:158 - "should calculate in specified timezone for same-date pattern"
+    Line 169: expect(result).toEqual(new Date('2025-06-15T14:00:00Z')); // 10am EDT
+  tests/tools/recurrence/YearlyRecurrence.test.ts:172 - "should handle DST transitions"
+    Line 184: expect(result).toEqual(new Date('2025-03-10T18:00:00Z')); // 2pm EDT
+  tests/tools/recurrence/YearlyRecurrence.test.ts:187 - "should find specific date in timezone"
+    Line 200: expect(result).toEqual(new Date('2024-12-30T13:00:00Z')); // Dec 31 midnight Sydney
+  tests/tools/recurrence/YearlyRecurrence.test.ts:205 - "should handle leap year to leap year"
+    Line 218: expect(result).toEqual(new Date('2028-02-28T10:00:00Z'));
+  tests/tools/recurrence/YearlyRecurrence.test.ts:221 - "should handle month-end dates"
+    Line 232: expect(result).toEqual(new Date('2024-02-29T00:00:00Z')); // 2024 is leap year
+  tests/tools/recurrence/YearlyRecurrence.test.ts:235 - "should handle -1 for last day of month"
+    Line 246: expect(result).toEqual(new Date('2025-02-28T00:00:00Z'));
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:17 - "should return next week same day when no day specified"
+    Line 28: expect(result.toISOString()).toBe('2025-01-22T10:30:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:31 - "should return next occurrence of specified weekday"
+    Line 43: expect(result.toISOString()).toBe('2025-01-17T10:30:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:46 - "should handle Sunday (0) correctly"
+    Line 57: expect(result.toISOString()).toBe('2025-01-19T10:30:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:60 - "should handle Saturday (6) correctly"
+    Line 71: expect(result.toISOString()).toBe('2025-01-18T10:30:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:74 - "should return today if same weekday and time has not passed"
+    Line 86: expect(result.toISOString()).toBe('2025-01-15T14:30:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:89 - "should return next week if same weekday but time has passed"
+    Line 101: expect(result.toISOString()).toBe('2025-01-22T09:00:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:104 - "should handle timezone correctly"
+    Line 116: expect(result.toISOString()).toBe('2025-01-17T14:00:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:119 - "should handle timezone when calculating day of week"
+    Line 135: expect(result.toISOString()).toBe('2025-01-15T03:00:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:138 - "should handle wrapping around to next week"
+    Line 149: expect(result.toISOString()).toBe('2025-01-20T10:30:00.000Z');
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:152 - "should preserve seconds and milliseconds as 0 with time"
+    Line 163: expect(result.getSeconds()).toBe(0);
+    Line 164: expect(result.getMilliseconds()).toBe(0);
+  tests/tools/recurrence/WeeklyRecurrence.test.ts:167 - "should handle same day without specific time"
+    Line 178: expect(result.toISOString()).toBe('2025-01-22T10:30:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:9 - "should set time in UTC when timezone is UTC"
+    Line 14: expect(result.toISOString()).toBe('2025-01-15T14:30:00.000Z');
+    Line 15: expect(result.getUTCHours()).toBe(14);
+    Line 16: expect(result.getUTCMinutes()).toBe(30);
+    Line 17: expect(result.getUTCSeconds()).toBe(0);
+    Line 18: expect(result.getUTCMilliseconds()).toBe(0);
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:21 - "should set time in UTC when timezone is empty string"
+    Line 26: expect(result.toISOString()).toBe('2025-01-15T09:15:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:29 - "should set time in specified timezone"
+    Line 36: expect(result.toISOString()).toBe('2025-01-15T19:30:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:39 - "should handle different timezone conversions"
+    Line 46: expect(tokyoResult.toISOString()).toBe('2025-01-15T05:30:00.000Z');
+    Line 51: expect(londonResult.toISOString()).toBe('2025-01-15T14:30:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:54 - "should preserve the date when setting time"
+    Line 61: expect(result.toISOString()).toBe('2025-01-20T06:00:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:64 - "should handle midnight correctly"
+    Line 69: expect(result.toISOString()).toBe('2025-01-15T00:00:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:72 - "should handle end of day correctly"
+    Line 77: expect(result.toISOString()).toBe('2025-01-15T23:59:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:82 - "should add days preserving time in UTC"
+    Line 87: expect(result.toISOString()).toBe('2025-01-18T14:30:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:90 - "should add days preserving time in timezone"
+    Line 97: expect(result.toISOString()).toBe('2025-01-16T14:00:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:100 - "should handle DST transitions when adding days"
+    Line 108: expect(result.toISOString()).toBe('2025-03-10T13:00:00.000Z');
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:113 - "should return true when time is in future"
+    Line 119: expect(result).toBe(true);
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:122 - "should return false when time is in past"
+    Line 128: expect(result).toBe(false);
+  tests/tools/recurrence/TimezoneDateBuilder.test.ts:131 - "should return false when times are equal"
+    Line 137: expect(result).toBe(false);
+  tests/tools/recurrence/RecurrenceFactory.test.ts:20 - "should create DailyRecurrence for daily pattern"
+    Line 23: expect(recurrence).toBeInstanceOf(DailyRecurrence);
+  tests/tools/recurrence/RecurrenceFactory.test.ts:26 - "should create WeeklyRecurrence for weekly pattern"
+    Line 29: expect(recurrence).toBeInstanceOf(WeeklyRecurrence);
+  tests/tools/recurrence/RecurrenceFactory.test.ts:32 - "should create MonthlyRecurrence for monthly pattern"
+    Line 35: expect(recurrence).toBeInstanceOf(MonthlyRecurrence);
+  tests/tools/recurrence/RecurrenceFactory.test.ts:38 - "should create YearlyRecurrence for yearly pattern"
+    Line 41: expect(recurrence).toBeInstanceOf(YearlyRecurrence);
+  tests/tools/recurrence/RecurrenceFactory.test.ts:46 - "should validate params before creating instance"
+    Line 52: expect(validatorSpy).toHaveBeenCalledWith(params);
+  tests/tools/recurrence/RecurrenceFactory.test.ts:84 - "should validate and calculate in one step"
+    Line 90: expect(result).toEqual(new Date('2024-01-16T10:00:00Z'));
+  tests/tools/recurrence/RecurrenceFactory.test.ts:93 - "should handle weekly calculation"
+    Line 99: expect(result).toEqual(new Date('2024-01-17T10:00:00Z'));
+  tests/tools/recurrence/RecurrenceFactory.test.ts:102 - "should handle monthly calculation"
+    Line 108: expect(result).toEqual(new Date('2024-01-20T00:00:00Z'));
+  tests/tools/recurrence/RecurrenceFactory.test.ts:111 - "should handle yearly calculation"
+    Line 117: expect(result).toEqual(new Date('2025-06-15T10:00:00Z'));
+  tests/tools/recurrence/RecurrenceFactory.test.ts:135 - "should pass timezone to recurrence instance"
+    Line 146: expect(result).toEqual(new Date('2024-01-15T19:30:00Z')); // 14:30 EST = 19:30 UTC
+  tests/tools/recurrence/RecurrenceFactory.test.ts:149 - "should handle UTC timezone (empty string)"
+    Line 160: expect(result).toEqual(new Date('2024-01-15T14:30:00Z'));
+  tests/tools/recurrence/RecurrenceFactory.test.ts:163 - "should use system timezone when undefined"
+    Line 173: expect(result).toEqual(new Date('2024-01-16T10:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:10 - "should calculate next month for mid-month dates"
+    Line 19: expect(result).toEqual(new Date('2024-02-15T00:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:22 - "should handle month-end overflow (31st to Feb)"
+    Line 32: expect(result).toEqual(new Date('2024-02-29T00:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:35 - "should handle month-end overflow (31st to April)"
+    Line 45: expect(result).toEqual(new Date('2024-04-30T00:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:48 - "should handle non-leap year February"
+    Line 58: expect(result).toEqual(new Date('2025-02-28T00:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:63 - "should set specific time on target day"
+    Line 73: expect(result).toEqual(new Date('2024-01-20T14:30:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:76 - "should advance to next month if target datetime has passed"
+    Line 86: expect(result).toEqual(new Date('2024-02-20T14:30:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:91 - "should calculate in specified timezone"
+    Line 104: expect(result).toEqual(new Date('2024-01-20T19:30:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:107 - "should handle DST transitions correctly"
+    Line 120: expect(result).toEqual(new Date('2024-03-15T18:30:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:123 - "should handle month-end in timezone context"
+    Line 135: expect(result).toEqual(new Date('2024-02-28T13:00:00Z')); // Feb 29, midnight Sydney
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:140 - "should handle current day being target day"
+    Line 150: expect(result).toEqual(new Date('2024-02-15T00:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:153 - "should handle last day of month request"
+    Line 162: expect(result).toEqual(new Date('2024-01-31T00:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:165 - "should handle year boundary"
+    Line 174: expect(result).toEqual(new Date('2024-12-20T00:00:00Z'));
+  tests/tools/recurrence/MonthlyRecurrence.test.ts:177 - "should advance to next year if needed"
+    Line 186: expect(result).toEqual(new Date('2025-01-20T00:00:00Z'));
+  tests/tools/recurrence/DailyRecurrence.test.ts:17 - "should return next day at same time when no specific time given"
+    Line 23: expect(result.toISOString()).toBe('2025-01-16T10:30:00.000Z');
+  tests/tools/recurrence/DailyRecurrence.test.ts:26 - "should return today at specified time if time has not passed"
+    Line 36: expect(result.toISOString()).toBe('2025-01-15T14:30:00.000Z');
+  tests/tools/recurrence/DailyRecurrence.test.ts:39 - "should return tomorrow at specified time if time has passed"
+    Line 49: expect(result.toISOString()).toBe('2025-01-16T09:00:00.000Z');
+  tests/tools/recurrence/DailyRecurrence.test.ts:52 - "should handle timezone correctly when calculating next occurrence"
+    Line 63: expect(result.toISOString()).toBe('2025-01-15T19:30:00.000Z');
+  tests/tools/recurrence/DailyRecurrence.test.ts:66 - "should handle timezone when time has passed"
+    Line 77: expect(result.toISOString()).toBe('2025-01-16T14:00:00.000Z');
+  tests/tools/recurrence/DailyRecurrence.test.ts:80 - "should work with empty string as UTC timezone"
+    Line 90: expect(result.toISOString()).toBe('2025-01-15T14:00:00.000Z');
+  tests/tools/recurrence/DailyRecurrence.test.ts:93 - "should handle exact same time as current (edge case)"
+    Line 104: expect(result.toISOString()).toBe('2025-01-16T10:30:00.000Z');
+  tests/tools/recurrence/DailyRecurrence.test.ts:107 - "should preserve seconds and milliseconds as 0"
+    Line 117: expect(result.toISOString()).toBe('2025-01-15T14:30:00.000Z');
+    Line 118: expect(result.getSeconds()).toBe(0);
+    Line 119: expect(result.getMilliseconds()).toBe(0);
+  tests/integration/tools/daysUntil.integration.test.ts:6 - "should calculate days until a future date"
+    Line 17: expect(result).toBe(7);
+  tests/integration/tools/daysUntil.integration.test.ts:23 - "should return 0 for today"
+    Line 33: expect(result).toBe(0);
+  tests/integration/tools/daysUntil.integration.test.ts:39 - "should return negative days for past dates"
+    Line 50: expect(result).toBe(-5);
+  tests/integration/tools/daysUntil.integration.test.ts:56 - "should format as "
+    Line 67: expect(result).toBe('Today');
+  tests/integration/tools/daysUntil.integration.test.ts:73 - "should format as "
+    Line 85: expect(result).toBe('Tomorrow');
+  tests/integration/tools/daysUntil.integration.test.ts:91 - "should format as "
+    Line 103: expect(result).toBe('in 10 days');
+  tests/integration/tools/daysUntil.integration.test.ts:109 - "should handle specific timezone"
+    Line 120: expect(result).toBeGreaterThan(0);
+    Line 121: expect(result).toBeLessThan(365);
+  tests/integration/tools/daysUntil.integration.test.ts:127 - "should use UTC when timezone is empty string"
+    Line 139: expect(result).toBe(1);
+  tests/integration/tools/daysUntil.integration.test.ts:193 - "should handle Christmas countdown"
+    Line 202: expect(result).toBeGreaterThan(0);
+    Line 203: expect(result).toBeLessThan(365);
+  tests/integration/tools/daysUntil.integration.test.ts:209 - "should handle event planning with formatted output"
+    Line 221: expect(result).toBe('in 30 days');
+
+🔍 SUSPICIOUS TESTS:
+  tests/index.test.ts:41 - "should create server with correct info"
+    - All assertions are trivial or meaningless
+  tests/index.test.ts:46 - "should register tool handlers"
+    - Line 57: Suspicious pattern: expect(true).toBe(true);
+    - All assertions are trivial or meaningless
+  tests/index.test.ts:223 - "should return correct tool names"
+    - All assertions are trivial or meaningless
+  tests/index.test.ts:560 - "should read configuration from environment variables"
+    - All assertions are trivial or meaningless
+  tests/index.rateLimit.test.ts:250 - "should create rate limiter with environment configuration"
+    - All assertions are trivial or meaningless
+  tests/utils/validation.test.ts:23 - "should return false for invalid timezones"
+    - Test name suggests error handling but no error assertions found
+  tests/utils/validation.test.ts:54 - "should reject invalid formats"
+    - Test name suggests error handling but no error assertions found
+  tests/utils/validation.test.ts:76 - "should reject invalid units"
+    - Test name suggests error handling but no error assertions found
+  tests/utils/validation.test.ts:93 - "should reject invalid patterns"
+    - Test name suggests error handling but no error assertions found
+  tests/utils/validation.test.ts:108 - "should reject invalid days"
+    - Test name suggests error handling but no error assertions found
+  ... and 439 more
+
+📋 RECOMMENDATIONS:
+2. Replace trivial assertions with meaningful ones that test actual behavior
+3. Ensure async tests properly await their assertions
+4. Tests for error cases should include error assertions (toThrow, rejects)
+5. Consider using expect.assertions(n) to ensure expected number of assertions

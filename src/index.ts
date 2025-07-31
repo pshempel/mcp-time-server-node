@@ -3,6 +3,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
+
 import {
   getCurrentTime,
   convertTimezone,
@@ -14,14 +15,18 @@ import {
   formatTime,
   calculateBusinessHours,
   daysUntil,
-} from './tools/index.js';
-import { SlidingWindowRateLimiter } from './utils/rateLimit.js';
-import { configureServer } from './utils/serverConfig.js';
+} from './tools';
+import { debug, logEnvironment } from './utils/debug';
+import { SlidingWindowRateLimiter } from './utils/rateLimit';
+import { configureServer } from './utils/serverConfig';
 
 // Configure server settings to prevent warnings
 configureServer();
 
-// Tool definitions with metadata
+// Log environment at startup
+logEnvironment();
+
+// Tool definitions with metadata (keeping same as before)
 export const TOOL_DEFINITIONS = [
   {
     name: 'get_current_time',
@@ -257,12 +262,10 @@ const TOOL_FUNCTIONS: Record<string, (params: unknown) => unknown> = {
   days_until: (params: unknown) => daysUntil(params as Parameters<typeof daysUntil>[0]),
 };
 
-async function main(): Promise<void> {
-  // Create rate limiter
-  const rateLimiter = new SlidingWindowRateLimiter();
-
-  // Create server
-  const server = new Server(
+// Create the MCP server instance
+export function createServer(): Server {
+  debug.server('Creating MCP server instance');
+  return new Server(
     {
       name: 'mcp-time-server-node',
       version: '1.0.0',
@@ -271,85 +274,146 @@ async function main(): Promise<void> {
       capabilities: {
         tools: {},
       },
-    },
+    }
   );
+}
+
+// Check rate limit and return appropriate response
+export function handleRateLimit(
+  rateLimiter: SlidingWindowRateLimiter
+):
+  | { limited: false }
+  | { limited: true; error: { code: number; message: string; data?: unknown } } {
+  if (!rateLimiter.checkLimit()) {
+    debug.rateLimit('Rate limit exceeded');
+    const retryAfter = rateLimiter.getRetryAfter();
+    const info = rateLimiter.getInfo();
+
+    return {
+      limited: true,
+      error: {
+        code: -32000, // JSON-RPC server-defined error
+        message: 'Rate limit exceeded',
+        data: {
+          limit: info.limit,
+          window: info.window,
+          retryAfter: retryAfter,
+        },
+      },
+    };
+  }
+
+  debug.rateLimit('Rate limit check passed');
+  return { limited: false };
+}
+
+// Execute a tool function and format the result
+export async function executeToolFunction(
+  name: string,
+  args: unknown
+): Promise<
+  | { content: Array<{ type: string; text: string }> }
+  | { error: { code: string; message: string; details?: unknown } }
+> {
+  debug.tools('Executing tool: %s with args: %O', name, args);
+
+  try {
+    // Get the tool function - validate against known tools
+    if (!Object.prototype.hasOwnProperty.call(TOOL_FUNCTIONS, name)) {
+      throw new Error(`Unknown tool: ${name}`);
+    }
+    // eslint-disable-next-line security/detect-object-injection -- Tool name validated above
+    const toolFunction = TOOL_FUNCTIONS[name];
+    if (!toolFunction) {
+      throw new Error(`Unknown tool: ${name}`);
+    }
+
+    // Execute the tool
+    const result = await toolFunction(args);
+    debug.tools('Tool %s executed successfully', name);
+
+    // Return the result
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result),
+        },
+      ],
+    };
+  } catch (error) {
+    debug.tools('Tool %s execution failed: %O', name, error);
+
+    // Check if error is an object with error property
+    if (error && typeof error === 'object' && 'error' in error) {
+      return error as { error: { code: string; message: string; details?: unknown } };
+    }
+
+    // Otherwise, wrap it in the expected format
+    const errorMessage = error instanceof Error ? error.message : 'Tool execution failed';
+    const errorString = error instanceof Error ? error.toString() : String(error);
+
+    return {
+      error: {
+        code: 'TOOL_ERROR',
+        message: errorMessage,
+        details: { name, error: errorString },
+      },
+    };
+  }
+}
+
+// Handle a tool call request
+export async function handleToolCall(
+  request: CallToolRequest,
+  rateLimiter: SlidingWindowRateLimiter
+): Promise<
+  | { content: Array<{ type: string; text: string }> }
+  | { error: { code: string | number; message: string; data?: unknown; details?: unknown } }
+> {
+  debug.server('Handling tool call: %s', request.params.name);
+
+  // Check rate limit
+  const rateLimitResult = handleRateLimit(rateLimiter);
+  if (rateLimitResult.limited) {
+    return { error: rateLimitResult.error };
+  }
+
+  const { name, arguments: args } = request.params;
+  return executeToolFunction(name, args);
+}
+
+// Register all request handlers
+export function registerHandlers(server: Server, rateLimiter: SlidingWindowRateLimiter): void {
+  debug.server('Registering request handlers');
 
   // Register tools/list handler
-  server.setRequestHandler(ListToolsRequestSchema, () =>
-    Promise.resolve({
+  server.setRequestHandler(ListToolsRequestSchema, () => {
+    debug.server('Handling tools/list request');
+    return Promise.resolve({
       tools: TOOL_DEFINITIONS,
-    }),
-  );
+    });
+  });
 
   // Register tools/call handler
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-    // Check rate limit
-    if (!rateLimiter.checkLimit()) {
-      const retryAfter = rateLimiter.getRetryAfter();
-      const info = rateLimiter.getInfo();
-
-      return {
-        error: {
-          code: -32000, // JSON-RPC server-defined error
-          message: 'Rate limit exceeded',
-          data: {
-            limit: info.limit,
-            window: info.window,
-            retryAfter: retryAfter,
-          },
-        },
-      };
-    }
-
-    const { name, arguments: args } = request.params;
-
-    try {
-      // Get the tool function - validate against known tools
-      if (!Object.prototype.hasOwnProperty.call(TOOL_FUNCTIONS, name)) {
-        throw new Error(`Unknown tool: ${name}`);
-      }
-      // eslint-disable-next-line security/detect-object-injection -- Tool name validated above
-      const toolFunction = TOOL_FUNCTIONS[name];
-      if (!toolFunction) {
-        throw new Error(`Unknown tool: ${name}`);
-      }
-
-      // Execute the tool
-      const result = await toolFunction(args);
-
-      // Return the result
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: JSON.stringify(result),
-          },
-        ],
-      };
-    } catch (error) {
-      // Check if error is an object with error property
-      if (error && typeof error === 'object' && 'error' in error) {
-        return error as { error: { code: string; message: string; details?: unknown } };
-      }
-
-      // Otherwise, wrap it in the expected format
-      const errorMessage = error instanceof Error ? error.message : 'Tool execution failed';
-      const errorString = error instanceof Error ? error.toString() : String(error);
-
-      return {
-        error: {
-          code: 'TOOL_ERROR',
-          message: errorMessage,
-          details: { name, error: errorString },
-        },
-      };
-    }
+    return handleToolCall(request, rateLimiter);
   });
+}
 
-  // Create and connect transport
+// Main function - now simple orchestration
+async function main(): Promise<void> {
+  debug.server('Starting MCP Time Server...');
+
+  const rateLimiter = new SlidingWindowRateLimiter();
+  const server = createServer();
+
+  registerHandlers(server, rateLimiter);
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
+  debug.server('MCP Time Server connected to stdio transport');
   console.error('MCP Time Server Node running on stdio');
 }
 
