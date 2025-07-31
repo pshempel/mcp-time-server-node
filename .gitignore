@@ -34,9 +34,23 @@ yarn-error.log*
 
 # Sessions
 sessions/
-todos/
+todos
+hooks/
+tmp/
+
+# Test reports (generated files)
+test-assertion-report.json
+test-quality-report.txt
+
+# ESLint output files
+eslint-output.json
+eslint-test.txt
+eslint-*.json
+eslint-*.txt
+
 # CLAUDE.md (project instructions)
 CLAUDE.md
+CLAUDE*.md
 
 # Claude-specific documentation
 NEXT_SESSION_CHECKLIST.md

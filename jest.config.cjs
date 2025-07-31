@@ -32,4 +32,14 @@ module.exports = {
   },
   clearMocks: true,
   testTimeout: 10000,
+  setupFilesAfterEnv: [
+    'jest-plugin-must-assert'
+  ],
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: 'test-results',
+      outputName: 'junit.xml',
+    }]
+  ],
 };

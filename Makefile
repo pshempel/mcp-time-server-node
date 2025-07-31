@@ -15,6 +15,8 @@ help:
 	@echo "  fix-jest     - Fix Jest module resolution issues"
 	@echo "  reset        - Full environment reset (deep-clean + reinstall)"
 	@echo "  verify       - Run all checks (lint, test, build)"
+	@echo "  test-quality - Analyze test quality and find fake tests"
+	@echo "  test-audit   - Full test audit with detailed report"
 	@echo "  commit-tool  - Commit a new tool implementation"
 	@echo "  dev          - Start development mode"
 	@echo "  run          - Run the MCP server"
@@ -196,6 +198,30 @@ verify-holidays:
 	@npm test holidays.verification
 	@echo "\n✅ Holiday verification complete!"
 	@echo "📚 See: docs/verified-behaviors/holiday-automated-verification.md"
+
+# Test quality targets
+test-quality:
+	@echo "🔍 Analyzing Test Quality (Quick Check)..."
+	@echo "========================================"
+	@echo "Running test quality meta-tests..."
+	@npm test tests/meta/test-quality.test.ts --silent 2>&1 | grep -E "(FAIL|PASS|✓|✕)" || true
+	@echo "\n📊 For detailed report, run 'make test-audit'"
+
+test-audit:
+	@echo "🔎 Running Comprehensive Test Audit..."
+	@echo "====================================="
+	@npm test tests/meta/test-quality.test.ts
+	@echo "\n📄 Reports generated:"
+	@echo "  - test-quality-report.txt (human-readable summary)"
+	@echo "  - test-assertion-report.json (detailed analysis)"
+	@echo "\n📈 Summary from test-quality-report.txt:"
+	@head -10 test-quality-report.txt 2>/dev/null || echo "No report generated yet"
+
+fix-fake-tests:
+	@echo "🔧 Fixing Fake Tests..."
+	@echo "======================="
+	@echo "Running ESLint to identify tests without assertions..."
+	@npx eslint tests/**/*.test.ts --fix
 
 # Development helpers
 .PHONY: clean-research watch-all pre-commit

@@ -1,5 +1,5 @@
 import { daysUntil } from '../../src/tools/daysUntil';
-import { addDays, subDays } from 'date-fns';
+import { addDays, subDays, format } from 'date-fns';
 import { TimeServerErrorCodes } from '../../src/types';
 
 describe('daysUntil', () => {
@@ -9,15 +9,16 @@ describe('daysUntil', () => {
 
   describe('Basic functionality', () => {
     it('should calculate days until a future date', () => {
+      // Use format to get consistent local date string
       const futureDate = addDays(new Date(), 7);
-      const dateString = futureDate.toISOString().split('T')[0];
+      const dateString = format(futureDate, 'yyyy-MM-dd');
 
       const result = daysUntil({ target_date: dateString });
       expect(result).toBe(7);
     });
 
     it('should return 0 for today', () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
 
       const result = daysUntil({ target_date: today });
       expect(result).toBe(0);
@@ -25,7 +26,7 @@ describe('daysUntil', () => {
 
     it('should return negative days for past dates', () => {
       const pastDate = subDays(new Date(), 5);
-      const dateString = pastDate.toISOString().split('T')[0];
+      const dateString = format(pastDate, 'yyyy-MM-dd');
 
       const result = daysUntil({ target_date: dateString });
       expect(result).toBe(-5);
@@ -40,7 +41,7 @@ describe('daysUntil', () => {
   describe('Date format handling', () => {
     it('should accept ISO date format', () => {
       const tomorrow = addDays(new Date(), 1);
-      const isoDate = tomorrow.toISOString().split('T')[0];
+      const isoDate = format(tomorrow, 'yyyy-MM-dd');
 
       const result = daysUntil({ target_date: isoDate });
       expect(result).toBe(1);
@@ -57,7 +58,7 @@ describe('daysUntil', () => {
     it('should handle natural language dates', () => {
       // This might need adjustment based on parseISO capabilities
       const tomorrow = addDays(new Date(), 1);
-      const dateString = tomorrow.toISOString().split('T')[0];
+      const dateString = format(tomorrow, 'yyyy-MM-dd');
 
       const result = daysUntil({ target_date: dateString });
       expect(result).toBe(1);
@@ -67,7 +68,7 @@ describe('daysUntil', () => {
   describe('Timezone handling', () => {
     it('should use system timezone when not specified', () => {
       const tomorrow = addDays(new Date(), 1);
-      const dateOnly = tomorrow.toISOString().split('T')[0];
+      const dateOnly = format(tomorrow, 'yyyy-MM-dd');
 
       const result = daysUntil({ target_date: dateOnly });
       expect(result).toBe(1);
@@ -101,7 +102,7 @@ describe('daysUntil', () => {
   describe('Formatting options', () => {
     it('should return plain number by default', () => {
       const tomorrow = addDays(new Date(), 1);
-      const dateString = tomorrow.toISOString().split('T')[0];
+      const dateString = format(tomorrow, 'yyyy-MM-dd');
 
       const result = daysUntil({ target_date: dateString });
       expect(typeof result).toBe('number');
@@ -109,7 +110,7 @@ describe('daysUntil', () => {
     });
 
     it('should format as "Today" when format_result is true', () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
 
       const result = daysUntil({
         target_date: today,
@@ -120,7 +121,7 @@ describe('daysUntil', () => {
 
     it('should format as "Tomorrow" for next day', () => {
       const tomorrow = addDays(new Date(), 1);
-      const dateString = tomorrow.toISOString().split('T')[0];
+      const dateString = format(tomorrow, 'yyyy-MM-dd');
 
       const result = daysUntil({
         target_date: dateString,
@@ -131,7 +132,7 @@ describe('daysUntil', () => {
 
     it('should format as "Yesterday" for previous day', () => {
       const yesterday = subDays(new Date(), 1);
-      const dateString = yesterday.toISOString().split('T')[0];
+      const dateString = format(yesterday, 'yyyy-MM-dd');
 
       const result = daysUntil({
         target_date: dateString,
@@ -142,7 +143,7 @@ describe('daysUntil', () => {
 
     it('should format as "in N days" for future dates', () => {
       const futureDate = addDays(new Date(), 10);
-      const dateString = futureDate.toISOString().split('T')[0];
+      const dateString = format(futureDate, 'yyyy-MM-dd');
 
       const result = daysUntil({
         target_date: dateString,
@@ -153,7 +154,7 @@ describe('daysUntil', () => {
 
     it('should format as "N days ago" for past dates', () => {
       const pastDate = subDays(new Date(), 5);
-      const dateString = pastDate.toISOString().split('T')[0];
+      const dateString = format(pastDate, 'yyyy-MM-dd');
 
       const result = daysUntil({
         target_date: dateString,
@@ -261,7 +262,7 @@ describe('daysUntil', () => {
       const deadline = addDays(new Date(), 14);
 
       const result = daysUntil({
-        target_date: deadline.toISOString().split('T')[0],
+        target_date: format(deadline, 'yyyy-MM-dd'),
       });
 
       expect(result).toBe(14);
