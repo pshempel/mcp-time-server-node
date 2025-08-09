@@ -7,7 +7,6 @@ import type { DaysUntilParams, DaysUntilResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
-import { parseNaturalDate } from './parseNaturalDate';
 import { resolveTimezone as resolveTimezoneUtil } from '../utils/timezoneUtils';
 import { validateTimezone, createError, validateStringLength, LIMITS } from '../utils/validation';
 import { withCache } from '../utils/withCache';
@@ -16,26 +15,9 @@ import { withCache } from '../utils/withCache';
  * Parse target date from various formats
  */
 export function parseTargetDate(target_date: string | number, timezone?: string): Date {
-  // Convert to string first
+  // Convert to string first for parseTimeInput
   const input = String(target_date);
-  
-  // Try parseTimeInput first for ISO dates and Unix timestamps
-  try {
-    return parseTimeInput(input, timezone).date;
-  } catch (e) {
-    // If parseTimeInput fails, try natural language parsing
-    debug.parse('parseTimeInput failed, trying natural language: %s', input);
-    try {
-      const result = parseNaturalDate({ 
-        input, 
-        timezone 
-      });
-      return new Date(result.parsed_date);
-    } catch (naturalError) {
-      // If both fail, throw the original error
-      throw e;
-    }
-  }
+  return parseTimeInput(input, timezone).date;
 }
 
 /**
