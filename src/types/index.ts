@@ -177,3 +177,15 @@ export interface DaysUntilParams {
 }
 
 export type DaysUntilResult = number | string;
+
+export interface ParseNaturalDateParams {
+  input: string;
+  timezone?: string;
+  reference_date?: string | number;
+}
+
+export interface ParseNaturalDateResult {
+  parsed_date: string;
+  interpretation: string;
+  timezone_used: string;
+}

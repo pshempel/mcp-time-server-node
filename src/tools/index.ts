@@ -10,3 +10,4 @@ export { nextOccurrence } from './nextOccurrence';
 export { formatTime } from './formatTime';
 export { calculateBusinessHours } from './calculateBusinessHours';
 export { daysUntil } from './daysUntil';
+export { parseNaturalDate } from './parseNaturalDate';

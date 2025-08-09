@@ -16,6 +16,7 @@ import {
   formatTime,
   calculateBusinessHours,
   daysUntil,
+  parseNaturalDate,
 } from './tools';
 import { debug, logEnvironment } from './utils/debug';
 import { SlidingWindowRateLimiter } from './utils/rateLimit';
@@ -249,6 +250,28 @@ export const TOOL_DEFINITIONS = [
       required: ['target_date'],
     },
   },
+  {
+    name: 'parse_natural_date',
+    description: 'Parse natural language dates like "next Tuesday" or "tomorrow at 3pm"',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        input: {
+          type: 'string' as const,
+          description: 'Natural language date/time (e.g., "next Tuesday", "tomorrow at 3pm")',
+        },
+        timezone: {
+          type: 'string' as const,
+          description: 'IANA timezone for parsing (default: system timezone)',
+        },
+        reference_date: {
+          type: ['string', 'number'] as const,
+          description: 'Reference date for relative parsing (default: current time)',
+        },
+      },
+      required: ['input'],
+    },
+  },
 ];
 
 // Tool function mapping - wrapping each function to handle unknown params
@@ -270,6 +293,8 @@ const TOOL_FUNCTIONS: Record<string, (params: unknown) => unknown> = {
   calculate_business_hours: (params: unknown) =>
     calculateBusinessHours(params as Parameters<typeof calculateBusinessHours>[0]),
   days_until: (params: unknown) => daysUntil(params as Parameters<typeof daysUntil>[0]),
+  parse_natural_date: (params: unknown) => 
+    parseNaturalDate(params as Parameters<typeof parseNaturalDate>[0]),
 };
 
 // Create the MCP server instance

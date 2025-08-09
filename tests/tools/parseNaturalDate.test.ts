@@ -6,7 +6,6 @@
  */
 
 import { parseNaturalDate } from '../../src/tools/parseNaturalDate';
-import type { ParseNaturalDateParams, ParseNaturalDateResult } from '../../src/types';
 
 describe('parseNaturalDate', () => {
   beforeEach(() => {
