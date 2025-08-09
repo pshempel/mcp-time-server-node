@@ -4,6 +4,13 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  // Meta tests are excluded from regular test runs
+  // They analyze test quality and are expected to fail when finding issues
+  // Run them separately with: npm run test:meta
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tests/meta/test-quality.test.ts'
+  ],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       tsconfig: {

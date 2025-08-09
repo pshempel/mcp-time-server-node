@@ -47,7 +47,7 @@ describe('subtractTime', () => {
 
   describe('Basic functionality', () => {
     it('should subtract years from a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -62,7 +62,7 @@ describe('subtractTime', () => {
     });
 
     it('should subtract months from a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -75,7 +75,7 @@ describe('subtractTime', () => {
     });
 
     it('should subtract days from a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -88,7 +88,7 @@ describe('subtractTime', () => {
     });
 
     it('should subtract hours from a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -101,7 +101,7 @@ describe('subtractTime', () => {
     });
 
     it('should subtract minutes from a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -114,7 +114,7 @@ describe('subtractTime', () => {
     });
 
     it('should subtract seconds from a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -129,7 +129,7 @@ describe('subtractTime', () => {
 
   describe('Timezone handling', () => {
     it('should handle timezone-aware subtraction', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00',
@@ -143,7 +143,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle DST transitions when subtracting across boundaries', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // March 15 - 2 months crosses DST boundary
       const result = subtractTime({
@@ -158,7 +158,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle input with explicit timezone offset', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T12:00:00+05:30',
@@ -172,7 +172,7 @@ describe('subtractTime', () => {
     });
 
     it('should display result in requested timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:00:00Z',
@@ -188,7 +188,7 @@ describe('subtractTime', () => {
 
   describe('Edge cases', () => {
     it('should handle negative amounts (addition)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -201,7 +201,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle month-end correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-03-31T12:00:00Z',
@@ -214,7 +214,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle leap year correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2024-02-29T12:00:00Z',
@@ -227,7 +227,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle date-only input', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15',
@@ -241,7 +241,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle Unix timestamp input', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '1736937000', // 2025-01-15T10:30:00Z
@@ -255,7 +255,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle zero amount', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -269,7 +269,7 @@ describe('subtractTime', () => {
     });
 
     it('should handle year boundary crossing', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-05T10:30:00Z',
@@ -284,14 +284,14 @@ describe('subtractTime', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid time format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         subtractTime({
           time: 'not-a-date',
           amount: 1,
           unit: 'days',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -299,19 +299,19 @@ describe('subtractTime', () => {
             message: expect.stringContaining('Invalid time format'),
             details: expect.objectContaining({ time: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid unit', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         subtractTime({
           time: '2025-01-15T10:30:00Z',
           amount: 1,
           unit: 'fortnights' as any,
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -319,12 +319,12 @@ describe('subtractTime', () => {
             message: expect.stringContaining('Invalid unit'),
             details: expect.objectContaining({ unit: 'fortnights' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         subtractTime({
@@ -332,7 +332,7 @@ describe('subtractTime', () => {
           amount: 1,
           unit: 'days',
           timezone: 'Invalid/Zone',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -340,19 +340,19 @@ describe('subtractTime', () => {
             message: 'Invalid timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for NaN amount', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         subtractTime({
           time: '2025-01-15T10:30:00Z',
           amount: NaN,
           unit: 'days',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -360,14 +360,14 @@ describe('subtractTime', () => {
             message: expect.stringContaining('Invalid amount'),
             details: expect.objectContaining({ amount: NaN }),
           },
-        }),
+        })
       );
     });
   });
 
   describe('Caching', () => {
     it('should cache results for 1 hour', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -378,7 +378,7 @@ describe('subtractTime', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        3600, // 1 hour
+        3600 // 1 hour
       );
     });
 
@@ -402,7 +402,7 @@ describe('subtractTime', () => {
     });
 
     it('should use system timezone in cache key when no timezone specified', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       subtractTime({
@@ -415,12 +415,12 @@ describe('subtractTime', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        3600,
+        3600
       );
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -442,7 +442,7 @@ describe('subtractTime', () => {
 
   describe('Output format verification', () => {
     it('should always include all required fields', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00Z',
@@ -464,7 +464,7 @@ describe('subtractTime', () => {
     });
 
     it('should format times consistently with milliseconds', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = subtractTime({
         time: '2025-01-15T10:30:00',
@@ -481,7 +481,7 @@ describe('subtractTime', () => {
 
   describe('System timezone defaults', () => {
     it('should use system timezone when no timezone parameter provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = subtractTime({
@@ -496,7 +496,7 @@ describe('subtractTime', () => {
     });
 
     it('should use explicit timezone parameter over system default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = subtractTime({
@@ -512,7 +512,7 @@ describe('subtractTime', () => {
     });
 
     it('should use UTC when empty string timezone provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = subtractTime({

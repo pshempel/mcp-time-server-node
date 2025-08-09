@@ -48,7 +48,7 @@ describe('formatTime', () => {
 
   describe('Relative formatting', () => {
     it('should format future time relatively', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z', // 5 days in future
@@ -60,7 +60,7 @@ describe('formatTime', () => {
     });
 
     it('should format past time relatively', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-10T08:00:00.000Z', // 5 days ago
@@ -71,7 +71,7 @@ describe('formatTime', () => {
     });
 
     it('should format same day time relatively', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-15T18:30:00.000Z', // Same day, later
@@ -82,7 +82,7 @@ describe('formatTime', () => {
     });
 
     it('should format tomorrow relatively', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-16T10:30:00.000Z', // Tomorrow
@@ -93,7 +93,7 @@ describe('formatTime', () => {
     });
 
     it('should format yesterday relatively', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-14T10:30:00.000Z', // Yesterday
@@ -104,7 +104,7 @@ describe('formatTime', () => {
     });
 
     it('should handle relative formatting with timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -119,7 +119,7 @@ describe('formatTime', () => {
 
   describe('Calendar formatting', () => {
     it('should format time in calendar style', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -131,7 +131,7 @@ describe('formatTime', () => {
     });
 
     it('should handle calendar format for past dates', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2024-12-25T12:00:00.000Z', // Christmas last year
@@ -145,7 +145,7 @@ describe('formatTime', () => {
 
   describe('Custom formatting', () => {
     it('should format with custom format string', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -157,7 +157,7 @@ describe('formatTime', () => {
     });
 
     it('should support various custom formats', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const testCases = [
         { format: 'MM/dd/yyyy', expected: '01/20/2025' },
@@ -180,7 +180,7 @@ describe('formatTime', () => {
     });
 
     it('should handle custom format with timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -193,7 +193,7 @@ describe('formatTime', () => {
     });
 
     it('should handle escaped text in custom format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -207,7 +207,7 @@ describe('formatTime', () => {
 
   describe('Timezone handling', () => {
     it('should format in specified timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -220,7 +220,7 @@ describe('formatTime', () => {
     });
 
     it('should show correct timezone offset', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -233,7 +233,7 @@ describe('formatTime', () => {
     });
 
     it('should handle UTC timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -248,7 +248,7 @@ describe('formatTime', () => {
 
   describe('Input validation', () => {
     it('should handle various input time formats', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const inputs = [
         '2025-01-20T14:30:00.000Z',
@@ -262,13 +262,13 @@ describe('formatTime', () => {
           formatTime({
             time: input,
             format: 'relative',
-          }),
+          })
         ).not.toThrow();
       });
     });
 
     it('should handle unix timestamp', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const unixTime = Math.floor(new Date('2025-01-20T14:30:00.000Z').getTime() / 1000);
       const result = formatTime({
@@ -283,13 +283,13 @@ describe('formatTime', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid format type', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         formatTime({
           time: '2025-01-20T14:30:00.000Z',
           format: 'invalid' as any,
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -297,18 +297,18 @@ describe('formatTime', () => {
             message: expect.stringContaining('Invalid format type'),
             details: { format: 'invalid' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for missing custom_format when format is custom', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         formatTime({
           time: '2025-01-20T14:30:00.000Z',
           format: 'custom',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -316,19 +316,19 @@ describe('formatTime', () => {
             message: 'custom_format is required when format is "custom"',
             details: {},
           },
-        }),
+        })
       );
     });
 
     it('should throw error for empty custom_format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         formatTime({
           time: '2025-01-20T14:30:00.000Z',
           format: 'custom',
           custom_format: '',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -336,18 +336,18 @@ describe('formatTime', () => {
             message: 'custom_format cannot be empty',
             details: { custom_format: '' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         formatTime({
           time: 'not-a-date',
           format: 'relative',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -355,19 +355,19 @@ describe('formatTime', () => {
             message: expect.stringContaining('Invalid time'),
             details: expect.objectContaining({ time: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         formatTime({
           time: '2025-01-20T14:30:00.000Z',
           format: 'relative',
           timezone: 'Invalid/Zone',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -375,14 +375,14 @@ describe('formatTime', () => {
             message: 'Invalid timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone' },
           },
-        }),
+        })
       );
     });
   });
 
   describe('Caching', () => {
     it('should cache results for 5 minutes', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -392,7 +392,7 @@ describe('formatTime', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        300, // 5 minutes
+        300 // 5 minutes
       );
     });
 
@@ -413,7 +413,7 @@ describe('formatTime', () => {
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -440,7 +440,7 @@ describe('formatTime', () => {
 
   describe('Edge cases', () => {
     it('should handle invalid date gracefully', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // Create an invalid date by parsing invalid string
       const result = formatTime({
@@ -454,7 +454,7 @@ describe('formatTime', () => {
     });
 
     it('should handle very old dates', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '1900-01-01T00:00:00.000Z',
@@ -466,7 +466,7 @@ describe('formatTime', () => {
     });
 
     it('should handle far future dates', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2100-12-31T23:59:59.000Z',
@@ -478,7 +478,7 @@ describe('formatTime', () => {
     });
 
     it('should format case-insensitively', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -491,7 +491,7 @@ describe('formatTime', () => {
 
   describe('Response format', () => {
     it('should return all required fields', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00.000Z',
@@ -505,7 +505,7 @@ describe('formatTime', () => {
     });
 
     it('should preserve original time in ISO format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = formatTime({
         time: '2025-01-20T14:30:00+05:30',
@@ -519,7 +519,7 @@ describe('formatTime', () => {
 
   describe('System timezone defaults', () => {
     it('should use system timezone when no timezone parameter provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = formatTime({
@@ -532,7 +532,7 @@ describe('formatTime', () => {
     });
 
     it('should still use UTC when empty string timezone provided (backward compatibility)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = formatTime({
@@ -546,7 +546,7 @@ describe('formatTime', () => {
     });
 
     it('should use explicit timezone parameter over system default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = formatTime({
@@ -560,7 +560,7 @@ describe('formatTime', () => {
     });
 
     it('should apply system timezone for custom format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = formatTime({
@@ -574,7 +574,7 @@ describe('formatTime', () => {
     });
 
     it('should apply system timezone for calendar format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = formatTime({
@@ -587,7 +587,7 @@ describe('formatTime', () => {
     });
 
     it('should handle system timezone in cache key', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/Chicago' });
 
       formatTime({
@@ -599,7 +599,7 @@ describe('formatTime', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        300, // CacheTTL.TIMEZONE_CONVERT = 5 minutes
+        300 // CacheTTL.TIMEZONE_CONVERT = 5 minutes
       );
     });
   });

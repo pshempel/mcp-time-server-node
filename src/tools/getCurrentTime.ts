@@ -1,41 +1,20 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
-import { hashCacheKey } from '../cache/cacheKeyHash';
-import { cache, CacheTTL } from '../cache/timeCache';
+import { CacheTTL } from '../cache/timeCache';
 import { TimeServerErrorCodes } from '../types';
 import type { GetCurrentTimeParams, GetCurrentTimeResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
+import { resolveTimezone } from '../utils/timezoneUtils';
 import { validateTimezone, createError, validateStringLength, LIMITS } from '../utils/validation';
-
-/**
- * Resolves the effective timezone based on input
- * CRITICAL: Empty string "" = UTC, undefined = system timezone
- */
-export function resolveTimezone(
-  timezone: string | undefined,
-  config: { defaultTimezone: string }
-): string {
-  debug.tools('Resolving timezone: input=%s, default=%s', timezone, config.defaultTimezone);
-
-  // Empty string explicitly means UTC (Unix convention)
-  if (timezone === '') {
-    debug.tools('Empty string timezone -> UTC');
-    return 'UTC';
-  }
-
-  // Undefined/missing means system timezone (LLM friendly)
-  const resolved = timezone ?? config.defaultTimezone;
-  debug.tools('Resolved timezone: %s', resolved);
-  return resolved;
-}
+import { withCache } from '../utils/withCache';
 
 /**
  * Generates cache key for current time request
+ * Note: Now only used for generating the raw cache key for withCache
  */
 export function getCacheKey(timezone: string, format: string, includeOffset: boolean): string {
-  const rawCacheKey = `current_${timezone}_${format}_${includeOffset}`;
-  return hashCacheKey(rawCacheKey);
+  return `current_${timezone}_${format}_${includeOffset}`;
 }
 
 /**
@@ -96,7 +75,7 @@ export function handleFormatError(error: unknown, format: string): never {
 }
 
 export function getCurrentTime(params: GetCurrentTimeParams): GetCurrentTimeResult {
-  debug.tools('getCurrentTime called with params: %O', params);
+  debug.timezone('getCurrentTime called with params: %O', params);
 
   // Validate format string length first
   if (params.format) {
@@ -105,42 +84,33 @@ export function getCurrentTime(params: GetCurrentTimeParams): GetCurrentTimeResu
 
   // Resolve timezone with proper empty string handling
   const config = getConfig();
-  const timezone = resolveTimezone(params.timezone, config);
+  const timezone = resolveTimezone(params.timezone, config.defaultTimezone);
   const formatStr = params.format ?? "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
   const includeOffset = params.include_offset !== false;
 
-  // Generate and check cache
-  const cacheKey = getCacheKey(timezone, formatStr, includeOffset);
-  const cached = cache.get<GetCurrentTimeResult>(cacheKey);
-  if (cached) {
-    debug.tools('Returning cached result for key: %s', cacheKey);
-    return cached;
-  }
+  // Use withCache wrapper instead of manual cache management
+  return withCache(getCacheKey(timezone, formatStr, includeOffset), CacheTTL.CURRENT_TIME, () => {
+    // Validate timezone
+    if (!validateTimezone(timezone)) {
+      throw {
+        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
+          timezone,
+        }),
+      };
+    }
 
-  // Validate timezone
-  if (!validateTimezone(timezone)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-        timezone,
-      }),
-    };
-  }
+    const now = new Date();
 
-  const now = new Date();
+    try {
+      // Format time with appropriate options
+      const formattedTime = formatTimeWithOptions(now, timezone, params, formatStr);
 
-  try {
-    // Format time with appropriate options
-    const formattedTime = formatTimeWithOptions(now, timezone, params, formatStr);
+      // Build result
+      const result = buildTimeResult(now, formattedTime, timezone);
 
-    // Build result
-    const result = buildTimeResult(now, formattedTime, timezone);
-
-    // Cache and return
-    cache.set(cacheKey, result, CacheTTL.CURRENT_TIME);
-    debug.tools('Cached result with key: %s', cacheKey);
-
-    return result;
-  } catch (error: unknown) {
-    handleFormatError(error, params.format ?? formatStr);
-  }
+      return result;
+    } catch (error: unknown) {
+      handleFormatError(error, params.format ?? formatStr);
+    }
+  });
 }

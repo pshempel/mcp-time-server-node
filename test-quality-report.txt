@@ -1,9 +1,9 @@
 === TEST ASSERTION ANALYSIS REPORT ===
 
-Total Tests Analyzed: 912
+Total Tests Analyzed: 1076
 Fake Tests (No Assertions): 0
-Suspicious Tests: 449
-Tests with Only Trivial Assertions: 365
+Suspicious Tests: 584
+Tests with Only Trivial Assertions: 491
 
 ⚠️  TESTS WITH ONLY TRIVIAL ASSERTIONS:
   tests/index.test.ts:41 - "should create server with correct info"
@@ -17,6 +17,34 @@ Tests with Only Trivial Assertions: 365
     Line 566: expect(process.env.RATE_LIMIT).toBe('50');
   tests/index.rateLimit.test.ts:250 - "should create rate limiter with environment configuration"
     Line 260: expect(MockedRateLimiter).toHaveBeenCalled();
+  tests/utils/withDebug.test.ts:33 - "logs function entry with arguments"
+    Line 40: expect(debugSpy).toHaveBeenCalledWith('→ testFunction called with:', ['hello', 42]);
+  tests/utils/withDebug.test.ts:43 - "logs successful completion"
+    Line 50: expect(debugSpy).toHaveBeenCalledWith('✓ testFunction succeeded');
+  tests/utils/withDebug.test.ts:65 - "handles async functions that succeed"
+    Line 73: expect(result).toBe('async result');
+    Line 74: expect(debugSpy).toHaveBeenCalledWith('→ testAsync called with:', [1]);
+    Line 75: expect(debugSpy).toHaveBeenCalledWith('✓ testAsync succeeded');
+  tests/utils/withDebug.test.ts:93 - "handles functions with no name"
+    Line 98: expect(debugSpy).toHaveBeenCalledWith('→ anonymous called with:', [5]);
+  tests/utils/withDebug.test.ts:139 - "withDebugUtils uses utils namespace"
+    Line 148: expect(utilsSpy).toHaveBeenCalledWith('→ utilFunction called with:', []);
+    Line 149: expect(utilsSpy).toHaveBeenCalledWith('✓ utilFunction succeeded');
+  tests/utils/withDebug.test.ts:154 - "withDebugCache uses cache namespace"
+    Line 163: expect(cacheSpy).toHaveBeenCalledWith('→ cacheFunction called with:', []);
+    Line 164: expect(cacheSpy).toHaveBeenCalledWith('✓ cacheFunction succeeded');
+  tests/utils/withCache.test.ts:45 - "should handle falsy cached values correctly"
+    Line 57: expect(result).toBe(value);
+    Line 58: expect(compute).not.toHaveBeenCalled();
+  tests/utils/withCache.test.ts:82 - "should only compute once even if called multiple times synchronously"
+    Line 98: expect(compute).toHaveBeenCalledTimes(1);
+    Line 99: expect(result1).toEqual({ count: 1 });
+    Line 100: expect(result2).toEqual({ count: 1 });
+  tests/utils/withCache.test.ts:150 - "should handle cache.get errors gracefully"
+    Line 160: expect(result).toBe('fallback');
+    Line 161: expect(compute).toHaveBeenCalled();
+  tests/utils/withCache.test.ts:176 - "should handle complex cache keys"
+    Line 182: expect(hashCacheKey).toHaveBeenCalledWith(complexKey);
   tests/utils/validation.test.ts:134 - "should create error with all fields"
     Line 141: expect(error).toEqual({
   tests/utils/validation.test.ts:148 - "should create error without details"
@@ -27,6 +55,26 @@ Tests with Only Trivial Assertions: 365
     Line 47: expect(config).toEqual({
   tests/utils/serverConfig.test.ts:55 - "should not emit warning with configured limits"
     Line 81: expect(maxListenerWarnings).toHaveLength(0);
+  tests/utils/resolveTimezone.test.ts:7 - "should return system timezone when undefined"
+    Line 9: expect(result).toBe(systemTimezone);
+  tests/utils/resolveTimezone.test.ts:12 - "should return UTC when empty string"
+    Line 14: expect(result).toBe('UTC');
+  tests/utils/resolveTimezone.test.ts:17 - "should return specified timezone when provided"
+    Line 19: expect(result).toBe('America/New_York');
+  tests/utils/resolveTimezone.test.ts:22 - "should handle various IANA timezones"
+    Line 32: expect(result).toBe(tz);
+  tests/utils/resolveTimezone.test.ts:38 - "should use custom default timezone"
+    Line 41: expect(result).toBe(customDefault);
+  tests/utils/resolveTimezone.test.ts:44 - "should handle empty string consistently regardless of default"
+    Line 49: expect(result1).toBe('UTC');
+    Line 50: expect(result2).toBe('UTC');
+    Line 51: expect(result3).toBe('UTC');
+  tests/utils/resolveTimezone.test.ts:54 - "should preserve non-empty whitespace strings"
+    Line 57: expect(result).toBe('  ');
+  tests/utils/resolveTimezone.test.ts:62 - "should handle null as undefined (edge case)"
+    Line 65: expect(result).toBe(systemTimezone);
+  tests/utils/resolveTimezone.test.ts:70 - "should follow documented timezone handling rules"
+    Line 84: expect(result).toBe(expected);
   tests/utils/rateLimit.test.ts:15 - "should create rate limiter with default values"
     Line 17: expect(rateLimiter).toBeDefined();
   tests/utils/rateLimit.test.ts:21 - "should create rate limiter with custom values"
@@ -91,44 +139,240 @@ Tests with Only Trivial Assertions: 365
   tests/utils/rateLimit.debug.test.ts:82 - "should log cleanup operations"
     Line 98: expect(output).toContain('Cleaned up');
     Line 99: expect(output).toContain('old requests');
-  tests/utils/debug.test.ts:38 - "should output to stderr when DEBUG env is set"
-    Line 45: expect(output).toContain('mcp:server');
-    Line 46: expect(output).toContain('test message');
-  tests/utils/debug.test.ts:49 - "should not output when DEBUG env is not set"
-    Line 55: expect(stderrOutput).toHaveLength(0);
-  tests/utils/debug.test.ts:58 - "should support multiple namespaces"
-    Line 67: expect(output).toContain('server message');
-    Line 68: expect(output).toContain('rate limit message');
-    Line 69: expect(output).not.toContain('tools message');
-  tests/utils/debug.test.ts:72 - "should support wildcard namespace"
-    Line 81: expect(output).toContain('server message');
-    Line 82: expect(output).toContain('rate limit message');
-    Line 83: expect(output).toContain('tools message');
-  tests/utils/debug.test.ts:88 - "should log environment variables when debug is enabled"
-    Line 97: expect(output).toContain('=== MCP Server Environment ===');
-    Line 98: expect(output).toContain('RATE_LIMIT: 50');
-    Line 99: expect(output).toContain('RATE_LIMIT_WINDOW: 30000');
-    Line 100: expect(output).toContain('DEBUG: mcp:init');
-  tests/utils/debug.test.ts:103 - "should show defaults when environment variables are not set"
-    Line 112: expect(output).toContain('RATE_LIMIT: 100 (default)');
-    Line 113: expect(output).toContain('RATE_LIMIT_WINDOW: 60000 (default)');
-  tests/utils/debug.test.ts:116 - "should not log when debug is disabled"
-    Line 122: expect(stderrOutput).toHaveLength(0);
-  tests/utils/debug.test.ts:127 - "should format objects for debug output"
-    Line 136: expect(output).toContain('Test object:');
-    Line 137: expect(output).toContain('foo');
-    Line 138: expect(output).toContain('bar');
-    Line 139: expect(output).toContain('nested');
-    Line 140: expect(output).toContain('42');
-  tests/utils/debug.test.ts:143 - "should not output when namespace is disabled"
-    Line 149: expect(stderrOutput).toHaveLength(0);
-  tests/utils/debug.test.ts:154 - "should be able to debug rate limit operations"
-    Line 165: expect(output).toContain('Creating rate limiter with limit=100, window=60000ms');
-    Line 166: expect(output).toContain('Request allowed. Current usage: 1/100');
-    Line 167: expect(output).toContain('Rate limit exceeded. Retry after: 45s');
+  tests/utils/parseTimeInput.test.ts:20 - "should handle number input directly"
+    Line 22: expect(result.date.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+  tests/utils/parseTimeInput.test.ts:81 - "should parse date-only as start of day in UTC when timezone empty"
+    Line 83: expect(result.date.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+  tests/utils/parseTimeInput.test.ts:86 - "should parse date-only as start of day in specified timezone"
+    Line 88: expect(result.date.toISOString()).toBe('2025-01-01T05:00:00.000Z'); // Midnight EST = 5am UTC
+  tests/utils/parseTimeInput.test.ts:111 - "should provide descriptive error messages"
+    Line 115: expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_DATE_FORMAT);
+    Line 116: expect(error.error.message).toContain('Invalid');
+    Line 117: expect(error.error.details).toHaveProperty('input', 'invalid');
+  tests/utils/parseTimeInput.test.ts:128 - "should treat "
+    Line 131: expect(result1.date.toISOString()).toBe(result2.date.toISOString());
+  tests/utils/parseTimeInput.test.ts:141 - "should handle leap year dates"
+    Line 143: expect(result.date.toISOString()).toBe('2024-02-29T12:00:00.000Z');
+  tests/utils/parseTimeInput.test.ts:146 - "should handle very large Unix timestamps"
+    Line 149: expect(result.date.getFullYear()).toBeGreaterThan(2200);
+  tests/utils/parseTimeInput.test.ts:161 - "should match existing addTime.ts behavior for Unix timestamps"
+    Line 163: expect(result.date.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+  tests/utils/parseTimeInput.test.ts:166 - "should match existing behavior for ISO with timezone"
+    Line 168: expect(result.date.toISOString()).toBe('2025-01-01T07:00:00.000Z');
+  tests/utils/parseTimeInput.test.ts:171 - "should match existing behavior for local time parsing"
+    Line 173: expect(result.date.toISOString()).toBe('2025-01-01T17:00:00.000Z');
+  tests/utils/holidayAggregator.test.ts:256 - "should only include holidays within the specified date range"
+    Line 280: expect(result.has(new Date('2025-01-01').toDateString())).toBe(true); // Calendar holiday (year 2025)
+    Line 281: expect(result.has(new Date('2025-02-14').toDateString())).toBe(false); // Custom, before range
+    Line 282: expect(result.has(new Date('2025-07-04').toDateString())).toBe(true); // Calendar holiday (in range)
+    Line 283: expect(result.has(new Date('2025-10-31').toDateString())).toBe(false); // Custom, after range
+    Line 284: expect(result.has(new Date('2025-12-25').toDateString())).toBe(true); // Calendar holiday (year 2025)
+  tests/utils/debug.test.ts:39 - "should output to stderr when DEBUG env is set"
+    Line 46: expect(output).toContain('mcp:server');
+    Line 47: expect(output).toContain('test message');
+  tests/utils/debug.test.ts:50 - "should not output when DEBUG env is not set"
+    Line 56: expect(stderrOutput).toHaveLength(0);
+  tests/utils/debug.test.ts:59 - "should support multiple namespaces"
+    Line 68: expect(output).toContain('server message');
+    Line 69: expect(output).toContain('rate limit message');
+    Line 70: expect(output).not.toContain('cache message');
+  tests/utils/debug.test.ts:73 - "should support wildcard namespace"
+    Line 82: expect(output).toContain('server message');
+    Line 83: expect(output).toContain('rate limit message');
+    Line 84: expect(output).toContain('timing message');
+  tests/utils/debug.test.ts:89 - "should log environment variables when debug is enabled"
+    Line 98: expect(output).toContain('=== MCP Server Environment ===');
+    Line 99: expect(output).toContain('RATE_LIMIT: 50');
+    Line 100: expect(output).toContain('RATE_LIMIT_WINDOW: 30000');
+    Line 101: expect(output).toContain('DEBUG: mcp:init');
+  tests/utils/debug.test.ts:104 - "should show defaults when environment variables are not set"
+    Line 113: expect(output).toContain('RATE_LIMIT: 100 (default)');
+    Line 114: expect(output).toContain('RATE_LIMIT_WINDOW: 60000 (default)');
+  tests/utils/debug.test.ts:117 - "should not log when debug is disabled"
+    Line 123: expect(stderrOutput).toHaveLength(0);
+  tests/utils/debug.test.ts:128 - "should format objects for debug output"
+    Line 137: expect(output).toContain('Test object:');
+    Line 138: expect(output).toContain('foo');
+    Line 139: expect(output).toContain('bar');
+    Line 140: expect(output).toContain('nested');
+    Line 141: expect(output).toContain('42');
+  tests/utils/debug.test.ts:144 - "should not output when namespace is disabled"
+    Line 150: expect(stderrOutput).toHaveLength(0);
+  tests/utils/debug.test.ts:155 - "should be able to debug rate limit operations"
+    Line 166: expect(output).toContain('Creating rate limiter with limit=100, window=60000ms');
+    Line 167: expect(output).toContain('Request allowed. Current usage: 1/100');
+    Line 168: expect(output).toContain('Rate limit exceeded. Retry after: 45s');
+  tests/utils/debug-namespace-isolation.test.ts:67 - "should show ONLY business logic debug when DEBUG=mcp:business"
+    Line 81: expect(output).toContain('mcp:business');
+    Line 82: expect(output).toContain('Business calculation happening');
+    Line 85: expect(output).not.toContain('mcp:timezone');
+    Line 86: expect(output).not.toContain('mcp:timing');
+    Line 87: expect(output).not.toContain('mcp:cache');
+  tests/utils/debug-namespace-isolation.test.ts:92 - "should show ONLY timezone debug when DEBUG=mcp:timezone"
+    Line 106: expect(output).toContain('mcp:timezone');
+    Line 107: expect(output).toContain('Timezone conversion happening');
+    Line 110: expect(output).not.toContain('mcp:business');
+    Line 111: expect(output).not.toContain('mcp:timing');
+    Line 112: expect(output).not.toContain('mcp:parse');
+  tests/utils/debug-namespace-isolation.test.ts:117 - "should show ONLY timing debug when DEBUG=mcp:timing"
+    Line 131: expect(output).toContain('mcp:timing');
+    Line 132: expect(output).toContain('Duration calculation');
+    Line 135: expect(output).not.toContain('mcp:business');
+    Line 136: expect(output).not.toContain('mcp:timezone');
+    Line 137: expect(output).not.toContain('mcp:cache');
+  tests/utils/debug-namespace-isolation.test.ts:142 - "should show ONLY parse debug when DEBUG=mcp:parse"
+    Line 156: expect(output).toContain('mcp:parse');
+    Line 157: expect(output).toContain('Parsing user input');
+    Line 160: expect(output).not.toContain('mcp:timing');
+    Line 161: expect(output).not.toContain('mcp:business');
+    Line 162: expect(output).not.toContain('mcp:error');
+  tests/utils/debug-namespace-isolation.test.ts:167 - "should show multiple namespaces when specified"
+    Line 181: expect(output).toContain('mcp:business');
+    Line 182: expect(output).toContain('Business logic');
+    Line 183: expect(output).toContain('mcp:timezone');
+    Line 184: expect(output).toContain('Timezone logic');
+    Line 187: expect(output).not.toContain('mcp:timing');
+    Line 188: expect(output).not.toContain('mcp:cache');
+  tests/utils/debug-namespace-isolation.test.ts:193 - "should show ONLY trace debug when DEBUG=mcp:trace"
+    Line 207: expect(output).toContain('mcp:trace');
+    Line 208: expect(output).toContain('Tool execution started');
+    Line 211: expect(output).not.toContain('mcp:business');
+    Line 212: expect(output).not.toContain('mcp:timing');
+    Line 213: expect(output).not.toContain('mcp:error');
+  tests/utils/debug-namespace-isolation.test.ts:218 - "should show ONLY errors when DEBUG=mcp:error"
+    Line 232: expect(output).toContain('mcp:error');
+    Line 233: expect(output).toContain('Error in processing');
+    Line 236: expect(output).not.toContain('mcp:business');
+    Line 237: expect(output).not.toContain('mcp:timing');
+    Line 238: expect(output).not.toContain('mcp:trace');
+  tests/utils/debug-namespace-isolation.test.ts:243 - "should show all namespaces with DEBUG=mcp:*"
+    Line 260: expect(output).toContain('mcp:business');
+    Line 261: expect(output).toContain('mcp:timezone');
+    Line 262: expect(output).toContain('mcp:timing');
+    Line 263: expect(output).toContain('mcp:parse');
+    Line 264: expect(output).toContain('mcp:cache');
+    Line 265: expect(output).toContain('mcp:error');
+    Line 266: expect(output).toContain('mcp:trace');
+  tests/utils/debug-namespace-isolation.test.ts:269 - "should show nothing when DEBUG is not set"
+    Line 282: expect(output).toBe('');
+  tests/utils/debug-namespace-isolation.test.ts:287 - "should NOT have debug.tools namespace anymore"
+    Line 291: expect((debug as any).tools).toBeUndefined();
   tests/utils/config.test.ts:236 - "should return a complete TimeServerConfig object"
     Line 238: expect(config).toHaveProperty('defaultTimezone');
     Line 239: expect(typeof config.defaultTimezone).toBe('string');
+  tests/utils/cacheKeyBuilder.test.ts:5 - "should create a simple key with prefix only"
+    Line 7: expect(key).toBe('test');
+  tests/utils/cacheKeyBuilder.test.ts:10 - "should handle single values"
+    Line 17: expect(key).toBe('convert:time=2025-01-01:timezone=UTC');
+  tests/utils/cacheKeyBuilder.test.ts:20 - "should handle arrays by joining with commas"
+    Line 28: expect(key).toBe('business:custom=:holidays=2025-01-01,2025-12-25');
+  tests/utils/cacheKeyBuilder.test.ts:31 - "should handle boolean flags"
+    Line 39: expect(key).toBe('calc:excludeWeekends=true:includeObserved=false:optional=false');
+  tests/utils/cacheKeyBuilder.test.ts:42 - "should handle optional values that might be undefined"
+    Line 51: expect(key).toBe('format:calendar=:format=:timezone=America%2FNew_York');
+  tests/utils/cacheKeyBuilder.test.ts:54 - "should handle dates array in a consistent format"
+    Line 58: expect(key).toBe('range:dates=2025-01-01|2025-12-31');
+  tests/utils/cacheKeyBuilder.test.ts:61 - "should escape special characters in values"
+    Line 68: expect(key).toBe('test:path=some%3Avalue%3Awith%3Acolons:query=a%3Db%26c%3Dd');
+  tests/utils/cacheKeyBuilder.test.ts:71 - "should maintain consistent key order for same inputs"
+    Line 79: expect(key1).toBe('test:a=1:b=2');
+    Line 80: expect(key2).toBe('test:a=1:b=2');
+    Line 81: expect(key1).toBe(key2);
+  tests/utils/cacheKeyBuilder.test.ts:84 - "should handle complex business days key"
+    Line 101: expect(key).toContain('business_days');
+    Line 102: expect(key).toContain('dates=2025-01-01|2025-01-31');
+    Line 103: expect(key).toContain('excludeWeekends=true');
+    Line 104: expect(key).toContain('holidays=2025-01-01,2025-01-15');
+    Line 105: expect(key).toContain('timezone=America%2FNew_York'); // URL-encoded
+  tests/utils/cacheKeyBuilder.test.ts:108 - "should handle empty or null prefix gracefully"
+    Line 110: expect(key1).toBe('');
+    Line 115: expect(key2).toBe('test=value');
+  tests/utils/cacheKeyBuilder.test.ts:118 - "should handle all option types together"
+    Line 128: expect(key).toBe('complex:active=true:dates=2025-01-01:id=123:note=test:tags=a,b');
+  tests/utils/cacheKeyBuilder.test.ts:131 - "should be consistent with current withCache usage patterns"
+    Line 143: expect(addTimeKey).toBe('add:amount=1:time=2025-01-01:timezone=UTC:unit=day');
+    Line 154: expect(durationKey).toContain('start_time=2025-01-01');
+    Line 155: expect(durationKey).toContain('end_time=2025-01-02');
+  tests/utils/cacheKeyBuilder.test.ts:160 - "should handle undefined options object"
+    Line 162: expect(key).toBe('test');
+  tests/utils/cacheKeyBuilder.test.ts:165 - "should handle very long arrays efficiently"
+    Line 170: expect(key).toContain('items=item0,item1');
+    Line 171: expect(key.length).toBeLessThan(2000); // Should not create excessively long keys
+  tests/utils/cacheKeyBuilder.test.ts:174 - "should handle special timezone formats"
+    Line 180: expect(key).toBe('tz:timezone=America%2FArgentina%2FBuenos_Aires');
+  tests/utils/businessUtils.test.ts:32 - "should parse valid date strings"
+    Line 34: expect(result).toBeInstanceOf(Date);
+    Line 35: expect(result.toISOString()).toContain('2025-01-31');
+  tests/utils/businessUtils.test.ts:38 - "should parse date with time"
+    Line 40: expect(result).toBeInstanceOf(Date);
+  tests/utils/businessUtils.test.ts:58 - "should include field name in error message"
+    Line 62: expect(e.error.message).toContain('Invalid custom_field format');
+    Line 63: expect(e.error.details.custom_field).toBe('invalid-date');
+  tests/utils/businessUtils.test.ts:67 - "should preserve timezone in parsing"
+    Line 71: expect(result).toBeInstanceOf(Date);
+  tests/utils/businessUtils.test.ts:76 - "should parse array of valid holiday dates"
+    Line 80: expect(result).toHaveLength(3);
+    Line 81: expect(result[0]).toBeInstanceOf(Date);
+    Line 82: expect(result[1]).toBeInstanceOf(Date);
+    Line 83: expect(result[2]).toBeInstanceOf(Date);
+  tests/utils/businessUtils.test.ts:86 - "should handle empty array"
+    Line 88: expect(result).toEqual([]);
+  tests/utils/businessUtils.test.ts:91 - "should parse dates with timezone awareness"
+    Line 95: expect(result).toHaveLength(1);
+    Line 96: expect(result[0]).toBeInstanceOf(Date);
+  tests/utils/businessUtils.test.ts:117 - "should include index in error for tracking"
+    Line 124: expect(e.error.details.index).toBeDefined();
+    Line 125: expect(typeof e.error.details.index).toBe('number');
+  tests/utils/businessUtils.test.ts:129 - "should handle dates in different formats"
+    Line 137: expect(result).toHaveLength(3);
+    Line 139: expect(date).toBeInstanceOf(Date);
+    Line 141: expect(date.getTime()).not.toBeNaN();
+  tests/utils/businessUtils.test.ts:145 - "should preserve original error information"
+    Line 151: expect(e.error.details.error).toBeDefined();
+    Line 153: expect(typeof e.error.details.error).toBe('string');
+  tests/utils/businessUtils.test.ts:159 - "should handle null timezone correctly"
+    Line 162: expect(result).toBeInstanceOf(Date);
+  tests/utils/businessUtils.test.ts:172 - "should maintain consistency between utilities"
+    Line 180: expect(singleDate.getTime()).toBe(arrayDates[0].getTime());
+  tests/utils/businessHoursHelpers.test.ts:79 - "should handle single day range"
+    Line 86: expect(result).toEqual(['2025-01-15']);
+  tests/utils/businessHoursHelpers.test.ts:89 - "should handle timezone conversion"
+    Line 97: expect(result).toEqual(['2025-01-01']); // In NY timezone
+  tests/utils/businessHoursHelpers.test.ts:100 - "should handle DST transitions"
+    Line 108: expect(result).toHaveLength(3);
+    Line 109: expect(result).toContain('2025-03-08');
+    Line 110: expect(result).toContain('2025-03-09');
+    Line 111: expect(result).toContain('2025-03-10');
+  tests/utils/businessHoursHelpers.test.ts:116 - "should return day info for a date"
+    Line 119: expect(result).toEqual({
+  tests/utils/businessHoursHelpers.test.ts:136 - "should return true for weekday with no holidays"
+    Line 138: expect(result).toBe(true);
+  tests/utils/businessHoursHelpers.test.ts:141 - "should return false for weekend when not including weekends"
+    Line 143: expect(result).toBe(false);
+  tests/utils/businessHoursHelpers.test.ts:146 - "should return true for weekend when including weekends"
+    Line 148: expect(result).toBe(true);
+  tests/utils/businessHoursHelpers.test.ts:151 - "should return false for holiday"
+    Line 156: expect(result).toBe(false);
+  tests/utils/businessHoursHelpers.test.ts:159 - "should handle holiday on weekend correctly"
+    Line 162: expect(result).toBe(false); // False because it's both weekend and holiday
+  tests/utils/businessHoursHelpers.test.ts:172 - "should calculate full day minutes"
+    Line 187: expect(result).toBe(480); // 8 hours * 60 minutes
+  tests/utils/businessHoursHelpers.test.ts:190 - "should handle partial start day"
+    Line 205: expect(result).toBe(420); // 7 hours * 60 minutes
+  tests/utils/businessHoursHelpers.test.ts:208 - "should handle partial end day"
+    Line 223: expect(result).toBe(360); // 6 hours * 60 minutes
+  tests/utils/businessHoursHelpers.test.ts:226 - "should return 0 if range starts after business hours"
+    Line 241: expect(result).toBe(0);
+  tests/utils/businessHoursHelpers.test.ts:244 - "should return 0 if range ends before business hours"
+    Line 259: expect(result).toBe(0);
+  tests/utils/businessHoursHelpers.test.ts:262 - "should handle null business hours"
+    Line 277: expect(result).toBe(0);
+  tests/utils/businessHoursHelpers.test.ts:282 - "should build day result with all fields"
+    Line 285: expect(result).toEqual({
+  tests/utils/businessHoursHelpers.test.ts:294 - "should handle weekend day"
+    Line 297: expect(result).toEqual({
+  tests/utils/businessHoursHelpers.test.ts:306 - "should handle holiday"
+    Line 309: expect(result).toEqual({
   tests/tools/subtractTime.test.ts:286 - "should throw error for invalid time format"
     Line 289: expect(() =>
   tests/tools/subtractTime.test.ts:306 - "should throw error for invalid unit"
@@ -240,6 +484,102 @@ Tests with Only Trivial Assertions: 365
     Line 502: expect(result).toHaveProperty('original');
     Line 503: expect(typeof result.formatted).toBe('string');
     Line 504: expect(typeof result.original).toBe('string');
+  tests/tools/formatTime-refactored.test.ts:20 - "should export FORMAT_TOKENS as a frozen object"
+    Line 21: expect(FORMAT_TOKENS).toBeDefined();
+    Line 22: expect(typeof FORMAT_TOKENS).toBe('object');
+    Line 23: expect(Object.isFrozen(FORMAT_TOKENS)).toBe(true);
+  tests/tools/formatTime-refactored.test.ts:48 - "should validate format type"
+    Line 49: expect(() =>
+  tests/tools/formatTime-refactored.test.ts:70 - "should reject empty custom_format"
+    Line 71: expect(() =>
+  tests/tools/formatTime-refactored.test.ts:82 - "should validate timezone if provided"
+    Line 83: expect(() =>
+  tests/tools/formatTime-refactored.test.ts:102 - "should log validation with debug.validation"
+    Line 107: expect(output).toContain('validateFormatParams');
+  tests/tools/formatTime-refactored.test.ts:113 - "should parse valid ISO date"
+    Line 115: expect(result).toBeInstanceOf(Date);
+    Line 116: expect(result.toISOString()).toBe('2025-01-15T10:30:00.000Z');
+  tests/tools/formatTime-refactored.test.ts:119 - "should parse date with timezone"
+    Line 121: expect(result).toBeInstanceOf(Date);
+  tests/tools/formatTime-refactored.test.ts:124 - "should fallback to native Date for overflow dates"
+    Line 127: expect(result).toBeInstanceOf(Date);
+  tests/tools/formatTime-refactored.test.ts:140 - "should log with debug.parse"
+    Line 145: expect(output).toContain('parseTimeWithFallback');
+    Line 146: expect(output).toContain('Attempting to parse');
+  tests/tools/formatTime-refactored.test.ts:150 - "should log fallback attempt with debug.parse"
+    Line 156: expect(output).toContain('Fallback to native Date');
+  tests/tools/formatTime-refactored.test.ts:173 - "should format today"
+    Line 176: expect(result).toBe('today at 2:30 PM');
+  tests/tools/formatTime-refactored.test.ts:179 - "should format yesterday"
+    Line 182: expect(result).toBe('yesterday at 2:30 PM');
+  tests/tools/formatTime-refactored.test.ts:185 - "should format tomorrow"
+    Line 188: expect(result).toBe('tomorrow at 2:30 PM');
+  tests/tools/formatTime-refactored.test.ts:191 - "should format last week"
+    Line 194: expect(result).toBe('last Friday at 2:30 PM');
+  tests/tools/formatTime-refactored.test.ts:197 - "should format next week"
+    Line 200: expect(result).toBe('Monday at 2:30 PM');
+  tests/tools/formatTime-refactored.test.ts:203 - "should format dates beyond a week"
+    Line 206: expect(result).toBe('02/01/2025 at 2:30 PM');
+  tests/tools/formatTime-refactored.test.ts:209 - "should respect timezone"
+    Line 212: expect(result).toBe('today at 3:00 PM');
+  tests/tools/formatTime-refactored.test.ts:215 - "should log with debug.timing"
+    Line 221: expect(output).toContain('formatRelativeTime');
+    Line 222: expect(output).toContain('Days difference: 0');
+  tests/tools/formatTime-refactored.test.ts:228 - "should format with valid format string"
+    Line 231: expect(result).toBe('2025-01-15 14:30:00');
+  tests/tools/formatTime-refactored.test.ts:256 - "should handle escaped content"
+    Line 259: expect(result).toBe('Today is Wednesday');
+  tests/tools/formatTime-refactored.test.ts:262 - "should respect timezone"
+    Line 265: expect(result).toBe('15:00');
+  tests/tools/formatTime-refactored.test.ts:268 - "should log with debug.timing"
+    Line 274: expect(output).toContain('formatCustomTime');
+    Line 275: expect(output).toContain('Formatting with: yyyy-MM-dd');
+  tests/tools/formatTime-refactored.test.ts:279 - "should log validation with debug.validation"
+    Line 285: expect(output).toContain('Validating format string');
+  tests/tools/formatTime-refactored.test.ts:306 - "should have reduced complexity"
+    Line 309: expect(typeof validateFormatParams).toBe('function');
+    Line 310: expect(typeof parseTimeWithFallback).toBe('function');
+    Line 311: expect(typeof formatRelativeTime).toBe('function');
+    Line 312: expect(typeof formatCustomTime).toBe('function');
+  tests/tools/debug-coverage.test.ts:67 - "should log delegation to addTime"
+    Line 81: expect(output).toContain('subtractTime called');
+    Line 82: expect(output).toContain('Delegating to addTime with negated amount');
+  tests/tools/debug-coverage.test.ts:85 - "should not log when DEBUG is not set"
+    Line 97: expect(output).toBe('');
+  tests/tools/debug-coverage.test.ts:123 - "should log format validation with validation namespace"
+    Line 137: expect(output).toContain('mcp:validation');
+    Line 138: expect(output).toContain('isValidFormatString');
+  tests/tools/debug-coverage.test.ts:141 - "should log parsing with parse namespace"
+    Line 154: expect(output).toContain('mcp:parse');
+    Line 155: expect(output).toContain('Parsing time input');
+  tests/tools/debug-coverage.test.ts:158 - "should log relative formatting logic"
+    Line 171: expect(output).toContain('mcp:timing');
+    Line 172: expect(output).toContain('Formatting as relative');
+  tests/tools/debug-coverage.test.ts:195 - "should log entry with recurrence namespace"
+    Line 208: expect(output).toContain('mcp:recurrence');
+    Line 209: expect(output).toContain('nextOccurrence called');
+    Line 212: expect(result).toHaveProperty('next');
+    Line 213: expect(result).toHaveProperty('unix');
+    Line 214: expect(result).toHaveProperty('days_until');
+  tests/tools/debug-coverage.test.ts:217 - "should log parameter mapping"
+    Line 231: expect(output).toContain('mapToRecurrenceParams');
+    Line 232: expect(output).toContain('pattern: weekly');
+  tests/tools/debug-coverage.test.ts:235 - "should log calculation steps"
+    Line 248: expect(output).toContain('calculateNextOccurrence');
+    Line 249: expect(output).toContain('calculateDaysUntil');
+  tests/tools/debug-coverage.test.ts:252 - "should log parsing with parse namespace when start_from is provided"
+    Line 265: expect(output).toContain('mcp:parse');
+    Line 266: expect(output).toContain('Parsing start_from');
+  tests/tools/debug-coverage.test.ts:269 - "should log validation with validation namespace"
+    Line 282: expect(output).toContain('mcp:validation');
+    Line 283: expect(output).toContain('Validating timezone');
+  tests/tools/debug-coverage.test.ts:286 - "should log return value"
+    Line 298: expect(output).toContain('nextOccurrence returning');
+    Line 299: expect(result).toHaveProperty('next');
+  tests/tools/debug-coverage.test.ts:304 - "subtractTime should only show in timing namespace"
+    Line 318: expect(output).not.toContain('subtractTime');
+  tests/tools/debug-coverage.test.ts:321 - "nextOccurrence should only show in recurrence namespace"
+    Line 333: expect(output).not.toContain('nextOccurrence');
   tests/tools/daysUntil.test.ts:11 - "should calculate days until a future date"
     Line 17: expect(result).toBe(7);
   tests/tools/daysUntil.test.ts:20 - "should return 0 for today"
@@ -291,17 +631,6 @@ Tests with Only Trivial Assertions: 365
     Line 257: expect(result).toBe('in 30 days');
   tests/tools/daysUntil.test.ts:260 - "should handle deadline tracking"
     Line 268: expect(result).toBe(14);
-  tests/tools/daysUntil-refactor.test.ts:28 - "should parse Unix timestamp string"
-    Line 30: expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
-  tests/tools/daysUntil-refactor.test.ts:33 - "should parse numeric Unix timestamp"
-    Line 35: expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
-  tests/tools/daysUntil-refactor.test.ts:38 - "should parse ISO date string"
-    Line 40: expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
-  tests/tools/daysUntil-refactor.test.ts:60 - "should return same date for UTC timezone"
-    Line 63: expect(result).toBe(date);
-  tests/tools/daysUntil-refactor.test.ts:66 - "should convert to specified timezone"
-    Line 70: expect(result).not.toBe(date);
-    Line 72: expect(result.valueOf()).toBeDefined();
   tests/tools/convertTimezone.test.ts:210 - "should throw error for invalid from_timezone"
     Line 213: expect(() =>
     Line 221: expect(() =>
@@ -394,6 +723,18 @@ Tests with Only Trivial Assertions: 365
     Line 140: expect(formatted).toBeDefined();
   tests/tools/calculateBusinessHours.test.ts:392 - "should use different cache keys for different parameters"
     Line 411: expect(firstCall).not.toBe(secondCall);
+  tests/tools/calculateBusinessHours.extracted.test.ts:15 - "should generate single date for same day range"
+    Line 24: expect(result).toEqual(expected);
+  tests/tools/calculateBusinessHours.extracted.test.ts:27 - "should generate multiple dates for multi-day range"
+    Line 36: expect(result).toEqual(expected);
+  tests/tools/calculateBusinessHours.extracted.test.ts:39 - "should handle timezone correctly for date boundaries"
+    Line 49: expect(result).toEqual(expected);
+  tests/tools/calculateBusinessHours.extracted.test.ts:52 - "should not duplicate dates"
+    Line 62: expect(result).toEqual(expected);
+  tests/tools/calculateBusinessHours.extracted.test.ts:218 - "should aggregate results correctly"
+    Line 252: expect(result).toEqual(expected);
+  tests/tools/calculateBusinessHours.extracted.test.ts:255 - "should handle empty breakdown"
+    Line 266: expect(result).toEqual(expected);
   tests/tools/addTime.test.ts:301 - "should throw error for invalid time format"
     Line 304: expect(() =>
   tests/tools/addTime.test.ts:321 - "should throw error for invalid unit"
@@ -425,14 +766,6 @@ Tests with Only Trivial Assertions: 365
     Line 60: expect(error.error.message).toContain('Invalid amount: NaN');
     Line 61: expect(error.error.message).toContain('Must be a finite number');
     Line 62: expect(error.error.details).toEqual({ amount: NaN });
-  tests/tools/addTime-parsing-helpers.test.ts:11 - "should parse valid Unix timestamp"
-    Line 13: expect(result).toEqual(new Date('2025-01-01T00:00:00.000Z'));
-  tests/tools/addTime-parsing-helpers.test.ts:16 - "should return null for non-numeric strings"
-    Line 18: expect(result).toBeNull();
-  tests/tools/addTime-parsing-helpers.test.ts:21 - "should return null for invalid timestamps"
-    Line 23: expect(result).toBeNull();
-  tests/tools/addTime-parsing-helpers.test.ts:26 - "should handle timestamps with leading/trailing spaces"
-    Line 28: expect(result).toBeNull(); // Only pure digits allowed
   tests/tools/addTime-formatting.test.ts:148 - "should log formatting attempts"
     Line 168: expect(result).toBeDefined();
   tests/security/mcp-attack-vectors.test.ts:156 - "should handle extremely large date ranges"
@@ -503,18 +836,18 @@ Tests with Only Trivial Assertions: 365
     Line 133: expect(durationMs).toBeLessThan(50);
   tests/performance/benchmark.test.ts:138 - "100 getCurrentTime calls should average < 1ms each"
     Line 152: expect(avgMs).toBeLessThan(5); // Increased from 1ms to account for SHA-256 hashing
-  tests/meta/test-quality.test.ts:41 - "async tests should properly await their assertions"
-    Line 53: if (nextLines.includes('expect(') && !nextLines.includes('await')) {
-    Line 63: expect(issues).toEqual([]);
-  tests/meta/test-quality.test.ts:84 - "no test should use console.log instead of assertions"
-    Line 115: if (line.includes('expect(')) hasExpect = true;
-    Line 122: expect(issues).toEqual([]);
-  tests/meta/test-quality.test.ts:134 - "should generate a comprehensive test quality report"
-    Line 139: expect(report).toContain('TEST ASSERTION ANALYSIS REPORT');
-    Line 140: expect(report).toContain('Total Tests Analyzed:');
-    Line 141: expect(report).toContain('RECOMMENDATIONS');
-    Line 150: expect(fs.existsSync(reportPath)).toBe(true);
-    Line 151: expect(fs.existsSync(path.join(process.cwd(), 'test-assertion-report.json'))).toBe(true);
+  tests/meta/test-quality.test.ts:54 - "async tests should properly await their assertions"
+    Line 66: if (nextLines.includes('expect(') && !nextLines.includes('await')) {
+    Line 76: expect(issues).toEqual([]);
+  tests/meta/test-quality.test.ts:97 - "no test should use console.log instead of assertions"
+    Line 128: if (line.includes('expect(')) hasExpect = true;
+    Line 135: expect(issues).toEqual([]);
+  tests/meta/test-quality.test.ts:147 - "should generate a comprehensive test quality report"
+    Line 152: expect(report).toContain('TEST ASSERTION ANALYSIS REPORT');
+    Line 153: expect(report).toContain('Total Tests Analyzed:');
+    Line 154: expect(report).toContain('RECOMMENDATIONS');
+    Line 163: expect(fs.existsSync(reportPath)).toBe(true);
+    Line 164: expect(fs.existsSync(path.join(process.cwd(), 'test-assertion-report.json'))).toBe(true);
   tests/integration/toolDescriptions.test.ts:5 - "should return tool descriptions with system timezone as default"
     Line 22: expect(getCurrentTimeTool).toBeDefined();
     Line 24: expect(getCurrentTimeSchema?.properties?.timezone?.description).toBe(
@@ -548,6 +881,22 @@ Tests with Only Trivial Assertions: 365
     Line 53: expect(process.env.RATE_LIMIT_WINDOW).toBe('5000');
     Line 58: expect(process.env.RATE_LIMIT).toBe(originalRateLimit);
     Line 59: expect(process.env.RATE_LIMIT_WINDOW).toBe(originalWindow);
+  tests/integration/mcp-external-validation.test.ts:74 - "should calculate business days correctly for known date ranges"
+    Line 81: expect(result.result.content[0].text).toContain('"total_business_days": 23');
+  tests/integration/mcp-external-validation.test.ts:84 - "should calculate business hours matching real-world expectations"
+    Line 91: expect(result.result.content[0].text).toContain('"total_business_hours": 40');
+  tests/integration/mcp-external-validation.test.ts:94 - "should handle timezone conversions matching external sources"
+    Line 102: expect(result.result.content[0].text).toContain('07:00:00');
+  tests/integration/mcp-external-validation.test.ts:105 - "should calculate duration matching manual calculation"
+    Line 113: expect(result.result.content[0].text).toContain('336');
+  tests/integration/mcp-external-validation.test.ts:118 - "should handle DST transitions correctly"
+    Line 128: expect(result.result.content[0].text).toContain('23');
+  tests/integration/mcp-external-validation.test.ts:131 - "should exclude US holidays from business days"
+    Line 140: expect(result.result.content[0].text).toContain('"total_business_days": 22');
+  tests/integration/mcp-external-validation.test.ts:145 - "should show same moment in different timezones correctly"
+    Line 162: expect(nyResult.result.content[0].text).toContain('11:00:00');
+    Line 165: expect(tokyoResult.result.content[0].text).toContain('2025-06-16');
+    Line 166: expect(tokyoResult.result.content[0].text).toContain('00:00:00');
   tests/integration/maxListeners.test.ts:12 - "should handle many concurrent requests without MaxListenersExceededWarning"
     Line 38: expect(maxListenerWarnings).toHaveLength(0);
   tests/integration/maxListeners.test.ts:48 - "should handle rapid sequential requests without warnings"
@@ -1016,17 +1365,18 @@ Tests with Only Trivial Assertions: 365
     - All assertions are trivial or meaningless
   tests/index.rateLimit.test.ts:250 - "should create rate limiter with environment configuration"
     - All assertions are trivial or meaningless
-  tests/utils/validation.test.ts:23 - "should return false for invalid timezones"
-    - Test name suggests error handling but no error assertions found
-  tests/utils/validation.test.ts:54 - "should reject invalid formats"
-    - Test name suggests error handling but no error assertions found
-  tests/utils/validation.test.ts:76 - "should reject invalid units"
-    - Test name suggests error handling but no error assertions found
-  tests/utils/validation.test.ts:93 - "should reject invalid patterns"
-    - Test name suggests error handling but no error assertions found
-  tests/utils/validation.test.ts:108 - "should reject invalid days"
-    - Test name suggests error handling but no error assertions found
-  ... and 439 more
+  tests/utils/withDebug.test.ts:33 - "logs function entry with arguments"
+    - All assertions are trivial or meaningless
+  tests/utils/withDebug.test.ts:43 - "logs successful completion"
+    - All assertions are trivial or meaningless
+  tests/utils/withDebug.test.ts:65 - "handles async functions that succeed"
+    - All assertions are trivial or meaningless
+    - Test name suggests async but no async assertions found
+  tests/utils/withDebug.test.ts:93 - "handles functions with no name"
+    - All assertions are trivial or meaningless
+  tests/utils/withDebug.test.ts:139 - "withDebugUtils uses utils namespace"
+    - All assertions are trivial or meaningless
+  ... and 574 more
 
 📋 RECOMMENDATIONS:
 2. Replace trivial assertions with meaningful ones that test actual behavior

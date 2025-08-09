@@ -46,7 +46,7 @@ describe('nextOccurrence', () => {
 
   describe('Daily pattern', () => {
     it('should find next daily occurrence at specific time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -59,7 +59,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should find next daily occurrence when time has passed', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -72,7 +72,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle daily pattern without specific time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -84,7 +84,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle daily pattern with timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -100,7 +100,7 @@ describe('nextOccurrence', () => {
 
   describe('Weekly pattern', () => {
     it('should find next occurrence of specific weekday', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'weekly',
@@ -113,7 +113,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should find next occurrence when on the same weekday', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'weekly',
@@ -126,7 +126,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle Sunday (0) correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'weekly',
@@ -139,7 +139,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle Saturday (6) correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'weekly',
@@ -152,7 +152,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle weekly with specific time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'weekly',
@@ -166,7 +166,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle weekly when time has passed today', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'weekly',
@@ -182,7 +182,7 @@ describe('nextOccurrence', () => {
 
   describe('Monthly pattern', () => {
     it('should find next occurrence on specific day of month', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'monthly',
@@ -195,7 +195,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle when day has passed this month', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'monthly',
@@ -208,7 +208,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle same day of month', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'monthly',
@@ -221,7 +221,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle last day of month (31st)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'monthly',
@@ -234,7 +234,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle 31st in months with fewer days', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       // Set to Jan 31
       jest.setSystemTime(new Date('2025-01-31T10:00:00.000Z'));
 
@@ -249,7 +249,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle February 29 in non-leap year', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'monthly',
@@ -272,7 +272,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle monthly with specific time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'monthly',
@@ -288,7 +288,7 @@ describe('nextOccurrence', () => {
 
   describe('Yearly pattern', () => {
     it('should find next yearly occurrence', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'yearly',
@@ -300,7 +300,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle leap year for Feb 29', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       // Set to Feb 29, 2024 (leap year)
       jest.setSystemTime(new Date('2024-02-29T10:00:00.000Z'));
 
@@ -314,7 +314,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle yearly with specific time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'yearly',
@@ -327,7 +327,7 @@ describe('nextOccurrence', () => {
 
   describe('Custom start_from', () => {
     it('should calculate from custom start date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -340,7 +340,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle timezone in start_from', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -354,13 +354,13 @@ describe('nextOccurrence', () => {
 
   describe('Edge cases', () => {
     it('should handle pattern case-insensitively', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // The new implementation requires lowercase patterns
       expect(() =>
         nextOccurrence({
           pattern: 'DAILY' as any,
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -368,12 +368,12 @@ describe('nextOccurrence', () => {
             message: 'Invalid pattern',
             details: { pattern: 'DAILY' },
           },
-        }),
+        })
       );
     });
 
     it('should default missing parameters appropriately', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // The new implementation handles defaults differently
       // Weekly without day_of_week defaults to current day of week
@@ -387,7 +387,7 @@ describe('nextOccurrence', () => {
       expect(() =>
         nextOccurrence({
           pattern: 'monthly',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -395,12 +395,12 @@ describe('nextOccurrence', () => {
             message: expect.stringContaining('dayOfMonth is required for monthly pattern'),
             details: { pattern: 'monthly' },
           },
-        }),
+        })
       );
     });
 
     it('should handle DST transitions', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       // Set to March 8, 2025 (day before DST in US)
       jest.setSystemTime(new Date('2025-03-08T15:00:00.000Z'));
 
@@ -417,12 +417,12 @@ describe('nextOccurrence', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid pattern', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         nextOccurrence({
           pattern: 'invalid' as any,
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -430,18 +430,18 @@ describe('nextOccurrence', () => {
             message: expect.stringContaining('Invalid pattern'),
             details: { pattern: 'invalid' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid day_of_week', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         nextOccurrence({
           pattern: 'weekly',
           day_of_week: 7, // Invalid (0-6)
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -449,18 +449,18 @@ describe('nextOccurrence', () => {
             message: expect.stringContaining('Invalid day of week'),
             details: { dayOfWeek: 7 },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid day_of_month', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         nextOccurrence({
           pattern: 'monthly',
           day_of_month: 32, // Invalid
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -468,14 +468,14 @@ describe('nextOccurrence', () => {
             message: expect.stringContaining('Invalid day of month'),
             details: { dayOfMonth: 32 },
           },
-        }),
+        })
       );
 
       expect(() =>
         nextOccurrence({
           pattern: 'monthly',
           day_of_month: 0, // Invalid
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -483,18 +483,18 @@ describe('nextOccurrence', () => {
             message: expect.stringContaining('Invalid day of month'),
             details: { dayOfMonth: 0 },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid time format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         nextOccurrence({
           pattern: 'daily',
           time: 'invalid',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -502,14 +502,14 @@ describe('nextOccurrence', () => {
             message: expect.stringContaining('Invalid time format'),
             details: { time: 'invalid' },
           },
-        }),
+        })
       );
 
       expect(() =>
         nextOccurrence({
           pattern: 'daily',
           time: '25:00', // Invalid hour
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -517,18 +517,18 @@ describe('nextOccurrence', () => {
             message: expect.stringContaining('Invalid time format'),
             details: { time: '25:00' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         nextOccurrence({
           pattern: 'daily',
           timezone: 'Invalid/Zone',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -536,30 +536,30 @@ describe('nextOccurrence', () => {
             message: 'Invalid timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid start_from date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         nextOccurrence({
           pattern: 'daily',
           start_from: 'not-a-date',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           code: TimeServerErrorCodes.INTERNAL_ERROR,
           message: expect.stringContaining('Failed to calculate next occurrence'),
-        }),
+        })
       );
     });
   });
 
   describe('Caching', () => {
     it('should cache results for 1 hour', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       nextOccurrence({
         pattern: 'daily',
@@ -567,9 +567,9 @@ describe('nextOccurrence', () => {
       });
 
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringMatching(/^nextOccurrence:[a-f0-9]{64}$/),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        3600, // 1 hour
+        3600 // 1 hour
       );
     });
 
@@ -591,7 +591,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       nextOccurrence({
         pattern: 'daily',
@@ -615,7 +615,7 @@ describe('nextOccurrence', () => {
 
   describe('Response format', () => {
     it('should return all required fields', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -630,7 +630,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should return ISO8601 format for next', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -641,7 +641,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should calculate unix timestamp correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -653,7 +653,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should calculate days_until as whole days', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = nextOccurrence({
         pattern: 'daily',
@@ -674,7 +674,7 @@ describe('nextOccurrence', () => {
 
   describe('System timezone defaults', () => {
     it('should use system timezone when no timezone parameter provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = nextOccurrence({
@@ -687,7 +687,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should still use UTC when empty string timezone provided (backward compatibility)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = nextOccurrence({
@@ -701,7 +701,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should use explicit timezone parameter over system default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = nextOccurrence({
@@ -715,7 +715,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should apply system timezone for weekly pattern', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = nextOccurrence({
@@ -729,7 +729,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should apply system timezone for monthly pattern', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = nextOccurrence({
@@ -743,7 +743,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should apply system timezone for yearly pattern', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = nextOccurrence({
@@ -756,7 +756,7 @@ describe('nextOccurrence', () => {
     });
 
     it('should handle system timezone in cache key', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/Chicago' });
 
       nextOccurrence({
@@ -765,9 +765,9 @@ describe('nextOccurrence', () => {
 
       // Should include system timezone in cache key when no timezone provided
       expect(mockedCache.set).toHaveBeenCalledWith(
-        expect.stringMatching(/^nextOccurrence:[a-f0-9]{64}$/),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        3600,
+        3600
       );
     });
   });

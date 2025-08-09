@@ -41,6 +41,7 @@ tmp/
 # Test reports (generated files)
 test-assertion-report.json
 test-quality-report.txt
+test-results/
 
 # ESLint output files
 eslint-output.json

@@ -35,7 +35,7 @@ describe('convertTimezone', () => {
 
   describe('Basic functionality', () => {
     it('should convert time from one timezone to another', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -51,7 +51,7 @@ describe('convertTimezone', () => {
     });
 
     it('should handle UTC conversions', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -67,7 +67,7 @@ describe('convertTimezone', () => {
     });
 
     it('should use custom format when provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -82,7 +82,7 @@ describe('convertTimezone', () => {
     });
 
     it('should handle winter/summer time correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // Winter time (EST)
       const winterResult = convertTimezone({
@@ -106,7 +106,7 @@ describe('convertTimezone', () => {
 
   describe('Input format handling', () => {
     it('should handle ISO8601 with Z', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00.000Z',
@@ -119,7 +119,7 @@ describe('convertTimezone', () => {
     });
 
     it('should handle ISO8601 with offset', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00.000+05:30',
@@ -134,7 +134,7 @@ describe('convertTimezone', () => {
     });
 
     it('should handle date-only format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18',
@@ -148,7 +148,7 @@ describe('convertTimezone', () => {
     });
 
     it('should handle Unix timestamps', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '1752857922', // 2025-07-18T16:58:42.000Z
@@ -163,7 +163,7 @@ describe('convertTimezone', () => {
 
   describe('Edge cases', () => {
     it('should handle same timezone conversion', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -177,7 +177,7 @@ describe('convertTimezone', () => {
     });
 
     it('should handle timezone abbreviations', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -193,7 +193,7 @@ describe('convertTimezone', () => {
     });
 
     it('should handle half-hour and 45-minute offset timezones', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -208,14 +208,14 @@ describe('convertTimezone', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid from_timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         convertTimezone({
           time: '2025-07-18T12:00:00',
           from_timezone: 'Invalid/Zone',
           to_timezone: 'UTC',
-        }),
+        })
       ).toThrow();
 
       expect(() =>
@@ -223,7 +223,7 @@ describe('convertTimezone', () => {
           time: '2025-07-18T12:00:00',
           from_timezone: 'Invalid/Zone',
           to_timezone: 'UTC',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -231,19 +231,19 @@ describe('convertTimezone', () => {
             message: 'Invalid from_timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone', field: 'from_timezone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid to_timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         convertTimezone({
           time: '2025-07-18T12:00:00',
           from_timezone: 'UTC',
           to_timezone: 'Invalid/Zone',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -251,19 +251,19 @@ describe('convertTimezone', () => {
             message: 'Invalid to_timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone', field: 'to_timezone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid time format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         convertTimezone({
           time: 'not-a-date',
           from_timezone: 'UTC',
           to_timezone: 'America/New_York',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -271,12 +271,12 @@ describe('convertTimezone', () => {
             message: expect.stringContaining('Invalid time format'),
             details: expect.objectContaining({ time: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid custom format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         convertTimezone({
@@ -284,7 +284,7 @@ describe('convertTimezone', () => {
           from_timezone: 'UTC',
           to_timezone: 'America/New_York',
           format: 'invalid-format-$$$$',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -292,14 +292,14 @@ describe('convertTimezone', () => {
             message: expect.stringContaining('Invalid format'),
             details: expect.objectContaining({ format: 'invalid-format-$$$$' }),
           },
-        }),
+        })
       );
     });
   });
 
   describe('Caching', () => {
     it('should cache results for 5 minutes', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -310,7 +310,7 @@ describe('convertTimezone', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        300, // 5 minutes
+        300 // 5 minutes
       );
     });
 
@@ -335,7 +335,7 @@ describe('convertTimezone', () => {
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -357,7 +357,7 @@ describe('convertTimezone', () => {
 
   describe('Output format verification', () => {
     it('should always include all required fields', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = convertTimezone({
         time: '2025-07-18T12:00:00',
@@ -381,7 +381,7 @@ describe('convertTimezone', () => {
     });
 
     it('should calculate offset difference correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // Test positive difference (east to west)
       const eastToWest = convertTimezone({

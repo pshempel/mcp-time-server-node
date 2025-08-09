@@ -47,7 +47,7 @@ describe('calculateDuration', () => {
 
   describe('Basic functionality', () => {
     it('should calculate duration between two UTC times', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -64,7 +64,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle negative duration (end before start)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T14:30:00Z',
@@ -81,7 +81,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle zero duration (same times)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -98,7 +98,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle multi-day durations', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -114,7 +114,7 @@ describe('calculateDuration', () => {
 
   describe('Timezone handling', () => {
     it('should handle times with explicit offsets', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00+05:30',
@@ -129,7 +129,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle timezone parameter for local times', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00',
@@ -144,7 +144,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle DST transitions correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // Spring forward: 2 AM becomes 3 AM on March 9, 2025
       const result = calculateDuration({
@@ -159,7 +159,7 @@ describe('calculateDuration', () => {
     });
 
     it('should calculate duration when times have different timezone representations', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -173,7 +173,7 @@ describe('calculateDuration', () => {
 
   describe('Input format variations', () => {
     it('should handle date-only inputs', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15',
@@ -187,7 +187,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle Unix timestamp strings', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '1736937000', // 2025-01-15T10:30:00Z
@@ -200,7 +200,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle mixed input formats', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '1736937000', // Unix timestamp
@@ -214,7 +214,7 @@ describe('calculateDuration', () => {
 
   describe('Formatted output variations', () => {
     it('should format seconds only for durations under a minute', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -225,7 +225,7 @@ describe('calculateDuration', () => {
     });
 
     it('should format minutes only for durations under an hour', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -236,7 +236,7 @@ describe('calculateDuration', () => {
     });
 
     it('should format hours and minutes for durations under a day', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -247,7 +247,7 @@ describe('calculateDuration', () => {
     });
 
     it('should include all units for complex durations', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -258,7 +258,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle singular units correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -271,7 +271,7 @@ describe('calculateDuration', () => {
 
   describe('Unit parameter handling', () => {
     it('should return only requested unit when specified', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -285,7 +285,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle "auto" unit (default behavior)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -299,13 +299,13 @@ describe('calculateDuration', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid start time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         calculateDuration({
           start_time: 'not-a-date',
           end_time: '2025-01-15T10:00:00Z',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -313,18 +313,18 @@ describe('calculateDuration', () => {
             message: expect.stringContaining('Invalid start_time format'),
             details: expect.objectContaining({ start_time: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid end time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         calculateDuration({
           start_time: '2025-01-15T10:00:00Z',
           end_time: 'not-a-date',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -332,19 +332,19 @@ describe('calculateDuration', () => {
             message: expect.stringContaining('Invalid end_time format'),
             details: expect.objectContaining({ end_time: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         calculateDuration({
           start_time: '2025-01-15T10:00:00',
           end_time: '2025-01-15T14:00:00',
           timezone: 'Invalid/Zone',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -352,19 +352,19 @@ describe('calculateDuration', () => {
             message: 'Invalid timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid unit parameter', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         calculateDuration({
           start_time: '2025-01-15T10:00:00Z',
           end_time: '2025-01-15T14:00:00Z',
           unit: 'fortnights',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -372,14 +372,14 @@ describe('calculateDuration', () => {
             message: expect.stringContaining('Invalid unit'),
             details: expect.objectContaining({ unit: 'fortnights' }),
           },
-        }),
+        })
       );
     });
   });
 
   describe('Caching', () => {
     it('should cache results for 1 hour', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -389,7 +389,7 @@ describe('calculateDuration', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        3600, // 1 hour
+        3600 // 1 hour
       );
     });
 
@@ -415,7 +415,7 @@ describe('calculateDuration', () => {
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       calculateDuration({
         start_time: '2025-01-15T10:00:00Z',
@@ -435,7 +435,7 @@ describe('calculateDuration', () => {
 
   describe('Edge cases', () => {
     it('should handle very large durations', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2020-01-01T00:00:00Z',
@@ -447,7 +447,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle millisecond precision', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = calculateDuration({
         start_time: '2025-01-15T10:00:00.000Z',
@@ -462,7 +462,7 @@ describe('calculateDuration', () => {
 
   describe('System timezone defaults', () => {
     it('should use system timezone when no timezone parameter provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = calculateDuration({
@@ -476,7 +476,7 @@ describe('calculateDuration', () => {
     });
 
     it('should use explicit timezone parameter over system default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = calculateDuration({
@@ -491,7 +491,7 @@ describe('calculateDuration', () => {
     });
 
     it('should use UTC when empty string timezone provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = calculateDuration({
@@ -506,7 +506,7 @@ describe('calculateDuration', () => {
     });
 
     it('should handle times across DST boundaries with system timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       // Spring forward: 2AM becomes 3AM on March 9, 2025

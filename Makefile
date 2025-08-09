@@ -1,11 +1,12 @@
-.PHONY: help install build test test-watch test-quick coverage lint lint-fix clean deep-clean fix-jest reset verify commit-tool dev
+.PHONY: help install build test test-watch test-quick coverage lint lint-fix clean deep-clean fix-jest reset verify commit-tool dev git-check
 
 # Default target
 help:
 	@echo "Available targets:"
 	@echo "  install      - Install dependencies"
 	@echo "  build        - Build TypeScript files"
-	@echo "  test         - Run tests"
+	@echo "  test         - Run tests (excludes meta tests)"
+	@echo "  test-meta    - Run meta tests (quality analysis)"
 	@echo "  test-watch   - Run tests in watch mode"
 	@echo "  coverage     - Run tests with coverage report"
 	@echo "  lint         - Run ESLint"
@@ -34,6 +35,10 @@ build: clean
 # Run tests
 test:
 	npm test
+
+# Run meta tests (quality analysis)
+test-meta:
+	npm run test:meta
 
 # Run tests with MCP reload reminder
 test-verify:
@@ -240,6 +245,81 @@ pre-commit:
 	@echo "Running pre-commit checks..."
 	make verify
 	@echo "✅ Ready to commit!"
+
+# Git workflow helpers for refactoring
+.PHONY: git-check git-phase git-sync
+
+git-check:
+	@echo "🔍 Git Refactoring Check"
+	@echo "======================="
+	@current_branch=$$(git branch --show-current); \
+	if [ "$$current_branch" = "main" ]; then \
+		echo "❌ ERROR: On main branch!"; \
+		echo "📖 Read: docs/GIT_REFACTORING_STRATEGY.md"; \
+		echo ""; \
+		echo "Quick fix:"; \
+		echo "  git checkout refactor/deduplication-initiative"; \
+		exit 1; \
+	elif [ "$$current_branch" = "refactor/deduplication-initiative" ]; then \
+		echo "✅ On refactor branch"; \
+		echo ""; \
+		echo "Next: Create phase branch with 'make git-phase'"; \
+	elif echo "$$current_branch" | grep -q "^phase-"; then \
+		echo "✅ On phase branch: $$current_branch"; \
+		echo ""; \
+		echo "Remember:"; \
+		echo "- Atomic commits (one logical change)"; \
+		echo "- Run 'make verify' before each commit"; \
+		echo "- Include metrics in commit messages"; \
+	else \
+		echo "⚠️  On branch: $$current_branch"; \
+		echo "📖 Check: docs/GIT_REFACTORING_STRATEGY.md"; \
+	fi; \
+	echo ""; \
+	echo "📊 Current status:"; \
+	git status --short
+
+git-phase:
+	@echo "🚀 Create Phase Branch"
+	@echo "===================="
+	@current_branch=$$(git branch --show-current); \
+	if [ "$$current_branch" != "refactor/deduplication-initiative" ]; then \
+		echo "❌ Must be on refactor/deduplication-initiative branch"; \
+		echo "Run: git checkout refactor/deduplication-initiative"; \
+		exit 1; \
+	fi; \
+	echo "Phase options:"; \
+	echo "  0: safety-net"; \
+	echo "  1: date-parser"; \
+	echo "  2: cache-wrapper"; \
+	echo "  3: timezone-resolver"; \
+	echo "  4: error-factory"; \
+	echo "  5: debug-logger"; \
+	read -p "Enter phase number: " phase_num; \
+	case $$phase_num in \
+		0) phase_name="safety-net" ;; \
+		1) phase_name="date-parser" ;; \
+		2) phase_name="cache-wrapper" ;; \
+		3) phase_name="timezone-resolver" ;; \
+		4) phase_name="error-factory" ;; \
+		5) phase_name="debug-logger" ;; \
+		*) echo "Invalid phase"; exit 1 ;; \
+	esac; \
+	git checkout -b "phase-$$phase_num/$$phase_name"; \
+	echo "✅ Created branch: phase-$$phase_num/$$phase_name"; \
+	echo ""; \
+	echo "📝 Commit format for this phase:"; \
+	echo "refactor(phase-$$phase_num): your description here"
+
+git-sync:
+	@echo "🔄 Syncing with main"
+	@echo "=================="
+	@current_branch=$$(git branch --show-current); \
+	git checkout main && \
+	git pull origin main && \
+	git checkout $$current_branch && \
+	git merge main -m "merge: sync with main ($$(date +%Y-%m-%d))"; \
+	echo "✅ Synced with main"
 
 # User-friendly targets for contributors
 .PHONY: setup run pack

@@ -29,7 +29,8 @@ describe('Debug utilities', () => {
 
       expect(debug.server).toBeDefined();
       expect(debug.rateLimit).toBeDefined();
-      expect(debug.tools).toBeDefined();
+      // tools namespace removed - verify it's undefined
+      expect((debug as any).tools).toBeUndefined();
       expect(debug.protocol).toBeDefined();
       expect(debug.cache).toBeDefined();
       expect(debug.init).toBeDefined();
@@ -61,12 +62,12 @@ describe('Debug utilities', () => {
       const { debug } = await import('../../src/utils/debug');
       debug.server('server message');
       debug.rateLimit('rate limit message');
-      debug.tools('tools message'); // Should not output
+      debug.cache('cache message'); // Should not output
 
       const output = stderrOutput.join('');
       expect(output).toContain('server message');
       expect(output).toContain('rate limit message');
-      expect(output).not.toContain('tools message');
+      expect(output).not.toContain('cache message');
     });
 
     it('should support wildcard namespace', async () => {
@@ -75,12 +76,12 @@ describe('Debug utilities', () => {
       const { debug } = await import('../../src/utils/debug');
       debug.server('server message');
       debug.rateLimit('rate limit message');
-      debug.tools('tools message');
+      debug.timing('timing message');
 
       const output = stderrOutput.join('');
       expect(output).toContain('server message');
       expect(output).toContain('rate limit message');
-      expect(output).toContain('tools message');
+      expect(output).toContain('timing message');
     });
   });
 
@@ -125,12 +126,12 @@ describe('Debug utilities', () => {
 
   describe('debugJson', () => {
     it('should format objects for debug output', async () => {
-      process.env.DEBUG = 'mcp:tools';
+      process.env.DEBUG = 'mcp:timing';
 
       const { debugJson } = await import('../../src/utils/debug');
       const testObj = { foo: 'bar', nested: { value: 42 } };
 
-      debugJson('tools', 'Test object', testObj);
+      debugJson('timing', 'Test object', testObj);
 
       const output = stderrOutput.join('');
       expect(output).toContain('Test object:');

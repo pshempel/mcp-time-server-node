@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="svg28031" xmlns:svg="http://www.w3.org/2000/svg"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 480 480"
+	 style="enable-background:new 0 0 480 480;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#2FA9DA;}
+	.st1{fill:#33658A;}
+	.st2{fill:#D19A37;}
+	.st3{fill:#E8AB3C;}
+	.st4{fill:#FFBC42;}
+	.st5{fill:#33B9EF;}
+	.st6{fill:#FF6B6B;}
+	.st7{fill:#DBE9EE;}
+</style>
+<g id="layer1" transform="translate(0 -280.067)">
+	<path id="path26376" vector-effect="none" class="st0" d="M32,464.1v160c0,4.4,3.6,8,8,8h432c4.4,0,8-3.6,8-8v-160
+		c0-48.6-39.4-88-88-88l-272.6,0C70.8,376.8,32,415.9,32,464.1L32,464.1z"/>
+	<path id="path26426" vector-effect="none" class="st1" d="M232,624.1v128c0,4.4,3.6,8,8,8h48c4.4,0,8-3.6,8-8v-128H232z"/>
+	<path id="path26398" vector-effect="none" class="st2" d="M22.4,424.1c-11.9,0-22.4,9.1-22.4,21.1V563c0,12,10.5,21.1,22.4,21.1
+		H112h89.6c11.9,0,22.4-9.1,22.4-21.1V445.2c0-12-10.5-21.1-22.4-21.1H112H22.4z"/>
+	<path id="path26406" vector-effect="none" class="st3" d="M106.9,482L7.2,566.3c-3.7,3.1-3.8,8.8-0.2,12c4.1,3.7,9.5,5.8,15.4,5.8
+		H112h89.6c5.8,0,11.3-2.1,15.4-5.8c3.6-3.3,3.5-8.9-0.2-12L117.2,482C113.2,478.6,109.9,479.4,106.9,482z"/>
+	<path id="path26402" vector-effect="none" class="st4" d="M22.4,424.1c-5.8,0-11.3,2.1-15.4,5.8c-3.3,3-3.5,8-0.6,11.3
+		c0.2,0.3,0.5,0.5,0.8,0.7l99.6,84.3c3,2.5,7.4,2.5,10.3,0l99.6-84.3c3.4-2.9,3.8-7.9,0.9-11.3c-0.2-0.3-0.5-0.5-0.7-0.8
+		c-4.1-3.7-9.5-5.8-15.4-5.8H112H22.4z"/>
+	<path id="path26383" vector-effect="none" class="st5" d="M119.2,376.1c-0.1,0-0.2,0-0.3,0.1c0.4,0,0.7-0.1,1.1-0.1
+		C119.7,376.1,119.4,376.1,119.2,376.1L119.2,376.1z M120,376.1c48.6,0,88,39.4,88,88v160c0,4.4-3.6,8-8,8h272c4.4,0,8-3.6,8-8v-160
+		c0-48.6-39.4-88-88-88H120z"/>
+	<path id="path26420" vector-effect="none" class="st6" d="M320,280.1c-4.4,0-8,3.6-8,8v176h16v-120h64c4.4,0,8-3.6,8-8v-48
+		c0-4.4-3.6-8-8-8H320z"/>
+	<path id="path26412" vector-effect="none" class="st7" d="M320,456.1c-17.6,0-32,14.4-32,32s14.4,32,32,32c17.6,0,32-14.4,32-32
+		C352,470.5,337.6,456.1,320,456.1z"/>
+</g>
+</svg>

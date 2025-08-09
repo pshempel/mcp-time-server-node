@@ -5,3 +5,4 @@ coverage/
 *.config.cjs
 scripts/
 tests/
+research/

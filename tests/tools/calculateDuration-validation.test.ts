@@ -1,4 +1,5 @@
-import { resolveTimezone, validateUnit } from '../../src/tools/calculateDuration';
+import { validateUnit } from '../../src/tools/calculateDuration';
+import { resolveTimezone } from '../../src/utils/timezoneUtils';
 
 describe('calculateDuration validation helpers', () => {
   describe('validateUnit', () => {
@@ -19,7 +20,7 @@ describe('calculateDuration validation helpers', () => {
       expect(() => validateUnit('invalid')).toThrow();
       expect(() => validateUnit('weeks')).toThrow();
       expect(() => validateUnit('years')).toThrow();
-      
+
       // Verify the error structure
       try {
         validateUnit('invalid');

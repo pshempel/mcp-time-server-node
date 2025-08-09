@@ -1,12 +1,14 @@
-import { eachDayOfInterval, isWeekend, parseISO, isValid } from 'date-fns';
-import { toDate } from 'date-fns-tz';
+import { eachDayOfInterval, isWeekend, format } from 'date-fns';
 
-import { hashCacheKey } from '../cache/cacheKeyHash';
-import { cache, CacheTTL } from '../cache/timeCache';
-import { getHolidaysForYear } from '../data/holidays';
+import { CacheTTL } from '../cache/timeCache';
 import { TimeServerErrorCodes } from '../types';
 import type { GetBusinessDaysParams, GetBusinessDaysResult } from '../types';
+import { parseDateWithTimezone } from '../utils/businessUtils';
+import { buildCacheKey } from '../utils/cacheKeyBuilder';
 import { getConfig } from '../utils/config';
+import { debug } from '../utils/debug';
+import { aggregateHolidays } from '../utils/holidayAggregator';
+import { resolveTimezone } from '../utils/timezoneUtils';
 import {
   validateTimezone,
   createError,
@@ -14,9 +16,27 @@ import {
   validateDateString,
   LIMITS,
 } from '../utils/validation';
+import { withCache } from '../utils/withCache';
 
+// eslint-disable-next-line max-lines-per-function -- Enhanced debug logging for production observability
 export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysResult {
   const { start_date, end_date, holidays = [], holiday_calendar, custom_holidays = [] } = params;
+
+  // Log entry with all parameters to show what was provided
+  debug.business('getBusinessDays called with params: %O', {
+    start_date,
+    end_date,
+    timezone: params.timezone,
+    exclude_weekends: params.exclude_weekends,
+    holiday_calendar,
+    holidays_count: holidays.length,
+    custom_holidays_count: custom_holidays.length,
+  });
+
+  // Important: Log if no country parameter provided but holidays expected
+  if (!holiday_calendar && holidays.length === 0 && custom_holidays.length === 0) {
+    debug.validation('No holiday information provided (no country/calendar, no explicit holidays)');
+  }
 
   // Validate string lengths and array lengths first
   validateDateString(start_date, 'start_date');
@@ -27,200 +47,137 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
   const excludeWeekends = params.exclude_weekends ?? true;
   const includeObserved = params.include_observed ?? true;
   const config = getConfig();
-  const timezone = params.timezone === '' ? 'UTC' : (params.timezone ?? config.defaultTimezone);
+  const timezone = resolveTimezone(params.timezone, config.defaultTimezone);
 
-  // Generate cache key
-  const rawCacheKey = `business_${start_date}_${end_date}_${excludeWeekends}_${timezone}_${holidays.join(',')}_${holiday_calendar ?? ''}_${includeObserved}_${custom_holidays.join(',')}`;
-  const cacheKey = hashCacheKey(rawCacheKey);
+  debug.timezone('Resolved timezone: %s (from: %s)', timezone, params.timezone ?? 'default');
 
-  // Check cache
-  const cached = cache.get<GetBusinessDaysResult>(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  // Validate timezone if provided
-  if (timezone && !validateTimezone(timezone)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-        timezone,
-      }),
-    };
-  }
-
-  // Helper function to parse date with timezone awareness
-  const parseDate = (dateStr: string, fieldName: string): Date => {
-    try {
-      let date: Date;
-
-      if (/^\d+$/.test(dateStr)) {
-        // Unix timestamp
-        const timestamp = parseInt(dateStr, 10);
-        if (isNaN(timestamp)) {
-          throw new Error('Invalid Unix timestamp');
-        }
-        date = new Date(timestamp * 1000);
-      } else if (timezone && !dateStr.includes('Z') && !/[+-]\d{2}:\d{2}/.test(dateStr)) {
-        // Local time with timezone parameter
-        date = toDate(dateStr, { timeZone: timezone });
-      } else {
-        // ISO string or has timezone info
-        date = parseISO(dateStr);
-      }
-
-      if (!isValid(date)) {
-        throw new Error('Invalid date');
-      }
-
-      return date;
-    } catch (error) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_DATE_FORMAT,
-          `Invalid ${fieldName} format: ${dateStr}`,
-          {
-            [fieldName]: dateStr,
-            error: error instanceof Error ? error.message : String(error),
-          },
-        ),
-      };
-    }
-  };
-
-  // Parse dates
-  const startDate = parseDate(start_date, 'start_date');
-  const endDate = parseDate(end_date, 'end_date');
-
-  // Collect all holiday dates
-  const allHolidayDates = new Set<string>(); // Use Set to avoid duplicates
-
-  // Add calendar holidays if specified
-  if (holiday_calendar) {
-    // Validate holiday_calendar parameter
-    if (holiday_calendar.includes('\0') || holiday_calendar.includes('\x00')) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'Invalid holiday_calendar: contains null bytes',
-          { holiday_calendar },
-        ),
-      };
-    }
-
-    // Validate it's a reasonable country code (2-3 uppercase letters)
-    if (!/^[A-Z]{2,3}$/.test(holiday_calendar)) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'Invalid holiday_calendar: must be a 2-3 letter country code',
-          { holiday_calendar },
-        ),
-      };
-    }
-
-    // Get holidays for the years covered by the date range
-    const startYear = startDate.getFullYear();
-    const endYear = endDate.getFullYear();
-
-    for (let year = startYear; year <= endYear; year++) {
-      const calendarHolidays = getHolidaysForYear(holiday_calendar, year);
-      for (const holiday of calendarHolidays) {
-        // Use observed date if available and include_observed is true
-        const dateToUse =
-          includeObserved && holiday.observedDate ? holiday.observedDate : holiday.date;
-        // Add holiday date string - holidays outside range won't match days anyway
-        allHolidayDates.add(dateToUse.toDateString());
-      }
-    }
-  }
-
-  // Add custom holidays
-  for (const customHoliday of custom_holidays) {
-    try {
-      const holidayDate = parseISO(customHoliday);
-      if (!isValid(holidayDate)) {
-        throw new Error('Invalid date');
-      }
-      allHolidayDates.add(holidayDate.toDateString());
-    } catch (error) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_DATE_FORMAT,
-          `Invalid custom holiday date: ${customHoliday}`,
-          {
-            holiday: customHoliday,
-            error: error instanceof Error ? error.message : String(error),
-          },
-        ),
-      };
-    }
-  }
-
-  // Add legacy holidays parameter for backward compatibility
-  for (let i = 0; i < holidays.length; i++) {
-    // eslint-disable-next-line security/detect-object-injection -- Array index access
-    const holiday = holidays[i];
-    try {
-      const holidayDate = parseISO(holiday);
-      if (!isValid(holidayDate)) {
-        throw new Error('Invalid date');
-      }
-      allHolidayDates.add(holidayDate.toDateString());
-    } catch (error) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_DATE_FORMAT,
-          `Invalid holiday date: ${holiday}`,
-          {
-            holiday,
-            index: i,
-            error: error instanceof Error ? error.message : String(error),
-          },
-        ),
-      };
-    }
-  }
-
-  // Get all days in the interval
-  // For business days, we work with the dates as they are
-  // eachDayOfInterval will handle the day boundaries correctly
-  const days = eachDayOfInterval({
-    start: startDate,
-    end: endDate,
+  // Build cache key using new utility
+  const cacheKey = buildCacheKey('business', {
+    single: { timezone },
+    dates: [start_date, end_date],
+    flags: { excludeWeekends, includeObserved },
+    arrays: { holidays, customHolidays: custom_holidays },
+    optional: { calendar: holiday_calendar },
   });
 
-  // Calculate different categories
-  let businessDays = 0;
-  let weekendDays = 0;
-  let holidayCount = 0;
-
-  for (const day of days) {
-    const isWeekendDay = isWeekend(day);
-    const isHolidayDay = allHolidayDates.has(day.toDateString());
-
-    if (isWeekendDay) {
-      weekendDays++;
-    } else if (isHolidayDay) {
-      holidayCount++;
-    } else {
-      businessDays++;
+  // Use withCache wrapper
+  return withCache(cacheKey, CacheTTL.BUSINESS_DAYS, () => {
+    // Validate timezone if provided
+    if (timezone && !validateTimezone(timezone)) {
+      throw {
+        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
+          timezone,
+        }),
+      };
     }
-  }
 
-  // If not excluding weekends, add weekend days to business days
-  if (!excludeWeekends) {
-    businessDays += weekendDays;
-  }
+    // Validate holiday_calendar if provided
+    if (holiday_calendar) {
+      if (holiday_calendar.includes('\0') || holiday_calendar.includes('\x00')) {
+        throw {
+          error: createError(
+            TimeServerErrorCodes.INVALID_PARAMETER,
+            'Invalid holiday_calendar: contains null bytes',
+            { holiday_calendar }
+          ),
+        };
+      }
 
-  const result: GetBusinessDaysResult = {
-    total_days: days.length,
-    business_days: businessDays,
-    weekend_days: weekendDays,
-    holiday_count: holidayCount,
-  };
+      if (!/^[A-Z]{2,3}$/.test(holiday_calendar)) {
+        throw {
+          error: createError(
+            TimeServerErrorCodes.INVALID_PARAMETER,
+            'Invalid holiday_calendar: must be a 2-3 letter country code',
+            { holiday_calendar }
+          ),
+        };
+      }
+    }
 
-  // Cache the result
-  cache.set(cacheKey, result, CacheTTL.BUSINESS_DAYS);
+    // Parse dates
+    const startDate = parseDateWithTimezone(start_date, timezone, 'start_date');
+    const endDate = parseDateWithTimezone(end_date, timezone, 'end_date');
 
-  return result;
+    // Log calculation context
+    debug.business(
+      'Business days calculation: %s to %s',
+      format(startDate, 'yyyy-MM-dd'),
+      format(endDate, 'yyyy-MM-dd')
+    );
+
+    // Use the new holidayAggregator utility
+    debug.holidays('Aggregating holidays for calendar: %s', holiday_calendar ?? 'none');
+    const allHolidayDates = aggregateHolidays({
+      calendar: holiday_calendar,
+      includeObserved,
+      dateRange: {
+        start: startDate,
+        end: endDate,
+      },
+      custom: custom_holidays,
+      legacy: holidays,
+      timezone,
+    });
+    debug.holidays('Total holidays found: %d', allHolidayDates.size);
+    if (allHolidayDates.size > 0) {
+      debug.holidays('Holiday dates: %O', Array.from(allHolidayDates));
+    }
+
+    // Get all days in the interval
+    const days = eachDayOfInterval({
+      start: startDate,
+      end: endDate,
+    });
+    debug.timing('Processing %d days from %s to %s', days.length, start_date, end_date);
+
+    // Calculate different categories
+    let businessDays = 0;
+    let weekendDays = 0;
+    let holidayCount = 0;
+
+    for (const day of days) {
+      const isWeekendDay = isWeekend(day);
+      const isHolidayDay = allHolidayDates.has(day.toDateString());
+      const dayStr = format(day, 'yyyy-MM-dd');
+
+      if (isWeekendDay) {
+        weekendDays++;
+        debug.trace('  %s: weekend', dayStr);
+      } else if (isHolidayDay) {
+        holidayCount++;
+        debug.trace('  %s: holiday', dayStr);
+      } else {
+        businessDays++;
+        debug.trace('  %s: business day', dayStr);
+      }
+    }
+
+    // If not excluding weekends, add weekend days to business days
+    if (!excludeWeekends) {
+      debug.decision('Including weekends', {
+        weekendDays,
+        businessDaysBefore: businessDays,
+        businessDaysAfter: businessDays + weekendDays,
+      });
+      businessDays += weekendDays;
+    }
+
+    // Log summary
+    debug.business(
+      'Calculated business days: %d of %d total days (%d weekends, %d holidays)',
+      businessDays,
+      days.length,
+      weekendDays,
+      holidayCount
+    );
+
+    const result: GetBusinessDaysResult = {
+      total_days: days.length,
+      business_days: businessDays,
+      weekend_days: weekendDays,
+      holiday_count: holidayCount,
+    };
+
+    return result;
+  });
 }

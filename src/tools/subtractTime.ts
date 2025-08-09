@@ -1,37 +1,38 @@
-import { hashCacheKey } from '../cache/cacheKeyHash';
-import { cache, CacheTTL } from '../cache/timeCache';
+import { CacheTTL } from '../cache/timeCache';
 import type { SubtractTimeParams, SubtractTimeResult } from '../types';
 import { getConfig } from '../utils/config';
+import { debug } from '../utils/debug';
+import { resolveTimezone } from '../utils/timezoneUtils';
+import { withCache } from '../utils/withCache';
 
 import { addTime } from './addTime';
 
 export function subtractTime(params: SubtractTimeParams): SubtractTimeResult {
+  debug.timing('subtractTime called with params: %O', params);
+
   const { time, amount, unit, timezone } = params;
   const config = getConfig();
 
   // Determine the effective timezone for cache key
-  const effectiveTimezone = timezone === '' ? 'UTC' : (timezone ?? config.defaultTimezone);
+  const effectiveTimezone = resolveTimezone(timezone, config.defaultTimezone);
 
-  // Generate cache key
-  const rawCacheKey = `subtract_${time}_${amount}_${unit}_${effectiveTimezone}`;
-  const cacheKey = hashCacheKey(rawCacheKey);
+  // Use withCache wrapper instead of manual cache management
+  return withCache(
+    `subtract_${time}_${amount}_${unit}_${effectiveTimezone}`,
+    CacheTTL.CALCULATIONS,
+    () => {
+      debug.timing('Delegating to addTime with negated amount: %d', -amount);
 
-  // Check cache
-  const cached = cache.get<SubtractTimeResult>(cacheKey);
-  if (cached) {
-    return cached;
-  }
+      // Subtraction is just addition with negative amount
+      const result = addTime({
+        time,
+        amount: -amount, // Negate the amount
+        unit,
+        timezone,
+      });
 
-  // Subtraction is just addition with negative amount
-  const result = addTime({
-    time,
-    amount: -amount, // Negate the amount
-    unit,
-    timezone,
-  });
-
-  // Cache the result
-  cache.set(cacheKey, result, CacheTTL.CALCULATIONS);
-
-  return result;
+      debug.timing('subtractTime returning: %O', result);
+      return result;
+    }
+  );
 }

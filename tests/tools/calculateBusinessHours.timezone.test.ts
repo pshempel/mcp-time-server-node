@@ -14,7 +14,7 @@ describe('calculateBusinessHours - Timezone Edge Cases', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetConfig.mockReturnValue({ defaultTimezone: 'America/Indianapolis' });
-    mockCache.get.mockReturnValue(null);
+    mockCache.get.mockReturnValue(undefined);
     mockCache.set.mockImplementation(() => true);
   });
 

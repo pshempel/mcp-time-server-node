@@ -11,6 +11,7 @@ import {
   subtractTime,
   calculateDuration,
   getBusinessDays,
+  getServerInfo,
   nextOccurrence,
   formatTime,
   calculateBusinessHours,
@@ -28,6 +29,14 @@ logEnvironment();
 
 // Tool definitions with metadata (keeping same as before)
 export const TOOL_DEFINITIONS = [
+  {
+    name: 'get_server_info',
+    description: 'Get server version and build information',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
+    },
+  },
   {
     name: 'get_current_time',
     description: 'Get current time in specified timezone with formatting options',
@@ -244,6 +253,7 @@ export const TOOL_DEFINITIONS = [
 
 // Tool function mapping - wrapping each function to handle unknown params
 const TOOL_FUNCTIONS: Record<string, (params: unknown) => unknown> = {
+  get_server_info: (params: unknown) => getServerInfo(params),
   get_current_time: (params: unknown) =>
     getCurrentTime(params as Parameters<typeof getCurrentTime>[0]),
   convert_timezone: (params: unknown) =>
@@ -315,7 +325,7 @@ export async function executeToolFunction(
   | { content: Array<{ type: string; text: string }> }
   | { error: { code: string; message: string; details?: unknown } }
 > {
-  debug.tools('Executing tool: %s with args: %O', name, args);
+  debug.trace('Executing tool: %s with args: %O', name, args);
 
   try {
     // Get the tool function - validate against known tools
@@ -330,7 +340,7 @@ export async function executeToolFunction(
 
     // Execute the tool
     const result = await toolFunction(args);
-    debug.tools('Tool %s executed successfully', name);
+    debug.trace('Tool %s executed successfully', name);
 
     // Return the result
     return {
@@ -342,7 +352,7 @@ export async function executeToolFunction(
       ],
     };
   } catch (error) {
-    debug.tools('Tool %s execution failed: %O', name, error);
+    debug.trace('Tool %s execution failed: %O', name, error);
 
     // Check if error is an object with error property
     if (error && typeof error === 'object' && 'error' in error) {

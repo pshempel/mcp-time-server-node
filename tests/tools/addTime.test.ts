@@ -47,7 +47,7 @@ describe('addTime', () => {
 
   describe('Basic functionality', () => {
     it('should add years to a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -62,7 +62,7 @@ describe('addTime', () => {
     });
 
     it('should add months to a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -75,7 +75,7 @@ describe('addTime', () => {
     });
 
     it('should add days to a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -88,7 +88,7 @@ describe('addTime', () => {
     });
 
     it('should add hours to a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -101,7 +101,7 @@ describe('addTime', () => {
     });
 
     it('should add minutes to a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -114,7 +114,7 @@ describe('addTime', () => {
     });
 
     it('should add seconds to a date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -129,7 +129,7 @@ describe('addTime', () => {
 
   describe('Timezone handling', () => {
     it('should handle timezone-aware addition', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00',
@@ -143,7 +143,7 @@ describe('addTime', () => {
     });
 
     it('should handle DST transitions when adding hours', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // Spring forward: 2 AM becomes 3 AM on March 9, 2025
       const result = addTime({
@@ -159,7 +159,7 @@ describe('addTime', () => {
     });
 
     it('should handle input with explicit timezone offset', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T12:00:00+05:30',
@@ -173,7 +173,7 @@ describe('addTime', () => {
     });
 
     it('should handle input with uncommon offset', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T12:00:00-03:00',
@@ -186,7 +186,7 @@ describe('addTime', () => {
     });
 
     it('should display result in requested timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:00:00Z',
@@ -202,7 +202,7 @@ describe('addTime', () => {
 
   describe('Edge cases', () => {
     it('should handle negative amounts (subtraction)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -215,7 +215,7 @@ describe('addTime', () => {
     });
 
     it('should handle month-end correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-31T12:00:00Z',
@@ -228,7 +228,7 @@ describe('addTime', () => {
     });
 
     it('should handle leap year correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2024-02-29T12:00:00Z',
@@ -241,7 +241,7 @@ describe('addTime', () => {
     });
 
     it('should handle date-only input', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15',
@@ -255,7 +255,7 @@ describe('addTime', () => {
     });
 
     it('should handle Unix timestamp input', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '1736937000', // 2025-01-15T10:30:00Z
@@ -269,7 +269,7 @@ describe('addTime', () => {
     });
 
     it('should handle Unix timestamp with timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '1736937000', // 2025-01-15T10:30:00Z
@@ -283,7 +283,7 @@ describe('addTime', () => {
     });
 
     it('should handle zero amount', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -299,14 +299,14 @@ describe('addTime', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid time format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         addTime({
           time: 'not-a-date',
           amount: 1,
           unit: 'days',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -314,19 +314,19 @@ describe('addTime', () => {
             message: expect.stringContaining('Invalid time format'),
             details: expect.objectContaining({ time: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid unit', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         addTime({
           time: '2025-01-15T10:30:00Z',
           amount: 1,
           unit: 'fortnights' as any,
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -334,12 +334,12 @@ describe('addTime', () => {
             message: expect.stringContaining('Invalid unit'),
             details: expect.objectContaining({ unit: 'fortnights' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         addTime({
@@ -347,7 +347,7 @@ describe('addTime', () => {
           amount: 1,
           unit: 'days',
           timezone: 'Invalid/Zone',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -355,19 +355,19 @@ describe('addTime', () => {
             message: 'Invalid timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for NaN amount', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         addTime({
           time: '2025-01-15T10:30:00Z',
           amount: NaN,
           unit: 'days',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -375,19 +375,19 @@ describe('addTime', () => {
             message: expect.stringContaining('Invalid amount'),
             details: expect.objectContaining({ amount: NaN }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for Infinity amount', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         addTime({
           time: '2025-01-15T10:30:00Z',
           amount: Infinity,
           unit: 'days',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -395,14 +395,14 @@ describe('addTime', () => {
             message: expect.stringContaining('Invalid amount'),
             details: expect.objectContaining({ amount: Infinity }),
           },
-        }),
+        })
       );
     });
   });
 
   describe('Caching', () => {
     it('should cache results for 1 hour', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       addTime({
         time: '2025-01-15T10:30:00Z',
@@ -413,7 +413,7 @@ describe('addTime', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        3600, // 1 hour
+        3600 // 1 hour
       );
     });
 
@@ -437,7 +437,7 @@ describe('addTime', () => {
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       addTime({
         time: '2025-01-15T10:30:00Z',
@@ -459,7 +459,7 @@ describe('addTime', () => {
 
   describe('Output format verification', () => {
     it('should always include all required fields', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00Z',
@@ -481,7 +481,7 @@ describe('addTime', () => {
     });
 
     it('should format times consistently with milliseconds', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = addTime({
         time: '2025-01-15T10:30:00',
@@ -498,7 +498,7 @@ describe('addTime', () => {
 
   describe('System timezone defaults', () => {
     it('should use system timezone when no timezone parameter provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = addTime({
@@ -513,7 +513,7 @@ describe('addTime', () => {
     });
 
     it('should use explicit timezone parameter over system default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = addTime({
@@ -529,7 +529,7 @@ describe('addTime', () => {
     });
 
     it('should use UTC when empty string timezone provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = addTime({

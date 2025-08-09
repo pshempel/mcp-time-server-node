@@ -48,7 +48,7 @@ describe('getCurrentTime', () => {
 
   describe('Basic functionality', () => {
     it('should return current time in UTC by default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getCurrentTime({});
 
@@ -60,7 +60,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should handle specific timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getCurrentTime({ timezone: 'America/New_York' });
 
@@ -72,7 +72,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should handle custom format', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getCurrentTime({
         timezone: 'Europe/London',
@@ -86,7 +86,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should handle include_offset=false', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getCurrentTime({
         timezone: 'Asia/Tokyo',
@@ -103,7 +103,7 @@ describe('getCurrentTime', () => {
 
   describe('Edge cases', () => {
     it('should treat empty string timezone as UTC', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getCurrentTime({ timezone: '' });
 
@@ -112,7 +112,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should handle timezone abbreviations', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getCurrentTime({ timezone: 'EST' });
 
@@ -124,7 +124,7 @@ describe('getCurrentTime', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() => getCurrentTime({ timezone: 'Invalid/Zone' })).toThrow();
       expect(() => getCurrentTime({ timezone: 'Invalid/Zone' })).toThrowError(
@@ -134,12 +134,12 @@ describe('getCurrentTime', () => {
             message: 'Invalid timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid format pattern', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() => getCurrentTime({ format: 'invalid-format-$$$$' })).toThrow();
       expect(() => getCurrentTime({ format: 'invalid-format-$$$$' })).toThrowError(
@@ -149,14 +149,14 @@ describe('getCurrentTime', () => {
             message: expect.stringContaining('Invalid format'),
             details: expect.objectContaining({ format: 'invalid-format-$$$$' }),
           },
-        }),
+        })
       );
     });
   });
 
   describe('Caching', () => {
     it('should cache results for 1 second', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const params: GetCurrentTimeParams = { timezone: 'America/Chicago' };
       getCurrentTime(params);
@@ -164,7 +164,7 @@ describe('getCurrentTime', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/), // SHA-256 hash
         expect.any(Object),
-        1,
+        1
       );
     });
 
@@ -185,7 +185,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       getCurrentTime({ timezone: 'UTC' });
       getCurrentTime({ timezone: 'UTC', format: 'yyyy-MM-dd' });
@@ -197,7 +197,7 @@ describe('getCurrentTime', () => {
 
   describe('System timezone defaults', () => {
     it('should use system timezone when no timezone parameter provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = getCurrentTime({});
@@ -207,7 +207,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should still use UTC when empty string timezone provided (backward compatibility)', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = getCurrentTime({ timezone: '' });
@@ -217,7 +217,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should use explicit timezone parameter over system default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = getCurrentTime({ timezone: 'Asia/Tokyo' });
@@ -229,7 +229,7 @@ describe('getCurrentTime', () => {
 
   describe('Output format verification', () => {
     it('should always include all required fields', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getCurrentTime({
         timezone: 'Pacific/Auckland',
@@ -252,7 +252,7 @@ describe('getCurrentTime', () => {
     });
 
     it('should format offset correctly for various timezones', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const timezones = [
         { tz: 'UTC', expectedOffset: 'Z' },

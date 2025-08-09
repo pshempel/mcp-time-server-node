@@ -1,18 +1,19 @@
-import { differenceInMilliseconds, parseISO, isValid } from 'date-fns';
-import { toDate } from 'date-fns-tz';
+import { differenceInMilliseconds } from 'date-fns';
 
-import { hashCacheKey } from '../cache/cacheKeyHash';
-import { cache, CacheTTL } from '../cache/timeCache';
+import { CacheTTL } from '../cache/timeCache';
 import { TimeServerErrorCodes } from '../types';
 import type { CalculateDurationParams, CalculateDurationResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
+import { parseTimeInput } from '../utils/parseTimeInput';
+import { resolveTimezone as resolveTimezoneUtil } from '../utils/timezoneUtils';
 import { validateTimezone, createError, validateDateString } from '../utils/validation';
+import { withCache } from '../utils/withCache';
 
 const validUnits = ['auto', 'milliseconds', 'seconds', 'minutes', 'hours', 'days'];
 
 export function calculateDuration(params: CalculateDurationParams): CalculateDurationResult {
-  debug.tools('calculateDuration called with params: %O', params);
+  debug.timing('calculateDuration called with params: %O', params);
   const { start_time, end_time } = params;
 
   // Validate string lengths first
@@ -25,55 +26,50 @@ export function calculateDuration(params: CalculateDurationParams): CalculateDur
 
   const config = getConfig();
   const unit = validateUnit(params.unit);
-  const timezone = resolveTimezone(params.timezone, config.defaultTimezone);
+  const timezone = resolveTimezoneUtil(params.timezone, config.defaultTimezone);
 
-  // Generate cache key
-  const rawCacheKey = `duration_${start_time}_${end_time}_${unit}_${timezone}`;
-  debug.tools('Cache key (raw): %s', rawCacheKey);
-  const cacheKey = hashCacheKey(rawCacheKey);
+  // Use withCache wrapper instead of manual cache management
+  return withCache(
+    `duration_${start_time}_${end_time}_${unit}_${timezone}`,
+    CacheTTL.CALCULATIONS,
+    () => {
+      // Validate timezone
+      if (!validateTimezone(timezone)) {
+        throw {
+          error: createError(
+            TimeServerErrorCodes.INVALID_TIMEZONE,
+            `Invalid timezone: ${timezone}`,
+            {
+              timezone,
+            }
+          ),
+        };
+      }
 
-  // Check cache
-  const cached = cache.get<CalculateDurationResult>(cacheKey);
-  if (cached) {
-    debug.tools('Returning cached result');
-    return cached;
-  }
+      // Parse dates with proper error context
+      const startDate = parseDateWithContext(start_time, timezone, 'start_time');
+      debug.timing('Parsed start date: %s', startDate.toISOString());
 
-  // Validate timezone
-  if (!validateTimezone(timezone)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-        timezone,
-      }),
-    };
-  }
+      const endDate = parseDateWithContext(end_time, timezone, 'end_time');
+      debug.timing('Parsed end date: %s', endDate.toISOString());
 
-  // Parse dates with proper error context
-  const startDate = parseDateWithContext(start_time, timezone, 'start_time');
-  debug.tools('Parsed start date: %s', startDate.toISOString());
+      // Calculate all duration values
+      const values = calculateDurationValues(startDate, endDate);
+      debug.timing('Duration in milliseconds: %d', values.milliseconds);
 
-  const endDate = parseDateWithContext(end_time, timezone, 'end_time');
-  debug.tools('Parsed end date: %s', endDate.toISOString());
+      // Format the result
+      const formatted = formatDurationResult(values, unit);
+      debug.timing('Formatted duration: %s', formatted);
 
-  // Calculate all duration values
-  const values = calculateDurationValues(startDate, endDate);
-  debug.tools('Duration in milliseconds: %d', values.milliseconds);
+      const result: CalculateDurationResult = {
+        ...values,
+        formatted,
+      };
 
-  // Format the result
-  const formatted = formatDurationResult(values, unit);
-  debug.tools('Formatted duration: %s', formatted);
-
-  const result: CalculateDurationResult = {
-    ...values,
-    formatted,
-  };
-
-  // Cache the result
-  cache.set(cacheKey, result, CacheTTL.CALCULATIONS);
-  debug.tools('Result cached with TTL: %d', CacheTTL.CALCULATIONS);
-
-  debug.tools('Returning result: %O', result);
-  return result;
+      debug.timing('Returning result: %O', result);
+      return result;
+    }
+  );
 }
 
 /**
@@ -118,11 +114,11 @@ export function calculateTimeComponents(totalSeconds: number): TimeComponents {
  * Validate and resolve unit parameter
  */
 export function validateUnit(unit: string | undefined): string {
-  debug.tools('validateUnit called with: %s', unit);
+  debug.validation('validateUnit called with: %s', unit);
   const resolved = unit ?? 'auto';
 
   if (!validUnits.includes(resolved)) {
-    debug.tools('Invalid unit detected: %s', resolved);
+    debug.validation('Invalid unit detected: %s', resolved);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_PARAMETER,
@@ -132,25 +128,7 @@ export function validateUnit(unit: string | undefined): string {
     };
   }
 
-  debug.tools('Resolved unit: %s', resolved);
-  return resolved;
-}
-
-/**
- * Resolve timezone with empty string handling
- */
-export function resolveTimezone(timezone: string | undefined, defaultTimezone: string): string {
-  debug.tools('resolveTimezone called with: timezone=%s, default=%s', timezone, defaultTimezone);
-
-  // Empty string explicitly means UTC (Unix convention)
-  if (timezone === '') {
-    debug.tools('Empty string timezone -> UTC');
-    return 'UTC';
-  }
-
-  // Undefined/missing means system timezone (LLM friendly)
-  const resolved = timezone ?? defaultTimezone;
-  debug.tools('Resolved timezone: %s', resolved);
+  debug.validation('Resolved unit: %s', resolved);
   return resolved;
 }
 
@@ -158,7 +136,7 @@ export function resolveTimezone(timezone: string | undefined, defaultTimezone: s
  * Parse date with proper error context
  */
 function parseDateWithContext(time: string, timezone: string, paramName: string): Date {
-  debug.tools(
+  debug.parse(
     'parseDateWithContext called for %s: time=%s, timezone=%s',
     paramName,
     time,
@@ -167,10 +145,10 @@ function parseDateWithContext(time: string, timezone: string, paramName: string)
 
   try {
     const result = parseTimeParameter(time, timezone);
-    debug.tools('%s parsed successfully: %s', paramName, result.toISOString());
+    debug.parse('%s parsed successfully: %s', paramName, result.toISOString());
     return result;
   } catch (error) {
-    debug.tools('Failed to parse %s: %s', paramName, error);
+    debug.parse('Failed to parse %s: %s', paramName, error);
     const errorDetails = error as { error?: { details?: { time?: string } } };
     throw {
       error: createError(
@@ -183,44 +161,17 @@ function parseDateWithContext(time: string, timezone: string, paramName: string)
 }
 
 /**
- * Parse time parameter with timezone awareness
+ * Parse time parameter with timezone awareness using the centralized parser
  */
 export function parseTimeParameter(time: string, timezone: string): Date {
-  debug.tools('parseTimeParameter called with: time=%s, timezone=%s', time, timezone);
-
-  let result: Date;
+  debug.parse('parseTimeParameter called with: time=%s, timezone=%s', time, timezone);
 
   try {
-    // Check if it's a Unix timestamp (all digits)
-    if (/^\d+$/.test(time)) {
-      debug.tools('Parsing as Unix timestamp');
-      const timestamp = parseInt(time, 10);
-      if (isNaN(timestamp)) {
-        throw new Error('Invalid Unix timestamp');
-      }
-      result = new Date(timestamp * 1000);
-      debug.tools('Unix timestamp parsed: %s', result.toISOString());
-    } else if (timezone && !time.includes('Z') && !/[+-]\d{2}:\d{2}/.test(time)) {
-      // Check if it needs timezone-aware parsing (no Z, no offset)
-      debug.tools('Parsing as local time with timezone: %s', timezone);
-      result = toDate(time, { timeZone: timezone });
-      debug.tools('Local time parsed: %s', result.toISOString());
-    } else {
-      // Default to parseISO for ISO strings or strings with timezone info
-      debug.tools('Parsing as ISO string');
-      result = parseISO(time);
-      debug.tools('ISO string parsed: %s', result.toISOString());
-    }
-
-    // Validate the parsed date
-    if (!isValid(result)) {
-      debug.tools('Parsed date is invalid');
-      throw new Error('Invalid date');
-    }
-
-    return result;
+    const result = parseTimeInput(time, timezone);
+    debug.parse('parseTimeParameter returning: %s', result.date.toISOString());
+    return result.date;
   } catch (error) {
-    debug.tools('Parse error: %s', error);
+    debug.parse('Parse error: %s', error);
     throw {
       error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, `Invalid date format: ${time}`, {
         time,
@@ -246,7 +197,7 @@ interface DurationValues {
  * Calculate all duration values from start and end dates
  */
 export function calculateDurationValues(startDate: Date, endDate: Date): DurationValues {
-  debug.tools(
+  debug.timing(
     'calculateDurationValues called with: start=%s, end=%s',
     startDate.toISOString(),
     endDate.toISOString()
@@ -268,7 +219,7 @@ export function calculateDurationValues(startDate: Date, endDate: Date): Duratio
     is_negative,
   };
 
-  debug.tools('Calculated duration values: %O', result);
+  debug.timing('Calculated duration values: %O', result);
   return result;
 }
 
@@ -276,7 +227,7 @@ export function calculateDurationValues(startDate: Date, endDate: Date): Duratio
  * Format duration result based on unit parameter
  */
 export function formatDurationResult(values: DurationValues, unit: string): string {
-  debug.tools('formatDurationResult called with: unit=%s, values=%O', unit, values);
+  debug.timing('formatDurationResult called with: unit=%s, values=%O', unit, values);
 
   let formatted: string;
 
@@ -298,7 +249,7 @@ export function formatDurationResult(values: DurationValues, unit: string): stri
     formatted = formatDuration(values.milliseconds);
   }
 
-  debug.tools('Formatted result: %s', formatted);
+  debug.timing('Formatted result: %s', formatted);
   return formatted;
 }
 
@@ -306,18 +257,18 @@ export function formatDurationResult(values: DurationValues, unit: string): stri
  * Format duration in human-readable format
  */
 function formatDuration(milliseconds: number): string {
-  debug.tools('formatDuration called with: %d ms', milliseconds);
+  debug.timing('formatDuration called with: %d ms', milliseconds);
   const abs = Math.abs(milliseconds);
   const negative = milliseconds < 0;
 
   if (abs === 0) {
-    debug.tools('Zero duration, returning "0 seconds"');
+    debug.timing('Zero duration, returning "0 seconds"');
     return '0 seconds';
   }
 
   const totalSeconds = Math.floor(abs / 1000);
   const components = calculateTimeComponents(totalSeconds);
-  debug.tools('Time components: %O', components);
+  debug.timing('Time components: %O', components);
 
   const parts: string[] = [];
   addTimeUnit(parts, components.days, 'day');
@@ -330,6 +281,6 @@ function formatDuration(milliseconds: number): string {
 
   const formatted = parts.join(' ');
   const result = negative ? `-${formatted}` : formatted;
-  debug.tools('Formatted duration: %s', result);
+  debug.timing('Formatted duration: %s', result);
   return result;
 }

@@ -1,46 +1,23 @@
-import { differenceInCalendarDays, parseISO, isValid } from 'date-fns';
+import { differenceInCalendarDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-import { hashCacheKey } from '../cache/cacheKeyHash';
-import { cache, CacheTTL } from '../cache/timeCache';
+import { CacheTTL } from '../cache/timeCache';
 import { TimeServerErrorCodes } from '../types';
 import type { DaysUntilParams, DaysUntilResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
+import { parseTimeInput } from '../utils/parseTimeInput';
+import { resolveTimezone as resolveTimezoneUtil } from '../utils/timezoneUtils';
 import { validateTimezone, createError, validateStringLength, LIMITS } from '../utils/validation';
-
-/**
- * Resolve timezone parameter
- */
-export function resolveTimezone(userTimezone: string | undefined, defaultTimezone: string): string {
-  return userTimezone === undefined ? defaultTimezone : userTimezone || 'UTC';
-}
+import { withCache } from '../utils/withCache';
 
 /**
  * Parse target date from various formats
  */
-export function parseTargetDate(target_date: string | number): Date {
-  let targetDate: Date;
-
-  // Check if it's a Unix timestamp
-  if (typeof target_date === 'string' && /^\d+$/.test(target_date)) {
-    const timestamp = parseInt(target_date, 10);
-    if (isNaN(timestamp)) {
-      throw new Error('Invalid Unix timestamp');
-    }
-    targetDate = new Date(timestamp * 1000);
-  } else if (typeof target_date === 'number') {
-    targetDate = new Date(target_date * 1000);
-  } else {
-    // Parse as ISO string or other format
-    targetDate = parseISO(target_date);
-  }
-
-  if (!isValid(targetDate)) {
-    throw new Error('Invalid date');
-  }
-
-  return targetDate;
+export function parseTargetDate(target_date: string | number, timezone?: string): Date {
+  // Convert to string first for parseTimeInput
+  const input = String(target_date);
+  return parseTimeInput(input, timezone).date;
 }
 
 /**
@@ -75,7 +52,7 @@ export function getCacheTTL(daysUntil: number): number {
  */
 // eslint-disable-next-line max-lines-per-function
 export function daysUntil(params: DaysUntilParams): DaysUntilResult {
-  debug.tools('daysUntil called with params: %O', params);
+  debug.timing('daysUntil called with params: %O', params);
   // Validate required parameter
   if (!params.target_date) {
     throw {
@@ -90,77 +67,72 @@ export function daysUntil(params: DaysUntilParams): DaysUntilResult {
 
   const { target_date, timezone: userTimezone, format_result = false } = params;
   const { defaultTimezone } = getConfig();
-  const timezone = resolveTimezone(userTimezone, defaultTimezone);
-  debug.tools('Resolved timezone: %s', timezone);
+  const timezone = resolveTimezoneUtil(userTimezone, defaultTimezone);
+  debug.timezone('Resolved timezone: %s', timezone);
 
-  // Create cache key
-  const rawCacheKey = `days_until:${target_date}:${timezone}:${format_result}`;
-  debug.tools('Cache key (raw): %s', rawCacheKey);
-  const cacheKey = hashCacheKey(rawCacheKey);
-  const cached = cache.get<DaysUntilResult>(cacheKey);
-  if (cached !== undefined) {
-    debug.tools('Returning cached result');
-    return cached;
-  }
+  // Use withCache wrapper with CacheTTL.CALCULATIONS (since TTL depends on result)
+  return withCache(
+    `days_until:${target_date}:${timezone}:${format_result}`,
+    CacheTTL.CALCULATIONS,
+    () => {
+      // Validate timezone if provided
+      if (userTimezone !== undefined && !validateTimezone(timezone)) {
+        throw {
+          error: createError(
+            TimeServerErrorCodes.INVALID_TIMEZONE,
+            `Invalid timezone: ${timezone}`,
+            {
+              timezone,
+            }
+          ),
+        };
+      }
 
-  // Validate timezone if provided
-  if (userTimezone !== undefined && !validateTimezone(timezone)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-        timezone,
-      }),
-    };
-  }
+      // Parse target date
+      let targetDate: Date;
+      debug.parse('Parsing target_date: %s', target_date);
+      try {
+        targetDate = parseTargetDate(target_date, timezone);
+        debug.parse('Parsed date: %s', targetDate.toISOString());
+      } catch (error) {
+        throw {
+          error: createError(
+            TimeServerErrorCodes.INVALID_DATE_FORMAT,
+            `Invalid target_date format: ${target_date}`,
+            {
+              target_date,
+              error: error instanceof Error ? error.message : String(error),
+            }
+          ),
+        };
+      }
 
-  // Parse target date
-  let targetDate: Date;
-  debug.tools('Parsing target_date: %s', target_date);
-  try {
-    targetDate = parseTargetDate(target_date);
-    debug.tools('Parsed date: %s', targetDate.toISOString());
-  } catch (error) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid target_date format: ${target_date}`,
-        {
-          target_date,
-          error: error instanceof Error ? error.message : String(error),
-        }
-      ),
-    };
-  }
+      // Get current date in the specified timezone
+      const now = new Date();
+      debug.timing('Current time: %s', now.toISOString());
 
-  // Get current date in the specified timezone
-  const now = new Date();
-  debug.tools('Current time: %s', now.toISOString());
+      // Convert both dates to the specified timezone for calendar day comparison
+      const nowInTimezone = convertToTimezone(now, timezone);
+      const targetInTimezone = convertToTimezone(targetDate, timezone);
+      debug.timezone('Now in timezone: %s', nowInTimezone.toISOString());
+      debug.timezone('Target in timezone: %s', targetInTimezone.toISOString());
 
-  // Convert both dates to the specified timezone for calendar day comparison
-  const nowInTimezone = convertToTimezone(now, timezone);
-  const targetInTimezone = convertToTimezone(targetDate, timezone);
-  debug.tools('Now in timezone: %s', nowInTimezone.toISOString());
-  debug.tools('Target in timezone: %s', targetInTimezone.toISOString());
+      // Calculate calendar days difference
+      const daysUntil = differenceInCalendarDays(targetInTimezone, nowInTimezone);
+      debug.timing('Days until: %d', daysUntil);
 
-  // Calculate calendar days difference
-  const daysUntil = differenceInCalendarDays(targetInTimezone, nowInTimezone);
-  debug.tools('Days until: %d', daysUntil);
+      let result: DaysUntilResult;
 
-  let result: DaysUntilResult;
+      if (format_result) {
+        // Format the result as a human-readable string
+        result = formatDaysUntil(daysUntil);
+        debug.timing('Formatted result: %s', result);
+      } else {
+        // Return just the number
+        result = daysUntil;
+      }
 
-  if (format_result) {
-    // Format the result as a human-readable string
-    result = formatDaysUntil(daysUntil);
-    debug.tools('Formatted result: %s', result);
-  } else {
-    // Return just the number
-    result = daysUntil;
-  }
-
-  // Cache the result with appropriate TTL
-  // Use CURRENT_TIME for "today" (changes frequently), CALCULATIONS for future/past dates
-  const ttl = getCacheTTL(daysUntil);
-  cache.set(cacheKey, result, ttl);
-  debug.tools('Result cached with TTL: %d', ttl);
-
-  return result;
+      return result;
+    }
+  );
 }

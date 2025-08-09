@@ -12,9 +12,11 @@
     "LICENSE"
   ],
   "scripts": {
+    "prebuild": "node scripts/update-version.js",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "test": "jest --maxWorkers=50%",
+    "test:meta": "jest --config jest.config.meta.cjs --maxWorkers=50%",
     "test:watch": "jest --watch --maxWorkers=25%",
     "test:coverage": "jest --coverage --maxWorkers=50%",
     "test:verify": "npm test && node scripts/post-test-reminder.js",

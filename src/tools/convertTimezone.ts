@@ -1,11 +1,10 @@
-import { parseISO, isValid } from 'date-fns';
-import { formatInTimeZone, getTimezoneOffset, toDate } from 'date-fns-tz';
+import { formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
 
-import { hashCacheKey } from '../cache/cacheKeyHash';
-import { cache, CacheTTL } from '../cache/timeCache';
+import { CacheTTL } from '../cache/timeCache';
 import { TimeServerErrorCodes } from '../types';
 import type { ConvertTimezoneParams, ConvertTimezoneResult } from '../types';
 import { debug } from '../utils/debug';
+import { parseTimeInput } from '../utils/parseTimeInput';
 import {
   validateTimezone,
   createError,
@@ -13,6 +12,7 @@ import {
   validateStringLength,
   LIMITS,
 } from '../utils/validation';
+import { withCache } from '../utils/withCache';
 
 /**
  * Validates both from and to timezones
@@ -21,11 +21,11 @@ import {
  * @throws Error with proper error code if either timezone is invalid
  */
 export function validateTimezones(from_timezone: string, to_timezone: string): void {
-  debug.tools('validateTimezones called with: from=%s, to=%s', from_timezone, to_timezone);
+  debug.validation('validateTimezones called with: from=%s, to=%s', from_timezone, to_timezone);
 
   // Validate from_timezone
   if (!validateTimezone(from_timezone)) {
-    debug.tools('Invalid from_timezone: %s', from_timezone);
+    debug.validation('Invalid from_timezone: %s', from_timezone);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_TIMEZONE,
@@ -37,7 +37,7 @@ export function validateTimezones(from_timezone: string, to_timezone: string): v
 
   // Validate to_timezone
   if (!validateTimezone(to_timezone)) {
-    debug.tools('Invalid to_timezone: %s', to_timezone);
+    debug.validation('Invalid to_timezone: %s', to_timezone);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_TIMEZONE,
@@ -47,7 +47,7 @@ export function validateTimezones(from_timezone: string, to_timezone: string): v
     };
   }
 
-  debug.tools('Timezone validation passed');
+  debug.validation('Timezone validation passed');
 }
 
 /**
@@ -61,52 +61,34 @@ export function parseDateForConversion(
   time: string,
   from_timezone: string
 ): { date: Date; actualFromTimezone: string } {
-  debug.tools('parseDateForConversion called with: time=%s, from_timezone=%s', time, from_timezone);
-
-  let utcDate: Date;
-  let actualFromTimezone = from_timezone;
+  debug.parse('parseDateForConversion called with: time=%s, from_timezone=%s', time, from_timezone);
 
   try {
-    // Handle different input formats
-    if (/^\d+$/.test(time)) {
-      // Unix timestamp
-      debug.tools('Parsing as Unix timestamp');
-      const timestamp = parseInt(time, 10);
-      if (isNaN(timestamp)) {
-        throw new Error('Invalid Unix timestamp');
-      }
-      utcDate = new Date(timestamp * 1000);
-      actualFromTimezone = 'UTC'; // Unix timestamps are always UTC
-    } else {
-      // Parse the time string
-      const parsed = parseISO(time);
+    const parseResult = parseTimeInput(time, from_timezone);
+    let actualFromTimezone: string;
 
-      // Check if the input has timezone information
-      if (time.includes('Z') || /[+-]\d{2}:\d{2}/.test(time)) {
-        debug.tools('Input has timezone info, using directly');
-        // Has timezone info, use it directly
-        utcDate = parsed;
-        // For display purposes, we'll need to show the original with its offset
-        // This will be handled in the formatting section
+    if (parseResult.hasExplicitTimezone) {
+      // For explicit timezone info, preserve the source behavior:
+      // - UTC/Z -> UTC
+      // - Offset -> keep original from_timezone for display purposes
+      if (parseResult.detectedTimezone === 'UTC') {
+        actualFromTimezone = 'UTC';
       } else {
-        debug.tools('No timezone info, treating as local time in %s', from_timezone);
-        // No timezone info, treat as being in from_timezone
-        utcDate = toDate(time, { timeZone: from_timezone });
+        actualFromTimezone = from_timezone; // Keep original for offset display
       }
+    } else {
+      actualFromTimezone = from_timezone;
     }
 
-    if (!isValid(utcDate)) {
-      throw new Error('Invalid date');
-    }
-
-    debug.tools(
+    debug.parse(
       'Parsed date: %s, actualFromTimezone: %s',
-      utcDate.toISOString(),
+      parseResult.date.toISOString(),
       actualFromTimezone
     );
-    return { date: utcDate, actualFromTimezone };
+
+    return { date: parseResult.date, actualFromTimezone };
   } catch (error) {
-    debug.tools('Date parsing failed: %O', error);
+    debug.parse('Date parsing failed: %O', error);
     throw {
       error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, `Invalid time format: ${time}`, {
         time,
@@ -124,7 +106,7 @@ export function parseDateForConversion(
  * @returns Formatted time string with appropriate offset
  */
 export function formatOriginalTime(date: Date, originalTime: string, timezone: string): string {
-  debug.tools(
+  debug.timezone(
     'formatOriginalTime called with: date=%s, originalTime=%s, timezone=%s',
     date.toISOString(),
     originalTime,
@@ -133,18 +115,18 @@ export function formatOriginalTime(date: Date, originalTime: string, timezone: s
 
   // For inputs with explicit offset, preserve the original format
   if (/[+-]\d{2}:\d{2}/.test(originalTime) && originalTime.includes('T')) {
-    debug.tools('Preserving explicit offset format');
+    debug.timezone('Preserving explicit offset format');
     // Extract the offset from the original input
     const offsetMatch = originalTime.match(/([+-]\d{2}:\d{2})$/);
     if (offsetMatch) {
       const baseTime = originalTime.substring(0, originalTime.lastIndexOf(offsetMatch[0]));
       // Check if milliseconds are already present
       if (baseTime.includes('.')) {
-        debug.tools('Using original format as-is: %s', originalTime);
+        debug.timezone('Using original format as-is: %s', originalTime);
         return originalTime; // Use original as-is
       } else {
         const result = `${baseTime}.000${offsetMatch[0]}`;
-        debug.tools('Added milliseconds to explicit offset: %s', result);
+        debug.timezone('Added milliseconds to explicit offset: %s', result);
         return result;
       }
     }
@@ -153,13 +135,13 @@ export function formatOriginalTime(date: Date, originalTime: string, timezone: s
   // For UTC/Z format
   if (originalTime.includes('Z') || timezone === 'UTC') {
     const result = formatInTimeZone(date, 'UTC', "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    debug.tools('Formatted as UTC: %s', result);
+    debug.timezone('Formatted as UTC: %s', result);
     return result;
   }
 
   // Format in the specified timezone
   const result = formatInTimeZone(date, timezone, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-  debug.tools('Formatted in timezone %s: %s', timezone, result);
+  debug.timezone('Formatted in timezone %s: %s', timezone, result);
   return result;
 }
 
@@ -171,7 +153,7 @@ export function formatOriginalTime(date: Date, originalTime: string, timezone: s
  * @returns The offset string (e.g., '+05:00', '-08:00', 'Z')
  */
 export function extractOffsetString(originalTime: string, date: Date, timezone: string): string {
-  debug.tools(
+  debug.timezone(
     'extractOffsetString called with: originalTime=%s, date=%s, timezone=%s',
     originalTime,
     date.toISOString(),
@@ -182,26 +164,26 @@ export function extractOffsetString(originalTime: string, date: Date, timezone: 
   if (/[+-]\d{2}:\d{2}/.test(originalTime)) {
     const offsetMatch = originalTime.match(/([+-]\d{2}:\d{2})$/);
     if (offsetMatch) {
-      debug.tools('Using explicit offset: %s', offsetMatch[0]);
+      debug.timezone('Using explicit offset: %s', offsetMatch[0]);
       return offsetMatch[0];
     }
   }
 
   // Check for Z suffix
   if (originalTime.includes('Z')) {
-    debug.tools('Using Z for UTC suffix');
+    debug.timezone('Using Z for UTC suffix');
     return 'Z';
   }
 
   // For UTC timezone
   if (timezone === 'UTC') {
-    debug.tools('Using Z for UTC timezone');
+    debug.timezone('Using Z for UTC timezone');
     return 'Z';
   }
 
   // Format offset for the timezone
   const offset = formatInTimeZone(date, timezone, 'XXX');
-  debug.tools('Formatted offset for %s: %s', timezone, offset);
+  debug.timezone('Formatted offset for %s: %s', timezone, offset);
   return offset;
 }
 
@@ -212,7 +194,7 @@ export function extractOffsetString(originalTime: string, date: Date, timezone: 
  * @throws Properly formatted error with TimeServerErrorCodes
  */
 function handleConversionError(error: unknown, format: string): never {
-  debug.tools('Handling conversion error: %O', error);
+  debug.error('Handling conversion error: %O', error);
 
   if (error instanceof RangeError || (error instanceof Error && error.message.includes('format'))) {
     throw {
@@ -241,7 +223,7 @@ function formatConvertedTime(
   defaultFormat: string
 ): string {
   const format = customFormat ?? defaultFormat;
-  debug.tools('Formatting converted time in %s with format: %s', timezone, format);
+  debug.timezone('Formatting converted time in %s with format: %s', timezone, format);
   return formatInTimeZone(date, timezone, format);
 }
 
@@ -271,7 +253,7 @@ function buildConversionResult(
 }
 
 export function convertTimezone(params: ConvertTimezoneParams): ConvertTimezoneResult {
-  debug.tools('convertTimezone called with: %O', params);
+  debug.timezone('convertTimezone called with: %O', params);
   const { time, from_timezone, to_timezone } = params;
 
   // Validate string lengths first
@@ -280,50 +262,46 @@ export function convertTimezone(params: ConvertTimezoneParams): ConvertTimezoneR
 
   const format = params.format ?? "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
-  // Generate cache key
-  const rawCacheKey = `convert_${time}_${from_timezone}_${to_timezone}_${format}`;
-  const cacheKey = hashCacheKey(rawCacheKey);
+  // Use withCache wrapper instead of manual cache management
+  return withCache(
+    `convert_${time}_${from_timezone}_${to_timezone}_${format}`,
+    CacheTTL.TIMEZONE_CONVERT,
+    () => {
+      // Validate timezones
+      validateTimezones(from_timezone, to_timezone);
 
-  // Check cache
-  const cached = cache.get<ConvertTimezoneResult>(cacheKey);
-  if (cached) return cached;
+      // Parse the input time
+      const { date: utcDate, actualFromTimezone } = parseDateForConversion(time, from_timezone);
 
-  // Validate timezones
-  validateTimezones(from_timezone, to_timezone);
+      try {
+        // Get offsets
+        const fromOffset = getTimezoneOffset(actualFromTimezone, utcDate);
+        const toOffset = getTimezoneOffset(to_timezone, utcDate);
+        const difference = (toOffset - fromOffset) / 1000 / 60; // in minutes
 
-  // Parse the input time
-  const { date: utcDate, actualFromTimezone } = parseDateForConversion(time, from_timezone);
+        // Format the times
+        const original = formatOriginalTime(utcDate, time, actualFromTimezone);
 
-  try {
-    // Get offsets
-    const fromOffset = getTimezoneOffset(actualFromTimezone, utcDate);
-    const toOffset = getTimezoneOffset(to_timezone, utcDate);
-    const difference = (toOffset - fromOffset) / 1000 / 60; // in minutes
+        // Format the converted time
+        const converted = formatConvertedTime(utcDate, to_timezone, params.format, format);
 
-    // Format the times
-    const original = formatOriginalTime(utcDate, time, actualFromTimezone);
+        // Get offset strings
+        const fromOffsetStr = extractOffsetString(time, utcDate, actualFromTimezone);
+        const toOffsetStr = extractOffsetString('', utcDate, to_timezone);
 
-    // Format the converted time
-    const converted = formatConvertedTime(utcDate, to_timezone, params.format, format);
+        const result = buildConversionResult(
+          original,
+          converted,
+          fromOffsetStr,
+          toOffsetStr,
+          difference
+        );
 
-    // Get offset strings
-    const fromOffsetStr = extractOffsetString(time, utcDate, actualFromTimezone);
-    const toOffsetStr = extractOffsetString('', utcDate, to_timezone);
-
-    const result = buildConversionResult(
-      original,
-      converted,
-      fromOffsetStr,
-      toOffsetStr,
-      difference
-    );
-
-    // Cache the result
-    cache.set(cacheKey, result, CacheTTL.TIMEZONE_CONVERT);
-
-    debug.tools('convertTimezone returning: %O', result);
-    return result;
-  } catch (error: unknown) {
-    handleConversionError(error, params.format ?? format);
-  }
+        debug.timezone('convertTimezone returning: %O', result);
+        return result;
+      } catch (error: unknown) {
+        handleConversionError(error, params.format ?? format);
+      }
+    }
+  );
 }

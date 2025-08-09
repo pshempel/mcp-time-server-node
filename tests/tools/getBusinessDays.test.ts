@@ -47,7 +47,7 @@ describe('getBusinessDays', () => {
 
   describe('Basic functionality', () => {
     it('should calculate business days for a typical work week', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -61,7 +61,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should exclude weekends by default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -75,7 +75,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should include weekends when exclude_weekends is false', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -90,7 +90,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle same day interval', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-15', // Wednesday
@@ -104,7 +104,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle weekend same day interval', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-18', // Saturday
@@ -120,7 +120,7 @@ describe('getBusinessDays', () => {
 
   describe('Holiday handling', () => {
     it('should exclude holidays from business days', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -135,7 +135,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle multiple holidays', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -150,7 +150,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should not count holidays on weekends', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -165,7 +165,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle holidays outside the date range', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -180,7 +180,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should count holidays when exclude_weekends is false', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -198,7 +198,7 @@ describe('getBusinessDays', () => {
 
   describe('Date format handling', () => {
     it('should handle ISO date with time', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13T10:00:00Z',
@@ -210,7 +210,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle dates with timezone offset', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13T10:00:00+05:30',
@@ -224,7 +224,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle Unix timestamp strings', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '1736726400', // 2025-01-13 00:00:00 UTC (Monday)
@@ -238,7 +238,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle mixed date formats', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13',
@@ -254,7 +254,7 @@ describe('getBusinessDays', () => {
 
   describe('Timezone handling', () => {
     it('should interpret dates in specified timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13T23:00:00', // 11 PM Monday in NY
@@ -268,7 +268,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle dates that span different days in different timezones', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // When it's Monday 11 PM in NY, it's already Tuesday in Tokyo
       const result = getBusinessDays({
@@ -283,7 +283,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle DST transitions', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       // Spring forward: March 9, 2025
       const result = getBusinessDays({
@@ -298,7 +298,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should use UTC when timezone not specified', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13T00:00:00',
@@ -312,7 +312,7 @@ describe('getBusinessDays', () => {
 
   describe('Edge cases', () => {
     it('should handle end date before start date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-17', // Friday
@@ -326,7 +326,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle month boundaries', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-31', // Friday
@@ -339,7 +339,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle year boundaries', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2024-12-30', // Monday
@@ -352,7 +352,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle leap year', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2024-02-26', // Monday (leap year)
@@ -364,7 +364,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle very long date ranges', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-01',
@@ -381,13 +381,13 @@ describe('getBusinessDays', () => {
 
   describe('Error handling', () => {
     it('should throw error for invalid start date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         getBusinessDays({
           start_date: 'not-a-date',
           end_date: '2025-01-17',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -395,18 +395,18 @@ describe('getBusinessDays', () => {
             message: expect.stringContaining('Invalid start_date format'),
             details: expect.objectContaining({ start_date: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid end date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         getBusinessDays({
           start_date: '2025-01-13',
           end_date: 'not-a-date',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -414,19 +414,19 @@ describe('getBusinessDays', () => {
             message: expect.stringContaining('Invalid end_date format'),
             details: expect.objectContaining({ end_date: 'not-a-date' }),
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid timezone', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         getBusinessDays({
           start_date: '2025-01-13',
           end_date: '2025-01-17',
           timezone: 'Invalid/Zone',
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -434,19 +434,19 @@ describe('getBusinessDays', () => {
             message: 'Invalid timezone: Invalid/Zone',
             details: { timezone: 'Invalid/Zone' },
           },
-        }),
+        })
       );
     });
 
     it('should throw error for invalid holiday date', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       expect(() =>
         getBusinessDays({
           start_date: '2025-01-13',
           end_date: '2025-01-17',
           holidays: ['2025-01-15', 'not-a-date'],
-        }),
+        })
       ).toThrowError(
         expect.objectContaining({
           error: {
@@ -454,12 +454,12 @@ describe('getBusinessDays', () => {
             message: expect.stringContaining('Invalid holiday date'),
             details: expect.objectContaining({ holiday: 'not-a-date', index: 1 }),
           },
-        }),
+        })
       );
     });
 
     it('should handle empty holiday array', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13',
@@ -474,7 +474,7 @@ describe('getBusinessDays', () => {
 
   describe('Caching', () => {
     it('should cache results for 24 hours', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       getBusinessDays({
         start_date: '2025-01-13',
@@ -484,7 +484,7 @@ describe('getBusinessDays', () => {
       expect(mockedCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        86400, // 24 hours
+        86400 // 24 hours
       );
     });
 
@@ -507,7 +507,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should use different cache keys for different parameters', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       getBusinessDays({
         start_date: '2025-01-13',
@@ -534,7 +534,7 @@ describe('getBusinessDays', () => {
 
   describe('Response format', () => {
     it('should return all required fields', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13',
@@ -552,7 +552,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should ensure counts add up correctly', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
 
       const result = getBusinessDays({
         start_date: '2025-01-13', // Monday
@@ -562,14 +562,14 @@ describe('getBusinessDays', () => {
 
       // business_days + weekend_days + holidays on business days = total_days
       expect(result.business_days + result.weekend_days + result.holiday_count).toBe(
-        result.total_days,
+        result.total_days
       );
     });
   });
 
   describe('System timezone defaults', () => {
     it('should use system timezone when no timezone parameter provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = getBusinessDays({
@@ -584,7 +584,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should use explicit timezone parameter over system default', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = getBusinessDays({
@@ -600,7 +600,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should use UTC when empty string timezone provided', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'America/New_York' });
 
       const result = getBusinessDays({
@@ -616,7 +616,7 @@ describe('getBusinessDays', () => {
     });
 
     it('should handle timezone-sensitive date boundaries', () => {
-      mockedCache.get.mockReturnValue(null);
+      mockedCache.get.mockReturnValue(undefined);
       mockedGetConfig.mockReturnValue({ defaultTimezone: 'Asia/Tokyo' });
 
       // In Tokyo, this spans from Friday night to Monday morning

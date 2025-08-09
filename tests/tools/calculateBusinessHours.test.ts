@@ -14,7 +14,7 @@ describe('calculateBusinessHours', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetConfig.mockReturnValue({ defaultTimezone: 'America/Indianapolis' });
-    mockCache.get.mockReturnValue(null);
+    mockCache.get.mockReturnValue(undefined);
     mockCache.set.mockImplementation(() => true);
   });
 
@@ -365,7 +365,7 @@ describe('calculateBusinessHours', () => {
       expect(mockCache.set).toHaveBeenCalledWith(
         expect.stringMatching(/^[a-f0-9]{64}$/),
         expect.any(Object),
-        expect.any(Number),
+        expect.any(Number)
       );
     });
 
@@ -404,7 +404,7 @@ describe('calculateBusinessHours', () => {
       calculateBusinessHours(params1);
       const firstCall = mockCache.set.mock.calls[0][0];
 
-      mockCache.get.mockReturnValue(null); // Force cache miss
+      mockCache.get.mockReturnValue(undefined); // Force cache miss
       calculateBusinessHours(params2);
       const secondCall = mockCache.set.mock.calls[1][0];
 

@@ -77,6 +77,33 @@
       "env": {
         "jest": true
       }
+    },
+    {
+      "files": [
+        "src/utils/cacheKeyBuilder.ts",
+        "src/utils/holidayAggregator.ts",
+        "src/utils/businessHoursHelpers.ts"
+      ],
+      "rules": {
+        "complexity": ["error", 20],
+        "max-lines-per-function": [
+          "error",
+          { "max": 80, "skipBlankLines": true, "skipComments": true }
+        ],
+        "max-depth": ["error", 5],
+        "no-useless-catch": "off",
+        "security/detect-object-injection": "off"
+      }
+    },
+    {
+      "files": ["src/tools/calculateBusinessHours.ts", "src/tools/getBusinessDays.ts"],
+      "rules": {
+        "complexity": ["error", 15],
+        "max-lines-per-function": [
+          "error",
+          { "max": 110, "skipBlankLines": true, "skipComments": true }
+        ]
+      }
     }
   ],
   "ignorePatterns": ["dist", "node_modules", "coverage", "*.js"],
