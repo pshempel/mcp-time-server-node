@@ -1,0 +1,14 @@
+# GitLab CI/CD Configuration
+# This is a private backup repository - no CI/CD needed
+
+# Disable all pipelines
+workflow:
+  rules:
+    - when: never
+
+# Alternative: Run a simple no-op job if you prefer pipelines to show "success"
+# no-op:
+#   script:
+#     - echo "This is a backup repository - no CI/CD required"
+#   rules:
+#     - when: always
