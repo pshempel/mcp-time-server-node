@@ -32,11 +32,22 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Sessions
+# Private directories
 sessions/
+research/
+tmp/
+
+# Private files
+CLAUDE.md
+**/CLAUDE.md
+
+# Quick references (internal)
+GIT_QUICK_REFERENCE.md
+REFACTOR_INITIATIVE.md
+
+# Generated files
 todos
 hooks/
-tmp/
 
 # Test reports (generated files)
 test-assertion-report.json
