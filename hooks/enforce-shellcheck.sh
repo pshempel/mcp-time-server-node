@@ -1,1 +1,0 @@
-/home/pshempel/hooks/enforce-shellcheck.sh
