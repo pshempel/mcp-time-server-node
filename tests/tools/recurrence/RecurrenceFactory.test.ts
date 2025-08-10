@@ -56,27 +56,31 @@ describe('RecurrenceFactory', () => {
     it('should throw validation error for invalid pattern', () => {
       const params = { pattern: 'invalid' } as any;
 
-      expect(() => factory.create(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('Invalid pattern'),
-          }),
-        }),
-      );
+      expect(() => factory.create(params)).toThrow(Error);
+      
+      try {
+        factory.create(params);
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('Invalid pattern');
+      }
     });
 
     it('should throw validation error for missing required fields', () => {
       const params = { pattern: 'monthly' } as MonthlyParams;
 
-      expect(() => factory.create(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('dayOfMonth is required'),
-          }),
-        }),
-      );
+      expect(() => factory.create(params)).toThrow(Error);
+      
+      try {
+        factory.create(params);
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('dayOfMonth is required');
+      }
     });
   });
 
@@ -121,13 +125,16 @@ describe('RecurrenceFactory', () => {
       const from = new Date('2024-01-15T10:00:00Z');
       const params = { pattern: 'invalid' } as any;
 
-      expect(() => factory.calculate(from, params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-          }),
-        }),
-      );
+      expect(() => factory.calculate(from, params)).toThrow(Error);
+      
+      try {
+        factory.calculate(from, params);
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('Invalid pattern');
+      }
     });
   });
 

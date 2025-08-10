@@ -1,6 +1,5 @@
 import { daysUntil } from '../../src/tools/daysUntil';
 import { addDays, subDays, format } from 'date-fns';
-import { TimeServerErrorCodes } from '../../src/types';
 
 describe('daysUntil', () => {
   beforeEach(() => {
@@ -197,8 +196,9 @@ describe('daysUntil', () => {
       try {
         daysUntil({} as any);
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-        expect(e.error.message).toContain('target_date is required');
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e.message).toContain('target_date is required');
       }
     });
 
@@ -207,8 +207,9 @@ describe('daysUntil', () => {
       try {
         daysUntil({ target_date: 'not-a-date' });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_DATE_FORMAT);
-        expect(e.error.message).toContain('Invalid target_date format');
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e.message).toContain('Invalid target_date format');
       }
     });
 
@@ -225,8 +226,9 @@ describe('daysUntil', () => {
           timezone: 'Invalid/Timezone',
         });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
-        expect(e.error.message).toContain('Invalid timezone');
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e.message).toContain('Invalid timezone');
       }
     });
   });

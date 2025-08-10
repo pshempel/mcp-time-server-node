@@ -2,7 +2,6 @@ import { getCurrentTime } from '../../src/tools/getCurrentTime';
 import { convertTimezone } from '../../src/tools/convertTimezone';
 import { getBusinessDays } from '../../src/tools/getBusinessDays';
 import { daysUntil } from '../../src/tools/daysUntil';
-import { TimeServerErrorCodes } from '../../src/types';
 
 describe('Security - Input Validation', () => {
   describe('String Length Limits', () => {
@@ -14,8 +13,9 @@ describe('Security - Input Validation', () => {
         try {
           getCurrentTime({ timezone: longTimezone });
         } catch (e: any) {
-          expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-          expect(e.error.message).toContain('exceeds maximum length');
+          expect(e).toBeInstanceOf(Error);
+          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e.message).toContain('exceeds maximum length');
         }
       });
 
@@ -27,7 +27,8 @@ describe('Security - Input Validation', () => {
           getCurrentTime({ timezone: maxTimezone });
         } catch (e: any) {
           // Should fail timezone validation, not length
-          expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
+          expect(e).toBeInstanceOf(Error);
+          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams (for invalid timezone)
         }
       });
     });
@@ -51,8 +52,9 @@ describe('Security - Input Validation', () => {
             to_timezone: 'UTC',
           });
         } catch (e: any) {
-          expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-          expect(e.error.message).toContain('exceeds maximum length');
+          expect(e).toBeInstanceOf(Error);
+          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e.message).toContain('exceeds maximum length');
         }
       });
 
@@ -81,8 +83,9 @@ describe('Security - Input Validation', () => {
         try {
           getCurrentTime({ format: longFormat });
         } catch (e: any) {
-          expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-          expect(e.error.message).toContain('exceeds maximum length');
+          expect(e).toBeInstanceOf(Error);
+          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e.message).toContain('exceeds maximum length');
         }
       });
 
@@ -103,8 +106,9 @@ describe('Security - Input Validation', () => {
         try {
           daysUntil({ target_date: veryLongString });
         } catch (e: any) {
-          expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-          expect(e.error.message).toContain('exceeds maximum length');
+          expect(e).toBeInstanceOf(Error);
+          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e.message).toContain('exceeds maximum length');
         }
       });
     });
@@ -129,8 +133,9 @@ describe('Security - Input Validation', () => {
           holidays: tooManyHolidays,
         });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-        expect(e.error.message).toContain('exceeds maximum array length');
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e.message).toContain('exceeds maximum array length');
       }
     });
 
@@ -160,7 +165,8 @@ describe('Security - Input Validation', () => {
         getCurrentTime({ timezone: nullByteString });
       } catch (e: any) {
         // Could be length or validation error, but not a crash
-        expect(e.error.code).toBeDefined();
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBeDefined();
       }
     });
 
@@ -171,7 +177,8 @@ describe('Security - Input Validation', () => {
       try {
         getCurrentTime({ timezone: emojiString });
       } catch (e: any) {
-        expect(e.error.code).toBeDefined();
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBeDefined();
       }
     });
 
@@ -182,7 +189,8 @@ describe('Security - Input Validation', () => {
       try {
         getCurrentTime({ timezone: rtlString });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
       }
     });
 
@@ -193,7 +201,8 @@ describe('Security - Input Validation', () => {
       try {
         getCurrentTime({ timezone: pathTraversal });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
       }
     });
   });
@@ -236,8 +245,9 @@ describe('Security - Input Validation', () => {
           holidays: mixedDates,
         });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-        expect(e.error.message).toContain('exceeds maximum length');
+        expect(e).toBeInstanceOf(Error);
+        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e.message).toContain('exceeds maximum length');
       }
     });
   });

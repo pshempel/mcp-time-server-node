@@ -52,125 +52,93 @@ describe('Error Handling Fix - Issue #1', () => {
 
   describe('formatTime error handling', () => {
     it('should throw plain Error for invalid date', async () => {
-      await expect(
-        formatTime({
-          time: 'invalid-date',
-          format: 'custom',
-          custom_format: 'yyyy-MM-dd'
-        })
-      ).rejects.toThrow(Error);
-      
       try {
         await formatTime({
           time: 'invalid-date',
           format: 'custom',
           custom_format: 'yyyy-MM-dd'
         });
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
+        expect(error.code).toBe(-32602);
       }
     });
 
     it('should throw plain Error for missing custom format', async () => {
-      await expect(
-        formatTime({
-          time: '2025-01-01',
-          format: 'custom'
-          // missing custom_format
-        })
-      ).rejects.toThrow(Error);
-      
       try {
         await formatTime({
           time: '2025-01-01',
           format: 'custom'
+          // missing custom_format
         });
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
+        expect(error.code).toBe(-32602);
       }
     });
   });
 
   describe('addTime error handling', () => {
     it('should throw plain Error for invalid unit', async () => {
-      await expect(
-        addTime({
-          time: '2025-01-01',
-          amount: 1,
-          unit: 'invalid' as any
-        })
-      ).rejects.toThrow(Error);
-      
       try {
         await addTime({
           time: '2025-01-01',
           amount: 1,
           unit: 'invalid' as any
         });
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
+        expect(error.code).toBe(-32602);
       }
     });
 
     it('should throw plain Error for invalid date', async () => {
-      await expect(
-        addTime({
-          time: 'not-a-date',
-          amount: 1,
-          unit: 'days'
-        })
-      ).rejects.toThrow(Error);
-      
       try {
         await addTime({
           time: 'not-a-date',
           amount: 1,
           unit: 'days'
         });
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
+        expect(error.code).toBe(-32602);
       }
     });
   });
 
   describe('nextOccurrence error handling', () => {
     it('should throw plain Error for invalid pattern', async () => {
-      await expect(
-        nextOccurrence({
-          pattern: 'invalid' as any
-        })
-      ).rejects.toThrow(Error);
-      
       try {
         await nextOccurrence({
           pattern: 'invalid' as any
         });
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
+        expect(error.code).toBe(-32602);
       }
     });
 
     it('should throw plain Error for invalid start_from', async () => {
-      await expect(
-        nextOccurrence({
-          pattern: 'daily',
-          start_from: 'not-a-date'
-        })
-      ).rejects.toThrow(Error);
-      
       try {
         await nextOccurrence({
           pattern: 'daily',
           start_from: 'not-a-date'
         });
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
+        expect(error.code).toBe(-32602);
       }
     });
   });

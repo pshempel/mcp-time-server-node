@@ -1,5 +1,4 @@
 import { getBusinessDays } from '../../src/tools/getBusinessDays';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { GetBusinessDaysResult } from '../../src/types';
 
 // Mock the cache module
@@ -388,15 +387,20 @@ describe('getBusinessDays', () => {
           start_date: 'not-a-date',
           end_date: '2025-01-17',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid start_date format'),
-            details: expect.objectContaining({ start_date: 'not-a-date' }),
-          },
-        })
-      );
+      ).toThrow(Error);
+      
+      try {
+        getBusinessDays({
+          start_date: 'not-a-date',
+          end_date: '2025-01-17',
+        });
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('Invalid start_date format');
+        expect(error.data.start_date).toBe('not-a-date');
+      }
     });
 
     it('should throw error for invalid end date', () => {
@@ -407,15 +411,20 @@ describe('getBusinessDays', () => {
           start_date: '2025-01-13',
           end_date: 'not-a-date',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid end_date format'),
-            details: expect.objectContaining({ end_date: 'not-a-date' }),
-          },
-        })
-      );
+      ).toThrow(Error);
+      
+      try {
+        getBusinessDays({
+          start_date: '2025-01-13',
+          end_date: 'not-a-date',
+        });
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('Invalid end_date format');
+        expect(error.data.end_date).toBe('not-a-date');
+      }
     });
 
     it('should throw error for invalid timezone', () => {
@@ -427,15 +436,21 @@ describe('getBusinessDays', () => {
           end_date: '2025-01-17',
           timezone: 'Invalid/Zone',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone' },
-          },
-        })
-      );
+      ).toThrow(Error);
+      
+      try {
+        getBusinessDays({
+          start_date: '2025-01-13',
+          end_date: '2025-01-17',
+          timezone: 'Invalid/Zone',
+        });
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('Invalid timezone: Invalid/Zone');
+        expect(error.data.timezone).toBe('Invalid/Zone');
+      }
     });
 
     it('should throw error for invalid holiday date', () => {
@@ -447,15 +462,22 @@ describe('getBusinessDays', () => {
           end_date: '2025-01-17',
           holidays: ['2025-01-15', 'not-a-date'],
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid holiday date'),
-            details: expect.objectContaining({ holiday: 'not-a-date', index: 1 }),
-          },
-        })
-      );
+      ).toThrow(Error);
+      
+      try {
+        getBusinessDays({
+          start_date: '2025-01-13',
+          end_date: '2025-01-17',
+          holidays: ['2025-01-15', 'not-a-date'],
+        });
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('Invalid holiday date');
+        expect(error.data.holiday).toBe('not-a-date');
+        expect(error.data.index).toBe(1);
+      }
     });
 
     it('should handle empty holiday array', () => {

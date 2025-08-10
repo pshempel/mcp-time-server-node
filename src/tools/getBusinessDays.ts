@@ -1,7 +1,6 @@
 import { eachDayOfInterval, isWeekend, format } from 'date-fns';
 
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { GetBusinessDaysParams, GetBusinessDaysResult } from '../types';
 import { parseDateWithTimezone } from '../utils/businessUtils';
 import { buildCacheKey } from '../utils/cacheKeyBuilder';
@@ -11,11 +10,13 @@ import { aggregateHolidays } from '../utils/holidayAggregator';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import {
   validateTimezone,
-  createError,
   validateArrayLength,
   validateDateString,
   LIMITS,
 } from '../utils/validation';
+
+// Import ErrorCode for MCP SDK compatibility
+const { ErrorCode } = require('@modelcontextprotocol/sdk/types.js');
 import { withCache } from '../utils/withCache';
 
 // eslint-disable-next-line max-lines-per-function -- Enhanced debug logging for production observability
@@ -64,33 +65,26 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
   return withCache(cacheKey, CacheTTL.BUSINESS_DAYS, () => {
     // Validate timezone if provided
     if (timezone && !validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      const err: any = new Error(`Invalid timezone: ${timezone}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { timezone };
+      throw err;
     }
 
     // Validate holiday_calendar if provided
     if (holiday_calendar) {
       if (holiday_calendar.includes('\0') || holiday_calendar.includes('\x00')) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_PARAMETER,
-            'Invalid holiday_calendar: contains null bytes',
-            { holiday_calendar }
-          ),
-        };
+        const err: any = new Error('Invalid holiday_calendar: contains null bytes');
+        err.code = ErrorCode.InvalidParams;
+        err.data = { holiday_calendar };
+        throw err;
       }
 
       if (!/^[A-Z]{2,3}$/.test(holiday_calendar)) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_PARAMETER,
-            'Invalid holiday_calendar: must be a 2-3 letter country code',
-            { holiday_calendar }
-          ),
-        };
+        const err: any = new Error('Invalid holiday_calendar: must be a 2-3 letter country code');
+        err.code = ErrorCode.InvalidParams;
+        err.data = { holiday_calendar };
+        throw err;
       }
     }
 

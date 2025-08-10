@@ -1,5 +1,4 @@
 import { getCurrentTime } from '../../src/tools/getCurrentTime';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { GetCurrentTimeResult, GetCurrentTimeParams } from '../../src/types';
 
 // Mock the cache module
@@ -126,31 +125,33 @@ describe('getCurrentTime', () => {
     it('should throw error for invalid timezone', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() => getCurrentTime({ timezone: 'Invalid/Zone' })).toThrow();
-      expect(() => getCurrentTime({ timezone: 'Invalid/Zone' })).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone' },
-          },
-        })
-      );
+      expect(() => getCurrentTime({ timezone: 'Invalid/Zone' })).toThrow(Error);
+      
+      try {
+        getCurrentTime({ timezone: 'Invalid/Zone' });
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toBe('Invalid timezone: Invalid/Zone');
+        expect(error.data.timezone).toBe('Invalid/Zone');
+      }
     });
 
     it('should throw error for invalid format pattern', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() => getCurrentTime({ format: 'invalid-format-$$$$' })).toThrow();
-      expect(() => getCurrentTime({ format: 'invalid-format-$$$$' })).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid format'),
-            details: expect.objectContaining({ format: 'invalid-format-$$$$' }),
-          },
-        })
-      );
+      expect(() => getCurrentTime({ format: 'invalid-format-$$$$' })).toThrow(Error);
+      
+      try {
+        getCurrentTime({ format: 'invalid-format-$$$$' });
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.message).toContain('Invalid format');
+        expect(error.data.format).toBe('invalid-format-$$$$');
+      }
     });
   });
 

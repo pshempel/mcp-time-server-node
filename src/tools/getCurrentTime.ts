@@ -1,12 +1,16 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+// SDK 1.17.2 export issue workaround - correct path without .js
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
+
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { GetCurrentTimeParams, GetCurrentTimeResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { resolveTimezone } from '../utils/timezoneUtils';
-import { validateTimezone, createError, validateStringLength, LIMITS } from '../utils/validation';
+import { validateTimezone, validateStringLength, LIMITS } from '../utils/validation';
 import { withCache } from '../utils/withCache';
 
 /**
@@ -63,13 +67,10 @@ export function buildTimeResult(
  */
 export function handleFormatError(error: unknown, format: string): never {
   if (error instanceof RangeError || (error instanceof Error && error.message.includes('format'))) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid format: ${error.message}`,
-        { format, error: error.message }
-      ),
-    };
+    const err: any = new Error(`Invalid format: ${error.message}`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = { format, error: error.message };
+    throw err;
   }
   throw error;
 }
@@ -92,11 +93,10 @@ export function getCurrentTime(params: GetCurrentTimeParams): GetCurrentTimeResu
   return withCache(getCacheKey(timezone, formatStr, includeOffset), CacheTTL.CURRENT_TIME, () => {
     // Validate timezone
     if (!validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      const err: any = new Error(`Invalid timezone: ${timezone}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { timezone };
+      throw err;
     }
 
     const now = new Date();

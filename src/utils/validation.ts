@@ -1,6 +1,11 @@
 import { parseISO, isValid } from 'date-fns';
 import { getTimezoneOffset } from 'date-fns-tz';
 
+// SDK 1.17.2 export issue workaround - correct path without .js
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { TimeServerErrorCodes } from '../types';
 import type { TimeServerError, TimeUnit, RecurrencePattern } from '../types';
@@ -91,13 +96,10 @@ export function validateDateString(dateStr: string | undefined | null, fieldName
 export function validateDateInput(dateInput: unknown, fieldName = 'date'): void {
   // Strict type checking - only allow string or number
   if (typeof dateInput !== 'string' && typeof dateInput !== 'number') {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `${fieldName} must be a string or number`,
-        { fieldName, type: typeof dateInput },
-      ),
-    };
+    const err: any = new Error(`${fieldName} must be a string or number`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = { fieldName, type: typeof dateInput };
+    throw err;
   }
 
   // Additional validation for strings
@@ -158,13 +160,10 @@ export function validateStringLength(
 ): boolean {
   if (!str) return true; // undefined/null are handled elsewhere
   if (str.length > maxLength) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `${fieldName} exceeds maximum length of ${maxLength} characters`,
-        { fieldName, length: str.length, maxLength },
-      ),
-    };
+    const err: any = new Error(`${fieldName} exceeds maximum length of ${maxLength} characters`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = { fieldName, length: str.length, maxLength };
+    throw err;
   }
   return true;
 }
@@ -183,13 +182,10 @@ export function validateArrayLength<T>(
 ): boolean {
   if (!arr) return true; // undefined/null are handled elsewhere
   if (arr.length > maxLength) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `${fieldName} exceeds maximum array length of ${maxLength} items`,
-        { fieldName, length: arr.length, maxLength },
-      ),
-    };
+    const err: any = new Error(`${fieldName} exceeds maximum array length of ${maxLength} items`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = { fieldName, length: arr.length, maxLength };
+    throw err;
   }
 
   // Also validate each string in the array if it's a string array
