@@ -1,12 +1,12 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { ValidationError, TimezoneError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { GetCurrentTimeParams, GetCurrentTimeResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { resolveTimezone } from '../utils/timezoneUtils';
-import { validateTimezone, createError, validateStringLength, LIMITS } from '../utils/validation';
+import { validateTimezone, validateStringLength, LIMITS } from '../utils/validation';
 import { withCache } from '../utils/withCache';
 
 /**
@@ -63,13 +63,7 @@ export function buildTimeResult(
  */
 export function handleFormatError(error: unknown, format: string): never {
   if (error instanceof RangeError || (error instanceof Error && error.message.includes('format'))) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid format: ${error.message}`,
-        { format, error: error.message }
-      ),
-    };
+    throw new ValidationError(`Invalid format: ${error.message}`, { format, error: error.message });
   }
   throw error;
 }
@@ -92,11 +86,7 @@ export function getCurrentTime(params: GetCurrentTimeParams): GetCurrentTimeResu
   return withCache(getCacheKey(timezone, formatStr, includeOffset), CacheTTL.CURRENT_TIME, () => {
     // Validate timezone
     if (!validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
 
     const now = new Date();

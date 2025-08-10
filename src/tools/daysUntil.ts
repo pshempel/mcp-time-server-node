@@ -1,14 +1,14 @@
 import { differenceInCalendarDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
+import { ValidationError, TimezoneError, DateParsingError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { DaysUntilParams, DaysUntilResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone as resolveTimezoneUtil } from '../utils/timezoneUtils';
-import { validateTimezone, createError, validateStringLength, LIMITS } from '../utils/validation';
+import { validateTimezone, validateStringLength, LIMITS } from '../utils/validation';
 import { withCache } from '../utils/withCache';
 
 /**
@@ -55,9 +55,8 @@ export function daysUntil(params: DaysUntilParams): DaysUntilResult {
   debug.timing('daysUntil called with params: %O', params);
   // Validate required parameter
   if (!params.target_date) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'target_date is required'),
-    };
+    debug.error('target_date is required');
+    throw new ValidationError('target_date is required', { field: 'target_date' });
   }
 
   // Validate string length first (general limit for very long strings)
@@ -77,15 +76,8 @@ export function daysUntil(params: DaysUntilParams): DaysUntilResult {
     () => {
       // Validate timezone if provided
       if (userTimezone !== undefined && !validateTimezone(timezone)) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_TIMEZONE,
-            `Invalid timezone: ${timezone}`,
-            {
-              timezone,
-            }
-          ),
-        };
+        debug.error('Invalid timezone: %s', timezone);
+        throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
       }
 
       // Parse target date
@@ -95,16 +87,15 @@ export function daysUntil(params: DaysUntilParams): DaysUntilResult {
         targetDate = parseTargetDate(target_date, timezone);
         debug.parse('Parsed date: %s', targetDate.toISOString());
       } catch (error) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            `Invalid target_date format: ${target_date}`,
-            {
-              target_date,
-              error: error instanceof Error ? error.message : String(error),
-            }
-          ),
-        };
+        debug.error(
+          'Invalid target_date format: %s, error: %s',
+          target_date,
+          error instanceof Error ? error.message : String(error)
+        );
+        throw new DateParsingError(`Invalid target_date format: ${target_date}`, {
+          target_date,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
 
       // Get current date in the specified timezone

@@ -6,6 +6,7 @@ import { DailyRecurrence } from '../../../src/tools/recurrence/DailyRecurrence';
 import { WeeklyRecurrence } from '../../../src/tools/recurrence/WeeklyRecurrence';
 import { MonthlyRecurrence } from '../../../src/tools/recurrence/MonthlyRecurrence';
 import { YearlyRecurrence } from '../../../src/tools/recurrence/YearlyRecurrence';
+import { ValidationError } from '../../../src/adapters/mcp-sdk/errors';
 import type {
   DailyParams,
   WeeklyParams,
@@ -56,27 +57,31 @@ describe('RecurrenceFactory', () => {
     it('should throw validation error for invalid pattern', () => {
       const params = { pattern: 'invalid' } as any;
 
-      expect(() => factory.create(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('Invalid pattern'),
-          }),
-        }),
-      );
+      expect(() => factory.create(params)).toThrow(Error);
+
+      try {
+        factory.create(params);
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid pattern');
+      }
     });
 
     it('should throw validation error for missing required fields', () => {
       const params = { pattern: 'monthly' } as MonthlyParams;
 
-      expect(() => factory.create(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('dayOfMonth is required'),
-          }),
-        }),
-      );
+      expect(() => factory.create(params)).toThrow(Error);
+
+      try {
+        factory.create(params);
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('dayOfMonth is required');
+      }
     });
   });
 
@@ -121,13 +126,16 @@ describe('RecurrenceFactory', () => {
       const from = new Date('2024-01-15T10:00:00Z');
       const params = { pattern: 'invalid' } as any;
 
-      expect(() => factory.calculate(from, params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-          }),
-        }),
-      );
+      expect(() => factory.calculate(from, params)).toThrow(Error);
+
+      try {
+        factory.calculate(from, params);
+        expect(true).toBe(false); // Should have thrown
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid pattern');
+      }
     });
   });
 

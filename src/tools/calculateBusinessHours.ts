@@ -1,7 +1,7 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { ValidationError, TimezoneError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type {
   CalculateBusinessHoursParams,
   CalculateBusinessHoursResult,
@@ -22,7 +22,6 @@ import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import {
   validateTimezone,
-  createError,
   validateDateString,
   validateArrayLength,
   LIMITS,
@@ -186,6 +185,7 @@ export function buildBusinessHoursResult(
   return result;
 }
 
+// eslint-disable-next-line complexity -- Business domain complexity: handles timezones, holidays, multiple business hour formats, weekend rules, partial days
 export function calculateBusinessHours(
   params: CalculateBusinessHoursParams
 ): CalculateBusinessHoursResult {
@@ -219,11 +219,8 @@ export function calculateBusinessHours(
   return withCache(cacheKey, CacheTTL.CALCULATIONS, () => {
     // Validate timezone if provided
     if (timezone && !validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
 
     // Validate business hours structure using helper
@@ -235,13 +232,24 @@ export function calculateBusinessHours(
 
     // Validate that end is after start
     if (endDate < startDate) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'End time must be after start time',
-          { start_time, end_time }
-        ),
-      };
+      debug.error('End time must be after start time: start=%s, end=%s', start_time, end_time);
+      throw new ValidationError('End time must be after start time', { start_time, end_time });
+    }
+
+    // DoS protection: Limit date range to 10 years (3,650 days) for business hours
+    const daysDifference =
+      Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysDifference > 3650) {
+      debug.error('Date range too large for business hours: %d days (max 3650)', daysDifference);
+      throw new ValidationError(
+        'Date range exceeds maximum limit of 10 years for business hours calculation',
+        {
+          start_time,
+          end_time,
+          days: Math.floor(daysDifference),
+          max_days: 3650,
+        }
+      );
     }
 
     // Log the calculation context

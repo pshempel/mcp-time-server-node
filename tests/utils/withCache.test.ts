@@ -1,6 +1,7 @@
-import { withCache } from '../../src/utils/withCache';
+import { withCache, withCacheAsync } from '../../src/utils/withCache';
 import { cache } from '../../src/cache/timeCache';
 import { hashCacheKey } from '../../src/cache/cacheKeyHash';
+import { debug } from '../../src/utils/debug';
 
 // Mock the cache modules
 jest.mock('../../src/cache/timeCache', () => ({
@@ -147,6 +148,22 @@ describe('withCache', () => {
       expect(result).toBe('fallback');
       expect(compute).toHaveBeenCalled();
     });
+
+    it('should handle cache.set errors gracefully', () => {
+      (cache.get as jest.Mock).mockReturnValue(undefined);
+      (cache.set as jest.Mock).mockImplementation(() => {
+        throw new Error('Cache write failed');
+      });
+
+      const compute = jest.fn(() => 'computed_value');
+
+      // Should return computed value even if cache write fails
+      const result = withCache('write_error_key', 3600, compute);
+
+      expect(result).toBe('computed_value');
+      expect(compute).toHaveBeenCalled();
+      expect(cache.set).toHaveBeenCalled();
+    });
   });
 
   describe('cache key handling', () => {
@@ -168,6 +185,23 @@ describe('withCache', () => {
 
       expect(hashCacheKey).toHaveBeenCalledWith(complexKey);
     });
+
+    it('should log debug info for long cache keys when debug is enabled', () => {
+      const longKey = 'a'.repeat(25); // More than 20 chars
+      (cache.get as jest.Mock).mockReturnValue(undefined);
+
+      // Enable debug.cache to trigger the logging path
+      const originalEnabled = debug.cache.enabled;
+      debug.cache.enabled = true;
+
+      withCache(longKey, 3600, () => 'value');
+
+      // Restore original state
+      debug.cache.enabled = originalEnabled;
+
+      expect(hashCacheKey).toHaveBeenCalledWith(longKey);
+      // The debug logging happens internally when enabled and key > 20 chars
+    });
   });
 
   describe('TTL handling', () => {
@@ -185,5 +219,69 @@ describe('withCache', () => {
         expect(cache.set).toHaveBeenCalledWith(`hashed_ttl_key_${ttl}`, `value_${ttl}`, ttl);
       });
     });
+  });
+});
+
+describe('withCacheAsync', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return cached value when present', async () => {
+    const cachedValue = { result: 'cached', timestamp: 12345 };
+    (cache.get as jest.Mock).mockReturnValue(cachedValue);
+
+    const compute = jest.fn(async () => ({ result: 'computed', timestamp: 67890 }));
+
+    const result = await withCacheAsync('test_key', 3600, compute);
+
+    expect(result).toEqual(cachedValue);
+    expect(compute).not.toHaveBeenCalled();
+    expect(cache.get).toHaveBeenCalledWith('hashed_test_key');
+  });
+
+  it('should compute and cache value when not present', async () => {
+    (cache.get as jest.Mock).mockReturnValue(undefined);
+
+    const computedValue = { result: 'computed', timestamp: 67890 };
+    const compute = jest.fn(async () => computedValue);
+
+    const result = await withCacheAsync('miss_key', 3600, compute);
+
+    expect(result).toEqual(computedValue);
+    expect(compute).toHaveBeenCalledTimes(1);
+    expect(cache.get).toHaveBeenCalledWith('hashed_miss_key');
+    expect(cache.set).toHaveBeenCalledWith('hashed_miss_key', computedValue, 3600);
+  });
+
+  it('should handle cache.set errors gracefully', async () => {
+    (cache.get as jest.Mock).mockReturnValue(undefined);
+    (cache.set as jest.Mock).mockImplementation(() => {
+      throw new Error('Cache write failed');
+    });
+
+    const compute = jest.fn(async () => 'computed_value');
+
+    // Should return computed value even if cache write fails
+    const result = await withCacheAsync('write_error_key', 3600, compute);
+
+    expect(result).toBe('computed_value');
+    expect(compute).toHaveBeenCalled();
+    expect(cache.set).toHaveBeenCalled();
+  });
+
+  it('should handle async compute errors', async () => {
+    (cache.get as jest.Mock).mockReturnValue(undefined);
+
+    const compute = jest.fn(async () => {
+      throw new Error('Async computation failed');
+    });
+
+    await expect(withCacheAsync('error_key', 3600, compute)).rejects.toThrow(
+      'Async computation failed'
+    );
+
+    // Should not cache errors
+    expect(cache.set).not.toHaveBeenCalled();
   });
 });

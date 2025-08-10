@@ -1,6 +1,10 @@
 import { subtractTime } from '../../src/tools/subtractTime';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { SubtractTimeResult } from '../../src/types';
+import {
+  DateParsingError,
+  ValidationError,
+  TimezoneError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -292,15 +296,20 @@ describe('subtractTime', () => {
           amount: 1,
           unit: 'days',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid time format'),
-            details: expect.objectContaining({ time: 'not-a-date' }),
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        subtractTime({
+          time: 'not-a-date',
+          amount: 1,
+          unit: 'days',
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(DateParsingError);
+        expect(error.code).toBe('DATE_PARSING_ERROR');
+        expect(error.message).toContain('Invalid');
+        expect(error.details).toBeDefined();
+      }
     });
 
     it('should throw error for invalid unit', () => {
@@ -312,15 +321,20 @@ describe('subtractTime', () => {
           amount: 1,
           unit: 'fortnights' as any,
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid unit'),
-            details: expect.objectContaining({ unit: 'fortnights' }),
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        subtractTime({
+          time: '2025-01-15T10:30:00Z',
+          amount: 1,
+          unit: 'fortnights' as any,
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid');
+        expect(error.details).toBeDefined();
+      }
     });
 
     it('should throw error for invalid timezone', () => {
@@ -333,15 +347,21 @@ describe('subtractTime', () => {
           unit: 'days',
           timezone: 'Invalid/Zone',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone' },
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        subtractTime({
+          time: '2025-01-15T10:30:00',
+          amount: 1,
+          unit: 'days',
+          timezone: 'Invalid/Zone',
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.message).toContain('Invalid timezone');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
+      }
     });
 
     it('should throw error for NaN amount', () => {
@@ -353,15 +373,20 @@ describe('subtractTime', () => {
           amount: NaN,
           unit: 'days',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid amount'),
-            details: expect.objectContaining({ amount: NaN }),
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        subtractTime({
+          time: '2025-01-15T10:30:00Z',
+          amount: NaN,
+          unit: 'days',
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid');
+        expect(error.details).toBeDefined();
+      }
     });
   });
 

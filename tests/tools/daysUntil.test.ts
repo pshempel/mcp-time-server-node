@@ -1,6 +1,10 @@
 import { daysUntil } from '../../src/tools/daysUntil';
 import { addDays, subDays, format } from 'date-fns';
-import { TimeServerErrorCodes } from '../../src/types';
+import {
+  ValidationError,
+  DateParsingError,
+  TimezoneError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 describe('daysUntil', () => {
   beforeEach(() => {
@@ -197,8 +201,9 @@ describe('daysUntil', () => {
       try {
         daysUntil({} as any);
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-        expect(e.error.message).toContain('target_date is required');
+        expect(e).toBeInstanceOf(ValidationError);
+        expect(e.code).toBe('VALIDATION_ERROR');
+        expect(e.message).toContain('target_date is required');
       }
     });
 
@@ -207,8 +212,9 @@ describe('daysUntil', () => {
       try {
         daysUntil({ target_date: 'not-a-date' });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_DATE_FORMAT);
-        expect(e.error.message).toContain('Invalid target_date format');
+        expect(e).toBeInstanceOf(DateParsingError);
+        expect(e.code).toBe('DATE_PARSING_ERROR');
+        expect(e.message).toContain('Invalid target_date format');
       }
     });
 
@@ -217,7 +223,7 @@ describe('daysUntil', () => {
         daysUntil({
           target_date: '2025-12-25',
           timezone: 'Invalid/Timezone',
-        }),
+        })
       ).toThrow();
       try {
         daysUntil({
@@ -225,8 +231,9 @@ describe('daysUntil', () => {
           timezone: 'Invalid/Timezone',
         });
       } catch (e: any) {
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
-        expect(e.error.message).toContain('Invalid timezone');
+        expect(e).toBeInstanceOf(TimezoneError);
+        expect(e.code).toBe('TIMEZONE_ERROR');
+        expect(e.message).toContain('Invalid timezone');
       }
     });
   });

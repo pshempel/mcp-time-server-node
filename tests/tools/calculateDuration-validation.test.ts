@@ -1,5 +1,6 @@
 import { validateUnit } from '../../src/tools/calculateDuration';
 import { resolveTimezone } from '../../src/utils/timezoneUtils';
+import { ValidationError } from '../../src/adapters/mcp-sdk/errors';
 
 describe('calculateDuration validation helpers', () => {
   describe('validateUnit', () => {
@@ -25,8 +26,9 @@ describe('calculateDuration validation helpers', () => {
       try {
         validateUnit('invalid');
       } catch (e: any) {
-        expect(e.error.code).toBe('INVALID_PARAMETER');
-        expect(e.error.message).toContain('Invalid unit: invalid');
+        expect(e).toBeInstanceOf(ValidationError);
+        expect(e.code).toBe('VALIDATION_ERROR');
+        expect(e.message).toContain('Invalid unit: invalid');
       }
     });
   });
