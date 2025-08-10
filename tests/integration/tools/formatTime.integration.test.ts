@@ -80,9 +80,9 @@ describe('format_time integration', () => {
         callTool(client, 'format_time', {
           time: 'invalid-date',
           format: 'relative',
-        }),
+        })
       ).rejects.toMatchObject({
-        code: 'INVALID_DATE_FORMAT',
+        code: 'TOOL_ERROR',
         message: expect.stringContaining('Invalid'),
       });
     } finally {

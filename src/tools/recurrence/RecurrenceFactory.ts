@@ -1,4 +1,6 @@
+import { ValidationError } from '../../adapters/mcp-sdk';
 import type { RecurrenceParams, RecurrencePattern } from '../../types/recurrence';
+import { debug } from '../../utils/debug';
 
 import { DailyRecurrence } from './DailyRecurrence';
 import { MonthlyRecurrence } from './MonthlyRecurrence';
@@ -30,7 +32,8 @@ export class RecurrenceFactory {
     const pattern = this.patterns.get(params.pattern);
     if (!pattern) {
       // This should never happen if validation works correctly
-      throw new Error(`Unknown pattern: ${params.pattern}`);
+      debug.error('Unknown pattern (should never happen): %s', params.pattern);
+      throw new ValidationError(`Unknown pattern: ${params.pattern}`, { pattern: params.pattern });
     }
 
     return pattern;

@@ -1,0 +1,37 @@
+# GitLab CI/CD Configuration
+# Currently disabled - but planned as testing ground for GitHub Actions
+
+# Disable all pipelines (for now)
+workflow:
+  rules:
+    - when: never
+
+# FUTURE: Use GitLab CI as private testing before GitHub
+# Benefits:
+# - Test CI/CD changes privately before going public
+# - Run full test suite on every commit (not just PR)
+# - Test release process without affecting public packages
+# - Experiment with deployment strategies
+
+# TODO Phase 1: Basic Testing Pipeline
+# test:
+#   image: node:20
+#   script:
+#     - npm ci
+#     - npm run lint
+#     - npm test
+#     - npm run build
+
+# TODO Phase 2: Release Preparation
+# release-dry-run:
+#   image: node:20
+#   script:
+#     - npm ci
+#     - npm run build
+#     - npm pack --dry-run
+#     - echo "Would publish version $(node -p "require('./package.json').version")"
+#   only:
+#     - tags
+
+# TODO Phase 3: Mirror successful patterns to GitHub Actions
+# After GitLab CI proves stable, port to .github/workflows/

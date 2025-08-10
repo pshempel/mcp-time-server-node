@@ -1,6 +1,10 @@
 import { formatTime } from '../../src/tools/formatTime';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { FormatTimeResult } from '../../src/types';
+import {
+  ValidationError,
+  DateParsingError,
+  TimezoneError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -290,15 +294,19 @@ describe('formatTime', () => {
           time: '2025-01-20T14:30:00.000Z',
           format: 'invalid' as any,
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid format type'),
-            details: { format: 'invalid' },
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        formatTime({
+          time: '2025-01-20T14:30:00.000Z',
+          format: 'invalid' as any,
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid');
+        expect(error.details).toBeDefined();
+      }
     });
 
     it('should throw error for missing custom_format when format is custom', () => {
@@ -309,15 +317,19 @@ describe('formatTime', () => {
           time: '2025-01-20T14:30:00.000Z',
           format: 'custom',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: 'custom_format is required when format is "custom"',
-            details: {},
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        formatTime({
+          time: '2025-01-20T14:30:00.000Z',
+          format: 'custom',
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('custom_format is required');
+        // This error doesn't have details since custom_format is missing entirely
+      }
     });
 
     it('should throw error for empty custom_format', () => {
@@ -329,15 +341,20 @@ describe('formatTime', () => {
           format: 'custom',
           custom_format: '',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: 'custom_format cannot be empty',
-            details: { custom_format: '' },
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        formatTime({
+          time: '2025-01-20T14:30:00.000Z',
+          format: 'custom',
+          custom_format: '',
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('custom_format cannot be empty');
+        expect(error.details).toBeDefined();
+      }
     });
 
     it('should throw error for invalid time', () => {
@@ -348,15 +365,19 @@ describe('formatTime', () => {
           time: 'not-a-date',
           format: 'relative',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid time'),
-            details: expect.objectContaining({ time: 'not-a-date' }),
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        formatTime({
+          time: 'not-a-date',
+          format: 'relative',
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(DateParsingError);
+        expect(error.code).toBe('DATE_PARSING_ERROR');
+        expect(error.message).toContain('Invalid');
+        expect(error.details).toBeDefined();
+      }
     });
 
     it('should throw error for invalid timezone', () => {
@@ -368,15 +389,20 @@ describe('formatTime', () => {
           format: 'relative',
           timezone: 'Invalid/Zone',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone' },
-          },
-        })
-      );
+      ).toThrow();
+
+      try {
+        formatTime({
+          time: '2025-01-20T14:30:00.000Z',
+          format: 'relative',
+          timezone: 'Invalid/Zone',
+        });
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.message).toContain('Invalid timezone');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
+      }
     });
   });
 

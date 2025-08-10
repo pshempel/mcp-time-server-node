@@ -1,6 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import type { CallToolRequest, ListToolsRequest } from '@modelcontextprotocol/sdk/types.js';
+import type { ListToolsRequest } from '@modelcontextprotocol/sdk/types.js';
 import * as tools from '../src/tools';
 
 // Mock all the tools
@@ -33,7 +33,7 @@ describe('MCP Time Server', () => {
         capabilities: {
           tools: {},
         },
-      },
+      }
     );
   });
 
@@ -337,7 +337,7 @@ describe('MCP Time Server', () => {
         };
         mockedTools.getCurrentTime.mockReturnValue(mockResult);
 
-        const request: CallToolRequest = {
+        const request = {
           method: 'tools/call',
           params: {
             name: 'get_current_time',
@@ -363,7 +363,7 @@ describe('MCP Time Server', () => {
         };
         mockedTools.convertTimezone.mockReturnValue(mockResult);
 
-        const request: CallToolRequest = {
+        const request = {
           method: 'tools/call',
           params: {
             name: 'convert_timezone',
@@ -388,7 +388,7 @@ describe('MCP Time Server', () => {
 
     describe('Error handling', () => {
       it('should handle unknown tool error', async () => {
-        const request: CallToolRequest = {
+        const request = {
           method: 'tools/call',
           params: {
             name: 'unknown_tool',
@@ -408,7 +408,7 @@ describe('MCP Time Server', () => {
           throw new Error('Timezone validation failed');
         });
 
-        const request: CallToolRequest = {
+        const request = {
           method: 'tools/call',
           params: {
             name: 'get_current_time',
@@ -435,7 +435,7 @@ describe('MCP Time Server', () => {
           throw toolError;
         });
 
-        const request: CallToolRequest = {
+        const request = {
           method: 'tools/call',
           params: {
             name: 'get_current_time',
@@ -540,7 +540,7 @@ describe('MCP Time Server', () => {
 
           mockFn.mockReturnValue(mockResults[name]);
 
-          const request: CallToolRequest = {
+          const request = {
             method: 'tools/call',
             params: { name, arguments: args },
           };

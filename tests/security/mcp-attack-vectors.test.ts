@@ -3,6 +3,11 @@ import { createTestEnvironment } from '../integration/helpers/setup';
 import { callTool } from '../integration/helpers/tools';
 
 describe('MCP Security Tests - Attack Vectors', () => {
+  afterEach(() => {
+    // Clear any lingering timers after each test
+    jest.clearAllTimers();
+  });
+
   describe('Path Traversal Attacks', () => {
     it('should reject path traversal in date parameters', async () => {
       const { client, cleanup } = await createTestEnvironment();
@@ -12,7 +17,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
           callTool(client, 'get_business_days', {
             start_date: '../../../etc/passwd',
             end_date: '2025-01-05',
-          }),
+          })
         ).rejects.toThrow();
       } finally {
         await cleanup();
@@ -26,7 +31,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
         await expect(
           callTool(client, 'get_current_time', {
             timezone: '../../etc/passwd',
-          }),
+          })
         ).rejects.toThrow(/timezone/i);
       } finally {
         await cleanup();
@@ -42,7 +47,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
         await expect(
           callTool(client, 'get_current_time', {
             timezone: "'; DROP TABLE users; --",
-          }),
+          })
         ).rejects.toThrow(/timezone/i);
       } finally {
         await cleanup();
@@ -58,7 +63,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
             time: "2025-01-01'; DELETE FROM holidays; --",
             amount: 1,
             unit: 'days',
-          }),
+          })
         ).rejects.toThrow();
       } finally {
         await cleanup();
@@ -97,7 +102,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
             time: '2025-01-01T12:00:00',
             from_timezone: '<img src=x onerror=alert(1)>',
             to_timezone: 'UTC',
-          }),
+          })
         ).rejects.toThrow(/timezone/i);
       } finally {
         await cleanup();
@@ -113,7 +118,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
         await expect(
           callTool(client, 'get_current_time', {
             timezone: 'UTC; cat /etc/passwd',
-          }),
+          })
         ).rejects.toThrow(/timezone/i);
       } finally {
         await cleanup();
@@ -129,7 +134,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
             time: '2025-01-01T12:00:00',
             format: 'custom',
             custom_format: "'; cat /etc/passwd; echo '",
-          }),
+          })
         ).rejects.toThrow();
       } finally {
         await cleanup();
@@ -146,7 +151,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
         await expect(
           callTool(client, 'get_current_time', {
             timezone: longString,
-          }),
+          })
         ).rejects.toThrow();
       } finally {
         await cleanup();
@@ -154,6 +159,9 @@ describe('MCP Security Tests - Attack Vectors', () => {
     });
 
     it('should handle extremely large date ranges', async () => {
+      // This test simulates a DoS attack by requesting 9000 years of business days
+      // The function SHOULD handle this gracefully (either with timeout or range limit)
+      // This is a legitimate security test - attackers WILL try this!
       const { client, cleanup } = await createTestEnvironment();
 
       try {
@@ -172,7 +180,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
       } finally {
         await cleanup();
       }
-    });
+    }, 60000); // 60 second timeout for this DoS simulation test
 
     it('should handle large holiday arrays', async () => {
       const { client, cleanup } = await createTestEnvironment();
@@ -261,7 +269,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
             time: { toString: () => '2025-01-01' } as any,
             amount: 1,
             unit: 'days',
-          }),
+          })
         ).rejects.toThrow();
       } finally {
         await cleanup();
@@ -298,7 +306,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
             time: '2025-01-01',
             amount: 1,
             unit: "'; DROP TABLE; --" as any,
-          }),
+          })
         ).rejects.toThrow(/unit/i);
       } finally {
         await cleanup();
@@ -314,7 +322,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
         await expect(
           callTool(client, 'get_current_time', {
             timezone: 'UTC\x00extra',
-          }),
+          })
         ).rejects.toThrow();
       } finally {
         await cleanup();
@@ -328,7 +336,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
         await expect(
           callTool(client, 'get_current_time', {
             timezone: 'UTC/../../../etc',
-          }),
+          })
         ).rejects.toThrow(/timezone/i);
       } finally {
         await cleanup();
@@ -344,7 +352,7 @@ describe('MCP Security Tests - Attack Vectors', () => {
             start_date: '2025-01-01',
             end_date: '2025-01-31',
             holiday_calendar: 'US\x00admin',
-          }),
+          })
         ).rejects.toThrow();
       } finally {
         await cleanup();

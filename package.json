@@ -60,8 +60,10 @@
     "ruff": "^1.5.4"
   },
   "devDependencies": {
+    "2": "^3.0.0",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@gitbeaker/rest": "^43.4.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.19.8",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
