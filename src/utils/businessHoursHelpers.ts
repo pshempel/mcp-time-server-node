@@ -7,11 +7,10 @@
 import { format, differenceInMinutes, eachDayOfInterval } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { ValidationError } from '../adapters/mcp-sdk/errors';
 import type { BusinessHours, WeeklyBusinessHours, DayBusinessHours } from '../types';
-import { TimeServerErrorCodes } from '../types';
 
 import { debug } from './debug';
-import { createError } from './validation';
 
 // Day names for output
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -36,15 +35,19 @@ function isWeeklyBusinessHours(
  */
 function validateSingleBusinessHours(hours: BusinessHours): void {
   if (hours.start.hour < 0 || hours.start.hour > 23) {
+    debug.error('Invalid start hour: %d', hours.start.hour);
     throw new Error('Invalid start hour');
   }
   if (hours.start.minute < 0 || hours.start.minute > 59) {
+    debug.error('Invalid start minute: %d', hours.start.minute);
     throw new Error('Invalid start minute');
   }
   if (hours.end.hour < 0 || hours.end.hour > 23) {
+    debug.error('Invalid end hour: %d', hours.end.hour);
     throw new Error('Invalid end hour');
   }
   if (hours.end.minute < 0 || hours.end.minute > 59) {
+    debug.error('Invalid end minute: %d', hours.end.minute);
     throw new Error('Invalid end minute');
   }
 }
@@ -65,25 +68,22 @@ export function validateBusinessHoursStructure(
     for (const [day, dayHours] of Object.entries(hours)) {
       const dayNum = parseInt(day, 10);
       if (dayNum < 0 || dayNum > 6) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_PARAMETER,
-            `Invalid day of week: ${day}`,
-            { day }
-          ),
-        };
+        debug.error('Invalid day of week: %s', day);
+        throw new ValidationError(`Invalid day of week: ${day}`, { day, field: 'business_hours' });
       }
       if (dayHours !== null) {
         try {
           validateSingleBusinessHours(dayHours as BusinessHours);
         } catch (error) {
-          throw {
-            error: createError(
-              TimeServerErrorCodes.INVALID_PARAMETER,
-              `Invalid business hours for day ${day}: ${error instanceof Error ? error.message : String(error)}`,
-              { day, hours: dayHours as BusinessHours }
-            ),
-          };
+          debug.error(
+            'Invalid business hours for day %s: %s',
+            day,
+            error instanceof Error ? error.message : String(error)
+          );
+          throw new ValidationError(
+            `Invalid business hours for day ${day}: ${error instanceof Error ? error.message : String(error)}`,
+            { day, hours: dayHours as BusinessHours, field: 'business_hours' }
+          );
         }
       }
     }
@@ -92,13 +92,14 @@ export function validateBusinessHoursStructure(
     try {
       validateSingleBusinessHours(hours);
     } catch (error) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          `Invalid business hours: ${error instanceof Error ? error.message : String(error)}`,
-          { business_hours: hours }
-        ),
-      };
+      debug.error(
+        'Invalid business hours: %s',
+        error instanceof Error ? error.message : String(error)
+      );
+      throw new ValidationError(
+        `Invalid business hours: ${error instanceof Error ? error.message : String(error)}`,
+        { business_hours: hours, field: 'business_hours' }
+      );
     }
   }
 }

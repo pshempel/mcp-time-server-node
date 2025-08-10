@@ -1,13 +1,12 @@
 import { formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
 
+import { ValidationError, TimezoneError, DateParsingError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { ConvertTimezoneParams, ConvertTimezoneResult } from '../types';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
 import {
   validateTimezone,
-  createError,
   validateDateString,
   validateStringLength,
   LIMITS,
@@ -26,25 +25,15 @@ export function validateTimezones(from_timezone: string, to_timezone: string): v
   // Validate from_timezone
   if (!validateTimezone(from_timezone)) {
     debug.validation('Invalid from_timezone: %s', from_timezone);
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_TIMEZONE,
-        `Invalid from_timezone: ${from_timezone}`,
-        { timezone: from_timezone, field: 'from_timezone' }
-      ),
-    };
+    debug.error('Invalid from_timezone: %s', from_timezone);
+    throw new TimezoneError(`Invalid from_timezone: ${from_timezone}`, from_timezone);
   }
 
   // Validate to_timezone
   if (!validateTimezone(to_timezone)) {
     debug.validation('Invalid to_timezone: %s', to_timezone);
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_TIMEZONE,
-        `Invalid to_timezone: ${to_timezone}`,
-        { timezone: to_timezone, field: 'to_timezone' }
-      ),
-    };
+    debug.error('Invalid to_timezone: %s', to_timezone);
+    throw new TimezoneError(`Invalid to_timezone: ${to_timezone}`, to_timezone);
   }
 
   debug.validation('Timezone validation passed');
@@ -89,12 +78,11 @@ export function parseDateForConversion(
     return { date: parseResult.date, actualFromTimezone };
   } catch (error) {
     debug.parse('Date parsing failed: %O', error);
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, `Invalid time format: ${time}`, {
-        time,
-        error: error instanceof Error ? error.message : String(error),
-      }),
-    };
+    debug.error('Invalid time format: %s, error: %O', time, error);
+    throw new DateParsingError(`Invalid time format: ${time}`, {
+      time,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -197,13 +185,7 @@ function handleConversionError(error: unknown, format: string): never {
   debug.error('Handling conversion error: %O', error);
 
   if (error instanceof RangeError || (error instanceof Error && error.message.includes('format'))) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid format: ${error.message}`,
-        { format, error: error.message }
-      ),
-    };
+    throw new ValidationError(`Invalid format: ${error.message}`, { format, error: error.message });
   }
   throw error;
 }

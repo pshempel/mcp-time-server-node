@@ -286,7 +286,7 @@ export async function createTestEnvironment(options?: {
       capabilities: {
         tools: {},
       },
-    },
+    }
   );
 
   // Create rate limiter
@@ -296,7 +296,7 @@ export async function createTestEnvironment(options?: {
   server.setRequestHandler(ListToolsRequestSchema, () =>
     Promise.resolve({
       tools: TOOL_DEFINITIONS,
-    }),
+    })
   );
 
   // Register tools/call handler
@@ -340,8 +340,20 @@ export async function createTestEnvironment(options?: {
           },
         ],
       };
-    } catch (error) {
-      // Check if error is an object with error property
+    } catch (error: any) {
+      // Check if error already has MCP error code format (from our tools)
+      if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'number') {
+        // This is already a properly formatted MCP error from our tools
+        return {
+          error: {
+            code: error.code,
+            message: error.message,
+            details: error.data, // Use 'details' as per the type definition
+          },
+        };
+      }
+
+      // Check if error is an object with error property (legacy format)
       if (error && typeof error === 'object' && 'error' in error) {
         return error as { error: { code: string; message: string; details?: unknown } };
       }
@@ -379,6 +391,9 @@ export async function createTestEnvironment(options?: {
     if (options?.rateLimitWindow !== undefined) {
       delete process.env.RATE_LIMIT_WINDOW;
     }
+
+    // Clear any pending timers to prevent Jest worker leak warnings
+    jest.clearAllTimers();
   };
 
   return { client, server, cleanup };
@@ -411,7 +426,7 @@ export async function createTestEnvironmentWithInterceptor(options?: {
       capabilities: {
         tools: {},
       },
-    },
+    }
   );
 
   // Create rate limiter
@@ -421,7 +436,7 @@ export async function createTestEnvironmentWithInterceptor(options?: {
   server.setRequestHandler(ListToolsRequestSchema, () =>
     Promise.resolve({
       tools: TOOL_DEFINITIONS,
-    }),
+    })
   );
 
   // Register tools/call handler
@@ -465,8 +480,20 @@ export async function createTestEnvironmentWithInterceptor(options?: {
           },
         ],
       };
-    } catch (error) {
-      // Check if error is an object with error property
+    } catch (error: any) {
+      // Check if error already has MCP error code format (from our tools)
+      if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'number') {
+        // This is already a properly formatted MCP error from our tools
+        return {
+          error: {
+            code: error.code,
+            message: error.message,
+            details: error.data, // Use 'details' as per the type definition
+          },
+        };
+      }
+
+      // Check if error is an object with error property (legacy format)
       if (error && typeof error === 'object' && 'error' in error) {
         return error as { error: { code: string; message: string; details?: unknown } };
       }
@@ -504,6 +531,9 @@ export async function createTestEnvironmentWithInterceptor(options?: {
     if (options?.rateLimitWindow !== undefined) {
       delete process.env.RATE_LIMIT_WINDOW;
     }
+
+    // Clear any pending timers to prevent Jest worker leak warnings
+    jest.clearAllTimers();
   };
 
   return { client, server, cleanup, clientInterceptor, serverInterceptor };

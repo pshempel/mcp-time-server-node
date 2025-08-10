@@ -52,9 +52,7 @@ describe('formatTime refactored functions (TDD)', () => {
         validateFormatParams({ format: 'invalid' as any, time: '2025-01-01' })
       ).toThrowError(
         expect.objectContaining({
-          error: expect.objectContaining({
-            message: 'Invalid format type',
-          }),
+          message: 'Invalid format type',
         })
       );
     });
@@ -62,9 +60,7 @@ describe('formatTime refactored functions (TDD)', () => {
     it('should require custom_format for custom type', () => {
       expect(() => validateFormatParams({ format: 'custom', time: '2025-01-01' })).toThrowError(
         expect.objectContaining({
-          error: expect.objectContaining({
-            message: expect.stringContaining('custom_format is required'),
-          }),
+          message: expect.stringContaining('custom_format is required'),
         })
       );
     });
@@ -74,9 +70,7 @@ describe('formatTime refactored functions (TDD)', () => {
         validateFormatParams({ format: 'custom', time: '2025-01-01', custom_format: '' })
       ).toThrowError(
         expect.objectContaining({
-          error: expect.objectContaining({
-            message: 'custom_format cannot be empty',
-          }),
+          message: 'custom_format cannot be empty',
         })
       );
     });
@@ -90,9 +84,7 @@ describe('formatTime refactored functions (TDD)', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: expect.objectContaining({
-            message: expect.stringContaining('Invalid timezone'),
-          }),
+          message: expect.stringContaining('Invalid timezone'),
         })
       );
     });
@@ -163,9 +155,7 @@ describe('formatTime refactored functions (TDD)', () => {
     it('should throw for invalid dates', () => {
       expect(() => parseTimeWithFallback('not-a-date', 'UTC')).toThrowError(
         expect.objectContaining({
-          error: expect.objectContaining({
-            message: 'Invalid time',
-          }),
+          message: 'Invalid time',
         })
       );
     });
@@ -271,9 +261,7 @@ describe('formatTime refactored functions (TDD)', () => {
       const date = new Date('2025-01-15T14:30:00Z');
       expect(() => formatCustomTime(date, 'yyyy-MM-dd; rm -rf /', 'UTC')).toThrowError(
         expect.objectContaining({
-          error: expect.objectContaining({
-            message: 'Invalid custom format string',
-          }),
+          message: 'Invalid custom format string',
         })
       );
     });
@@ -282,9 +270,7 @@ describe('formatTime refactored functions (TDD)', () => {
       const date = new Date('2025-01-15T14:30:00Z');
       expect(() => formatCustomTime(date, 'INVALID', 'UTC')).toThrowError(
         expect.objectContaining({
-          error: expect.objectContaining({
-            message: 'Invalid custom format string',
-          }),
+          message: 'Invalid custom format string',
         })
       );
     });

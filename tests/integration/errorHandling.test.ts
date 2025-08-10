@@ -15,7 +15,7 @@ describe('Error Handling Integration', () => {
               arguments: {},
             },
           },
-          CallToolResultSchema,
+          CallToolResultSchema
         );
 
         // MCP SDK returns errors in the response
@@ -52,7 +52,7 @@ describe('Error Handling Integration', () => {
               },
             },
           },
-          CallToolResultSchema,
+          CallToolResultSchema
         );
 
         // Tool validation errors are returned in response.error
@@ -60,7 +60,7 @@ describe('Error Handling Integration', () => {
         expect(response.error).toBeDefined();
 
         const error = response.error as any;
-        expect(error.code).toBe('INVALID_TIMEZONE');
+        expect(error.code).toBe('TOOL_ERROR');
         expect(error.message).toContain('Invalid to_timezone: Invalid/Timezone');
       } finally {
         await cleanup();
@@ -83,7 +83,7 @@ describe('Error Handling Integration', () => {
               },
             },
           },
-          CallToolResultSchema,
+          CallToolResultSchema
         );
 
         // Tool validation errors are returned in response.error
@@ -91,7 +91,7 @@ describe('Error Handling Integration', () => {
         expect(response.error).toBeDefined();
 
         const error = response.error as any;
-        expect(error.code).toBe('INVALID_DATE_FORMAT');
+        expect(error.code).toBe('TOOL_ERROR');
         expect(error.message).toContain('Invalid time format');
       } finally {
         await cleanup();

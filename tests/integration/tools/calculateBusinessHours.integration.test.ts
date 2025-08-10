@@ -132,9 +132,9 @@ describe('calculate_business_hours integration', () => {
           start_time: '2025-01-20T10:00:00',
           end_time: '2025-01-20T14:00:00',
           timezone: 'Invalid/Zone',
-        }),
+        })
       ).rejects.toMatchObject({
-        code: 'INVALID_TIMEZONE',
+        code: 'TOOL_ERROR',
         message: 'Invalid timezone: Invalid/Zone',
       });
     } finally {
@@ -150,9 +150,9 @@ describe('calculate_business_hours integration', () => {
         callTool(client, 'calculate_business_hours', {
           start_time: 'not-a-date',
           end_time: '2025-01-20T14:00:00',
-        }),
+        })
       ).rejects.toMatchObject({
-        code: 'INVALID_DATE_FORMAT',
+        code: 'TOOL_ERROR',
         message: 'Invalid start_time format: not-a-date',
       });
     } finally {
