@@ -68,9 +68,9 @@ describe('next_occurrence integration', () => {
       await expect(
         callTool(client, 'next_occurrence', {
           pattern: 'invalid-pattern',
-        }),
+        })
       ).rejects.toMatchObject({
-        code: -32602,
+        code: 'TOOL_ERROR',
         message: expect.stringContaining('Invalid pattern'),
       });
     } finally {

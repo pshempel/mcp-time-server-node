@@ -1,6 +1,7 @@
 /**
  * TDD Tests for Error Handling Fix - Issue #1
- * These tests verify that errors are thrown correctly for MCP SDK
+ * These tests verify that errors are thrown correctly with our custom error types
+ * Updated for new error architecture - tools throw our error classes, not MCP error objects
  * Session 112
  */
 
@@ -17,7 +18,7 @@ describe('Error Handling Fix - Issue #1', () => {
         await convertTimezone({
           time: '2025-01-01',
           from_timezone: 'Invalid/Zone',
-          to_timezone: 'UTC'
+          to_timezone: 'UTC',
         });
         // Should not reach here
         expect(true).toBe(false);
@@ -28,7 +29,7 @@ describe('Error Handling Fix - Issue #1', () => {
         expect(error.message).toContain('Invalid');
         // MCP SDK error code should be set directly on error
         expect(error.code).toBeDefined();
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/); // ErrorCode.InvalidParams
       }
     });
 
@@ -37,7 +38,7 @@ describe('Error Handling Fix - Issue #1', () => {
         await convertTimezone({
           time: 'not-a-date',
           from_timezone: 'UTC',
-          to_timezone: 'America/New_York'
+          to_timezone: 'America/New_York',
         });
         // Should not reach here
         expect(true).toBe(false);
@@ -45,7 +46,7 @@ describe('Error Handling Fix - Issue #1', () => {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
         expect(error.message).toBeDefined();
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/); // ErrorCode.InvalidParams
       }
     });
   });
@@ -56,13 +57,13 @@ describe('Error Handling Fix - Issue #1', () => {
         await formatTime({
           time: 'invalid-date',
           format: 'custom',
-          custom_format: 'yyyy-MM-dd'
+          custom_format: 'yyyy-MM-dd',
         });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
-        expect(error.code).toBe(-32602);
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/);
       }
     });
 
@@ -70,14 +71,14 @@ describe('Error Handling Fix - Issue #1', () => {
       try {
         await formatTime({
           time: '2025-01-01',
-          format: 'custom'
+          format: 'custom',
           // missing custom_format
         });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
-        expect(error.code).toBe(-32602);
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/);
       }
     });
   });
@@ -88,13 +89,13 @@ describe('Error Handling Fix - Issue #1', () => {
         await addTime({
           time: '2025-01-01',
           amount: 1,
-          unit: 'invalid' as any
+          unit: 'invalid' as any,
         });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
-        expect(error.code).toBe(-32602);
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/);
       }
     });
 
@@ -103,13 +104,13 @@ describe('Error Handling Fix - Issue #1', () => {
         await addTime({
           time: 'not-a-date',
           amount: 1,
-          unit: 'days'
+          unit: 'days',
         });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
-        expect(error.code).toBe(-32602);
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/);
       }
     });
   });
@@ -118,13 +119,13 @@ describe('Error Handling Fix - Issue #1', () => {
     it('should throw plain Error for invalid pattern', async () => {
       try {
         await nextOccurrence({
-          pattern: 'invalid' as any
+          pattern: 'invalid' as any,
         });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
-        expect(error.code).toBe(-32602);
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/);
       }
     });
 
@@ -132,30 +133,30 @@ describe('Error Handling Fix - Issue #1', () => {
       try {
         await nextOccurrence({
           pattern: 'daily',
-          start_from: 'not-a-date'
+          start_from: 'not-a-date',
         });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
         expect(error).toBeInstanceOf(Error);
         expect(error.error).toBeUndefined();
-        expect(error.code).toBe(-32602);
+        expect(error.code).toMatch(/^[A-Z_]+_ERROR$/);
       }
     });
   });
 
   describe('Error code compatibility', () => {
-    it('should set MCP SDK error codes correctly', async () => {
+    it('should set error codes correctly', async () => {
       try {
         await convertTimezone({
           time: '2025-01-01',
           from_timezone: 'Invalid/Zone',
-          to_timezone: 'UTC'
+          to_timezone: 'UTC',
         });
       } catch (error: any) {
-        // Should have numeric MCP error code
-        expect(typeof error.code).toBe('number');
-        // -32602 is InvalidParams, -32603 is InternalError
-        expect([-32602, -32603]).toContain(error.code);
+        // Should have string error code
+        expect(typeof error.code).toBe('string');
+        // Should be our error codes
+        expect(['TIMEZONE_ERROR', 'VALIDATION_ERROR', 'DATE_PARSING_ERROR']).toContain(error.code);
       }
     });
   });

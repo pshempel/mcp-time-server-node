@@ -1,5 +1,10 @@
 import { subtractTime } from '../../src/tools/subtractTime';
 import type { SubtractTimeResult } from '../../src/types';
+import {
+  DateParsingError,
+  ValidationError,
+  TimezoneError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -292,7 +297,7 @@ describe('subtractTime', () => {
           unit: 'days',
         })
       ).toThrow();
-      
+
       try {
         subtractTime({
           time: 'not-a-date',
@@ -300,10 +305,10 @@ describe('subtractTime', () => {
           unit: 'days',
         });
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(DateParsingError);
+        expect(error.code).toBe('DATE_PARSING_ERROR');
         expect(error.message).toContain('Invalid');
-        expect(error.data).toBeDefined();
+        expect(error.details).toBeDefined();
       }
     });
 
@@ -317,7 +322,7 @@ describe('subtractTime', () => {
           unit: 'fortnights' as any,
         })
       ).toThrow();
-      
+
       try {
         subtractTime({
           time: '2025-01-15T10:30:00Z',
@@ -325,10 +330,10 @@ describe('subtractTime', () => {
           unit: 'fortnights' as any,
         });
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('Invalid');
-        expect(error.data).toBeDefined();
+        expect(error.details).toBeDefined();
       }
     });
 
@@ -343,7 +348,7 @@ describe('subtractTime', () => {
           timezone: 'Invalid/Zone',
         })
       ).toThrow();
-      
+
       try {
         subtractTime({
           time: '2025-01-15T10:30:00',
@@ -352,10 +357,10 @@ describe('subtractTime', () => {
           timezone: 'Invalid/Zone',
         });
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR');
         expect(error.message).toContain('Invalid timezone');
-        expect(error.data).toBeDefined();
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
       }
     });
 
@@ -369,7 +374,7 @@ describe('subtractTime', () => {
           unit: 'days',
         })
       ).toThrow();
-      
+
       try {
         subtractTime({
           time: '2025-01-15T10:30:00Z',
@@ -377,10 +382,10 @@ describe('subtractTime', () => {
           unit: 'days',
         });
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('Invalid');
-        expect(error.data).toBeDefined();
+        expect(error.details).toBeDefined();
       }
     });
   });

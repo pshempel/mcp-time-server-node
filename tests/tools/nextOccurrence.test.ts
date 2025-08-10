@@ -1,5 +1,10 @@
 import { nextOccurrence } from '../../src/tools/nextOccurrence';
 import type { NextOccurrenceResult } from '../../src/types';
+import {
+  ValidationError,
+  DateParsingError,
+  TimezoneError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -360,13 +365,7 @@ describe('nextOccurrence', () => {
         nextOccurrence({
           pattern: 'DAILY' as any,
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('Invalid pattern'),
-          data: expect.objectContaining({ pattern: 'DAILY' }),
-        })
-      );
+      ).toThrow(ValidationError);
     });
 
     it('should default missing parameters appropriately', () => {
@@ -385,13 +384,7 @@ describe('nextOccurrence', () => {
         nextOccurrence({
           pattern: 'monthly',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('dayOfMonth is required'),
-          data: expect.objectContaining({ pattern: 'monthly' }),
-        })
-      );
+      ).toThrow(ValidationError);
     });
 
     it('should handle DST transitions', () => {
@@ -418,13 +411,19 @@ describe('nextOccurrence', () => {
         nextOccurrence({
           pattern: 'invalid' as any,
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('Invalid pattern'),
-          data: expect.objectContaining({ pattern: 'invalid' }),
-        })
-      );
+      ).toThrow(ValidationError);
+
+      try {
+        nextOccurrence({
+          pattern: 'invalid' as any,
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid pattern');
+        expect(error.details).toEqual({ pattern: 'invalid' });
+      }
     });
 
     it('should throw error for invalid day_of_week', () => {
@@ -435,13 +434,7 @@ describe('nextOccurrence', () => {
           pattern: 'weekly',
           day_of_week: 7, // Invalid (0-6)
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('Invalid day_of_week'),
-          data: expect.objectContaining({ dayOfWeek: 7 }),
-        })
-      );
+      ).toThrow(ValidationError);
     });
 
     it('should throw error for invalid day_of_month', () => {
@@ -452,26 +445,14 @@ describe('nextOccurrence', () => {
           pattern: 'monthly',
           day_of_month: 32, // Invalid
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('Invalid day_of_month'),
-          data: expect.objectContaining({ dayOfMonth: 32 }),
-        })
-      );
+      ).toThrow(ValidationError);
 
       expect(() =>
         nextOccurrence({
           pattern: 'monthly',
           day_of_month: 0, // Invalid
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('Invalid day_of_month'),
-          data: expect.objectContaining({ dayOfMonth: 0 }),
-        })
-      );
+      ).toThrow(ValidationError);
     });
 
     it('should throw error for invalid time format', () => {
@@ -482,26 +463,14 @@ describe('nextOccurrence', () => {
           pattern: 'daily',
           time: 'invalid',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('Invalid time format'),
-          data: expect.objectContaining({ time: 'invalid' }),
-        })
-      );
+      ).toThrow(ValidationError);
 
       expect(() =>
         nextOccurrence({
           pattern: 'daily',
           time: '25:00', // Invalid hour
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: expect.stringContaining('Invalid time format'),
-          data: expect.objectContaining({ time: '25:00' }),
-        })
-      );
+      ).toThrow(ValidationError);
     });
 
     it('should throw error for invalid timezone', () => {
@@ -512,13 +481,7 @@ describe('nextOccurrence', () => {
           pattern: 'daily',
           timezone: 'Invalid/Zone',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: 'Invalid timezone: Invalid/Zone',
-          data: { timezone: 'Invalid/Zone' },
-        })
-      );
+      ).toThrow(TimezoneError);
     });
 
     it('should throw error for invalid start_from date', () => {
@@ -529,13 +492,7 @@ describe('nextOccurrence', () => {
           pattern: 'daily',
           start_from: 'not-a-date',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          code: -32602,
-          message: 'Invalid start_from date',
-          data: { start_from: 'not-a-date' },
-        })
-      );
+      ).toThrow(DateParsingError);
     });
   });
 

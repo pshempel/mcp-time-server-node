@@ -34,7 +34,7 @@ describe('Advanced Integration Tests', () => {
         const promises = Array.from({ length: 20 }, (_, i) =>
           callTool(client, 'get_current_time', {
             timezone: i % 2 === 0 ? 'UTC' : 'America/New_York',
-          }),
+          })
         );
 
         const results = await Promise.all(promises);
@@ -97,7 +97,7 @@ describe('Advanced Integration Tests', () => {
         const promises = [
           callTool(client, 'get_current_time', {}), // Should succeed
           callTool(client, 'add_time', { time: 'invalid', amount: 1, unit: 'days' }).catch(
-            (e) => e,
+            (e) => e
           ), // Should fail
           callTool(client, 'format_time', { time: '2025-01-01', format: 'relative' }), // Should succeed
         ];
@@ -109,7 +109,7 @@ describe('Advanced Integration Tests', () => {
 
         // Second should be an error
         expect(results[1]).toBeInstanceOf(Error);
-        expect(results[1]).toHaveProperty('code', -32602);
+        expect(results[1]).toHaveProperty('code', 'TOOL_ERROR');
 
         // Third should succeed
         expect(results[2]).toHaveProperty('formatted');

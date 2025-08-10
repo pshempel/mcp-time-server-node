@@ -1,4 +1,5 @@
 import { parseDateWithTimezone, parseHolidayDates } from '../../src/utils/businessUtils';
+import { DateParsingError, HolidayDataError } from '../../src/adapters/mcp-sdk';
 
 // Mock parseTimeInput since it's a dependency
 jest.mock('../../src/utils/parseTimeInput', () => ({
@@ -44,10 +45,10 @@ describe('businessUtils', () => {
       try {
         parseDateWithTimezone('invalid-date', 'UTC', 'end_time');
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e).toBeInstanceOf(DateParsingError);
+        expect(e.code).toBe('DATE_PARSING_ERROR');
         expect(e.message).toContain('Invalid end_time format');
-        expect(e.data.end_time).toBe('invalid-date');
+        expect(e.details.end_time).toBe('invalid-date');
       }
     });
 
@@ -55,10 +56,10 @@ describe('businessUtils', () => {
       try {
         parseDateWithTimezone('invalid-date', 'UTC', 'custom_field');
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e).toBeInstanceOf(DateParsingError);
+        expect(e.code).toBe('DATE_PARSING_ERROR');
         expect(e.message).toContain('Invalid custom_field format');
-        expect(e.data.custom_field).toBe('invalid-date');
+        expect(e.details.custom_field).toBe('invalid-date');
       }
     });
 
@@ -104,11 +105,11 @@ describe('businessUtils', () => {
       try {
         parseHolidayDates(holidays, 'UTC');
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e).toBeInstanceOf(HolidayDataError);
+        expect(e.code).toBe('HOLIDAY_DATA_ERROR');
         expect(e.message).toContain('Invalid holiday date');
-        expect(e.data.holiday).toBe('invalid-date');
-        expect(e.data.index).toBe(1);
+        expect(e.details.holiday).toBe('invalid-date');
+        expect(e.details.index).toBe(1);
       }
     });
 
@@ -119,10 +120,10 @@ describe('businessUtils', () => {
         parseHolidayDates(holidays, 'UTC');
       } catch (e: any) {
         // Should fail on first invalid date
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(e.data.index).toBeDefined();
-        expect(typeof e.data.index).toBe('number');
+        expect(e).toBeInstanceOf(HolidayDataError);
+        expect(e.code).toBe('HOLIDAY_DATA_ERROR');
+        expect(e.details.index).toBeDefined();
+        expect(typeof e.details.index).toBe('number');
       }
     });
 
@@ -144,11 +145,11 @@ describe('businessUtils', () => {
       try {
         parseHolidayDates(holidays, 'UTC');
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(e.data.error).toBeDefined();
+        expect(e).toBeInstanceOf(HolidayDataError);
+        expect(e.code).toBe('HOLIDAY_DATA_ERROR');
+        expect(e.details.originalError).toBeDefined();
         // Just verify error is preserved, exact message may vary
-        expect(typeof e.data.error).toBe('string');
+        expect(typeof e.details.originalError).toBe('string');
       }
     });
   });

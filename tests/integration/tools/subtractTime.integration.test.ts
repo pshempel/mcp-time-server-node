@@ -49,9 +49,9 @@ describe('subtract_time integration', () => {
           time: '2024-01-15T10:00:00Z',
           amount: 1,
           unit: 'invalid-unit',
-        }),
+        })
       ).rejects.toMatchObject({
-        code: -32602,
+        code: 'TOOL_ERROR',
         message: expect.stringContaining('Invalid unit'),
       });
     } finally {

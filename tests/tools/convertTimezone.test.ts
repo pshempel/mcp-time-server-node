@@ -1,5 +1,10 @@
 import { convertTimezone } from '../../src/tools/convertTimezone';
 import type { ConvertTimezoneResult } from '../../src/types';
+import {
+  TimezoneError,
+  DateParsingError,
+  ValidationError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -217,7 +222,14 @@ describe('convertTimezone', () => {
         })
       ).toThrow();
 
-      // Updated for new error format - plain Error with code property
+      expect(() =>
+        convertTimezone({
+          time: '2025-07-18T12:00:00',
+          from_timezone: 'Invalid/Zone',
+          to_timezone: 'UTC',
+        })
+      ).toThrow(TimezoneError);
+
       try {
         convertTimezone({
           time: '2025-07-18T12:00:00',
@@ -226,17 +238,16 @@ describe('convertTimezone', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(TimezoneError);
         expect(error.message).toBe('Invalid from_timezone: Invalid/Zone');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toEqual({ timezone: 'Invalid/Zone', field: 'from_timezone' });
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
       }
     });
 
     it('should throw error for invalid to_timezone', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         convertTimezone({
           time: '2025-07-18T12:00:00',
@@ -245,17 +256,16 @@ describe('convertTimezone', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(TimezoneError);
         expect(error.message).toBe('Invalid to_timezone: Invalid/Zone');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toEqual({ timezone: 'Invalid/Zone', field: 'to_timezone' });
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
       }
     });
 
     it('should throw error for invalid time format', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         convertTimezone({
           time: 'not-a-date',
@@ -264,17 +274,16 @@ describe('convertTimezone', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(DateParsingError);
         expect(error.message).toContain('Invalid time format');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toHaveProperty('time', 'not-a-date');
+        expect(error.code).toBe('DATE_PARSING_ERROR');
+        expect(error.details).toHaveProperty('time', 'not-a-date');
       }
     });
 
     it('should throw error for invalid custom format', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         convertTimezone({
           time: '2025-07-18T12:00:00',
@@ -284,10 +293,10 @@ describe('convertTimezone', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(ValidationError);
         expect(error.message).toContain('Invalid format');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toHaveProperty('format', 'invalid-format-$$$$');
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.details).toHaveProperty('format', 'invalid-format-$$$$');
       }
     });
   });

@@ -1,5 +1,6 @@
 import { getCurrentTime } from '../../src/tools/getCurrentTime';
 import type { GetCurrentTimeResult, GetCurrentTimeParams } from '../../src/types';
+import { TimezoneError, ValidationError } from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -126,15 +127,15 @@ describe('getCurrentTime', () => {
       mockedCache.get.mockReturnValue(undefined);
 
       expect(() => getCurrentTime({ timezone: 'Invalid/Zone' })).toThrow(Error);
-      
+
       try {
         getCurrentTime({ timezone: 'Invalid/Zone' });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR');
         expect(error.message).toBe('Invalid timezone: Invalid/Zone');
-        expect(error.data.timezone).toBe('Invalid/Zone');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
       }
     });
 
@@ -142,15 +143,15 @@ describe('getCurrentTime', () => {
       mockedCache.get.mockReturnValue(undefined);
 
       expect(() => getCurrentTime({ format: 'invalid-format-$$$$' })).toThrow(Error);
-      
+
       try {
         getCurrentTime({ format: 'invalid-format-$$$$' });
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('Invalid format');
-        expect(error.data.format).toBe('invalid-format-$$$$');
+        expect(error.details).toHaveProperty('format', 'invalid-format-$$$$');
       }
     });
   });

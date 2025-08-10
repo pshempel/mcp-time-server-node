@@ -2,6 +2,7 @@ import { getCurrentTime } from '../../src/tools/getCurrentTime';
 import { convertTimezone } from '../../src/tools/convertTimezone';
 import { getBusinessDays } from '../../src/tools/getBusinessDays';
 import { daysUntil } from '../../src/tools/daysUntil';
+import { ValidationError, TimezoneError } from '../../src/adapters/mcp-sdk/errors';
 
 describe('Security - Input Validation', () => {
   describe('String Length Limits', () => {
@@ -13,8 +14,8 @@ describe('Security - Input Validation', () => {
         try {
           getCurrentTime({ timezone: longTimezone });
         } catch (e: any) {
-          expect(e).toBeInstanceOf(Error);
-          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e).toBeInstanceOf(ValidationError);
+          expect(e.code).toBe('VALIDATION_ERROR');
           expect(e.message).toContain('exceeds maximum length');
         }
       });
@@ -27,8 +28,8 @@ describe('Security - Input Validation', () => {
           getCurrentTime({ timezone: maxTimezone });
         } catch (e: any) {
           // Should fail timezone validation, not length
-          expect(e).toBeInstanceOf(Error);
-          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams (for invalid timezone)
+          expect(e).toBeInstanceOf(TimezoneError);
+          expect(e.code).toBe('TIMEZONE_ERROR');
         }
       });
     });
@@ -42,7 +43,7 @@ describe('Security - Input Validation', () => {
             time: longDate,
             from_timezone: 'UTC',
             to_timezone: 'UTC',
-          }),
+          })
         ).toThrow();
 
         try {
@@ -52,8 +53,8 @@ describe('Security - Input Validation', () => {
             to_timezone: 'UTC',
           });
         } catch (e: any) {
-          expect(e).toBeInstanceOf(Error);
-          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e).toBeInstanceOf(ValidationError);
+          expect(e.code).toBe('VALIDATION_ERROR');
           expect(e.message).toContain('exceeds maximum length');
         }
       });
@@ -83,8 +84,8 @@ describe('Security - Input Validation', () => {
         try {
           getCurrentTime({ format: longFormat });
         } catch (e: any) {
-          expect(e).toBeInstanceOf(Error);
-          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e).toBeInstanceOf(ValidationError);
+          expect(e.code).toBe('VALIDATION_ERROR');
           expect(e.message).toContain('exceeds maximum length');
         }
       });
@@ -106,8 +107,8 @@ describe('Security - Input Validation', () => {
         try {
           daysUntil({ target_date: veryLongString });
         } catch (e: any) {
-          expect(e).toBeInstanceOf(Error);
-          expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+          expect(e).toBeInstanceOf(ValidationError);
+          expect(e.code).toBe('VALIDATION_ERROR');
           expect(e.message).toContain('exceeds maximum length');
         }
       });
@@ -123,7 +124,7 @@ describe('Security - Input Validation', () => {
           start_date: '2024-01-01',
           end_date: '2024-12-31',
           holidays: tooManyHolidays,
-        }),
+        })
       ).toThrow();
 
       try {
@@ -133,8 +134,8 @@ describe('Security - Input Validation', () => {
           holidays: tooManyHolidays,
         });
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e).toBeInstanceOf(ValidationError);
+        expect(e.code).toBe('VALIDATION_ERROR');
         expect(e.message).toContain('exceeds maximum array length');
       }
     });
@@ -189,8 +190,8 @@ describe('Security - Input Validation', () => {
       try {
         getCurrentTime({ timezone: rtlString });
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e).toBeInstanceOf(TimezoneError);
+        expect(e.code).toBe('TIMEZONE_ERROR');
       }
     });
 
@@ -201,8 +202,8 @@ describe('Security - Input Validation', () => {
       try {
         getCurrentTime({ timezone: pathTraversal });
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e).toBeInstanceOf(TimezoneError);
+        expect(e.code).toBe('TIMEZONE_ERROR');
       }
     });
   });
@@ -235,7 +236,7 @@ describe('Security - Input Validation', () => {
           start_date: '2024-01-01',
           end_date: '2024-01-02',
           holidays: mixedDates,
-        }),
+        })
       ).toThrow();
 
       try {
@@ -245,8 +246,8 @@ describe('Security - Input Validation', () => {
           holidays: mixedDates,
         });
       } catch (e: any) {
-        expect(e).toBeInstanceOf(Error);
-        expect(e.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(e).toBeInstanceOf(ValidationError);
+        expect(e.code).toBe('VALIDATION_ERROR');
         expect(e.message).toContain('exceeds maximum length');
       }
     });
@@ -263,7 +264,7 @@ describe('Security - Input Validation', () => {
           getCurrentTime({
             timezone: 'UTC',
             format: longString,
-          }),
+          })
         );
       }
 

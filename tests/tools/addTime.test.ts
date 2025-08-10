@@ -1,5 +1,10 @@
 import { addTime } from '../../src/tools/addTime';
 import type { AddTimeResult } from '../../src/types';
+import {
+  DateParsingError,
+  ValidationError,
+  TimezoneError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -300,7 +305,6 @@ describe('addTime', () => {
     it('should throw error for invalid time format', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         addTime({
           time: 'not-a-date',
@@ -309,17 +313,16 @@ describe('addTime', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(DateParsingError);
         expect(error.message).toContain('Invalid time format');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toHaveProperty('time', 'not-a-date');
+        expect(error.code).toBe('DATE_PARSING_ERROR');
+        expect(error.details).toHaveProperty('time', 'not-a-date');
       }
     });
 
     it('should throw error for invalid unit', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         addTime({
           time: '2025-01-15T10:30:00Z',
@@ -328,17 +331,16 @@ describe('addTime', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(ValidationError);
         expect(error.message).toContain('Invalid unit');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toHaveProperty('unit', 'fortnights');
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.details).toHaveProperty('unit', 'fortnights');
       }
     });
 
     it('should throw error for invalid timezone', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         addTime({
           time: '2025-01-15T10:30:00',
@@ -348,17 +350,16 @@ describe('addTime', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(TimezoneError);
         expect(error.message).toBe('Invalid timezone: Invalid/Zone');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toEqual({ timezone: 'Invalid/Zone' });
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
       }
     });
 
     it('should throw error for NaN amount', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         addTime({
           time: '2025-01-15T10:30:00Z',
@@ -367,18 +368,17 @@ describe('addTime', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(ValidationError);
         expect(error.message).toContain('Invalid amount');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toHaveProperty('amount');
-        expect(Number.isNaN(error.data.amount)).toBe(true);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.details).toHaveProperty('amount');
+        expect(Number.isNaN(error.details.amount)).toBe(true);
       }
     });
 
     it('should throw error for Infinity amount', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      // Updated for new error format - plain Error with code property
       try {
         addTime({
           time: '2025-01-15T10:30:00Z',
@@ -387,10 +387,10 @@ describe('addTime', () => {
         });
         fail('Should have thrown');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
+        expect(error).toBeInstanceOf(ValidationError);
         expect(error.message).toContain('Invalid amount');
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
-        expect(error.data).toHaveProperty('amount', Infinity);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.details).toHaveProperty('amount', Infinity);
       }
     });
   });

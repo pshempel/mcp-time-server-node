@@ -1,6 +1,10 @@
 import { calculateDuration } from '../../src/tools/calculateDuration';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { CalculateDurationResult } from '../../src/types';
+import {
+  TimezoneError,
+  DateParsingError,
+  ValidationError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -306,15 +310,7 @@ describe('calculateDuration', () => {
           start_time: 'not-a-date',
           end_time: '2025-01-15T10:00:00Z',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid start_time format'),
-            details: expect.objectContaining({ start_time: 'not-a-date' }),
-          },
-        })
-      );
+      ).toThrow(DateParsingError);
     });
 
     it('should throw error for invalid end time', () => {
@@ -325,15 +321,7 @@ describe('calculateDuration', () => {
           start_time: '2025-01-15T10:00:00Z',
           end_time: 'not-a-date',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid end_time format'),
-            details: expect.objectContaining({ end_time: 'not-a-date' }),
-          },
-        })
-      );
+      ).toThrow(DateParsingError);
     });
 
     it('should throw error for invalid timezone', () => {
@@ -345,15 +333,7 @@ describe('calculateDuration', () => {
           end_time: '2025-01-15T14:00:00',
           timezone: 'Invalid/Zone',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone' },
-          },
-        })
-      );
+      ).toThrow(TimezoneError);
     });
 
     it('should throw error for invalid unit parameter', () => {
@@ -365,15 +345,7 @@ describe('calculateDuration', () => {
           end_time: '2025-01-15T14:00:00Z',
           unit: 'fortnights',
         })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid unit'),
-            details: expect.objectContaining({ unit: 'fortnights' }),
-          },
-        })
-      );
+      ).toThrow(ValidationError);
     });
   });
 

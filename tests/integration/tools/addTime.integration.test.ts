@@ -49,9 +49,9 @@ describe('add_time integration', () => {
           time: 'invalid-date',
           amount: 1,
           unit: 'days',
-        }),
+        })
       ).rejects.toMatchObject({
-        code: -32602,
+        code: 'TOOL_ERROR',
         message: expect.stringContaining('Invalid time format'),
       });
     } finally {

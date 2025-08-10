@@ -1,4 +1,5 @@
 import { validateUnit, validateAmount } from '../../src/tools/addTime';
+import { ValidationError } from '../../src/adapters/mcp-sdk/errors';
 
 describe('addTime validation helpers', () => {
   describe('validateUnit', () => {
@@ -21,13 +22,13 @@ describe('addTime validation helpers', () => {
         validateUnit('weeks');
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('Invalid unit: weeks');
         expect(error.message).toContain(
           'Must be one of: years, months, days, hours, minutes, seconds'
         );
-        expect(error.data).toEqual({ unit: 'weeks' });
+        expect(error.details).toEqual({ unit: 'weeks' });
       }
     });
   });
@@ -56,11 +57,11 @@ describe('addTime validation helpers', () => {
         validateAmount(NaN);
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('Invalid amount: NaN');
         expect(error.message).toContain('Must be a finite number');
-        expect(error.data).toEqual({ amount: NaN });
+        expect(error.details).toEqual({ amount: NaN });
       }
     });
   });

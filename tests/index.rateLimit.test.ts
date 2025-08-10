@@ -50,7 +50,7 @@ describe('MCP Server with Rate Limiting', () => {
         capabilities: {
           tools: {},
         },
-      },
+      }
     );
   });
 
@@ -73,7 +73,7 @@ describe('MCP Server with Rate Limiting', () => {
               },
             },
           ],
-        }),
+        })
       );
 
       server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
@@ -143,7 +143,7 @@ describe('MCP Server with Rate Limiting', () => {
       };
       mockedTools.getCurrentTime.mockReturnValue(mockResult);
 
-      const request: CallToolRequest = {
+      const request = {
         method: 'tools/call',
         params: {
           name: 'get_current_time',
@@ -169,7 +169,7 @@ describe('MCP Server with Rate Limiting', () => {
         retryAfter: 45,
       });
 
-      const request: CallToolRequest = {
+      const request = {
         method: 'tools/call',
         params: {
           name: 'get_current_time',
@@ -224,7 +224,7 @@ describe('MCP Server with Rate Limiting', () => {
       const mockResult = { time: '2025-07-19T10:30:00.000Z' };
       mockedTools.getCurrentTime.mockReturnValue(mockResult as any);
 
-      const request: CallToolRequest = {
+      const request = {
         method: 'tools/call',
         params: {
           name: 'get_current_time',
@@ -325,7 +325,7 @@ describe('MCP Server with Rate Limiting', () => {
         throw toolError;
       });
 
-      const request: CallToolRequest = {
+      const request = {
         method: 'tools/call',
         params: {
           name: 'get_current_time',

@@ -6,6 +6,7 @@ import { DailyRecurrence } from '../../../src/tools/recurrence/DailyRecurrence';
 import { WeeklyRecurrence } from '../../../src/tools/recurrence/WeeklyRecurrence';
 import { MonthlyRecurrence } from '../../../src/tools/recurrence/MonthlyRecurrence';
 import { YearlyRecurrence } from '../../../src/tools/recurrence/YearlyRecurrence';
+import { ValidationError } from '../../../src/adapters/mcp-sdk/errors';
 import type {
   DailyParams,
   WeeklyParams,
@@ -57,13 +58,13 @@ describe('RecurrenceFactory', () => {
       const params = { pattern: 'invalid' } as any;
 
       expect(() => factory.create(params)).toThrow(Error);
-      
+
       try {
         factory.create(params);
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('Invalid pattern');
       }
     });
@@ -72,13 +73,13 @@ describe('RecurrenceFactory', () => {
       const params = { pattern: 'monthly' } as MonthlyParams;
 
       expect(() => factory.create(params)).toThrow(Error);
-      
+
       try {
         factory.create(params);
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('dayOfMonth is required');
       }
     });
@@ -126,13 +127,13 @@ describe('RecurrenceFactory', () => {
       const params = { pattern: 'invalid' } as any;
 
       expect(() => factory.calculate(from, params)).toThrow(Error);
-      
+
       try {
         factory.calculate(from, params);
         expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error).toBeInstanceOf(Error);
-        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
         expect(error.message).toContain('Invalid pattern');
       }
     });
