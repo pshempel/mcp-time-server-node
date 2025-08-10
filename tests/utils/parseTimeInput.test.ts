@@ -1,5 +1,5 @@
+import { DateParsingError } from '../../src/adapters/mcp-sdk/errors';
 import { parseTimeInput } from '../../src/utils/parseTimeInput';
-import { TimeServerErrorCodes } from '../../src/types';
 
 describe('parseTimeInput', () => {
   describe('Unix timestamp parsing', () => {
@@ -112,9 +112,10 @@ describe('parseTimeInput', () => {
       try {
         parseTimeInput('invalid');
       } catch (error: any) {
-        expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_DATE_FORMAT);
-        expect(error.error.message).toContain('Invalid');
-        expect(error.error.details).toHaveProperty('input', 'invalid');
+        expect(error).toBeInstanceOf(DateParsingError);
+        expect(error.code).toBe('DATE_PARSING_ERROR');
+        expect(error.message).toContain('Invalid');
+        expect(error.details).toHaveProperty('input', 'invalid');
       }
     });
   });
