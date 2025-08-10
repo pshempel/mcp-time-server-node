@@ -1,10 +1,6 @@
 import { formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
 
-// SDK 1.17.2 export issue workaround - correct path without .js
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
+import { ValidationError, TimezoneError, DateParsingError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
 import type { ConvertTimezoneParams, ConvertTimezoneResult } from '../types';
 import { debug } from '../utils/debug';
@@ -30,20 +26,14 @@ export function validateTimezones(from_timezone: string, to_timezone: string): v
   if (!validateTimezone(from_timezone)) {
     debug.validation('Invalid from_timezone: %s', from_timezone);
     debug.error('Invalid from_timezone: %s', from_timezone);
-    const err: any = new Error(`Invalid from_timezone: ${from_timezone}`);
-    err.code = ErrorCode.InvalidParams;
-    err.data = { timezone: from_timezone, field: 'from_timezone' };
-    throw err;
+    throw new TimezoneError(`Invalid from_timezone: ${from_timezone}`, from_timezone);
   }
 
   // Validate to_timezone
   if (!validateTimezone(to_timezone)) {
     debug.validation('Invalid to_timezone: %s', to_timezone);
     debug.error('Invalid to_timezone: %s', to_timezone);
-    const err: any = new Error(`Invalid to_timezone: ${to_timezone}`);
-    err.code = ErrorCode.InvalidParams;
-    err.data = { timezone: to_timezone, field: 'to_timezone' };
-    throw err;
+    throw new TimezoneError(`Invalid to_timezone: ${to_timezone}`, to_timezone);
   }
 
   debug.validation('Timezone validation passed');
@@ -89,13 +79,10 @@ export function parseDateForConversion(
   } catch (error) {
     debug.parse('Date parsing failed: %O', error);
     debug.error('Invalid time format: %s, error: %O', time, error);
-    const err: any = new Error(`Invalid time format: ${time}`);
-    err.code = ErrorCode.InvalidParams;
-    err.data = {
+    throw new DateParsingError(`Invalid time format: ${time}`, {
       time,
       error: error instanceof Error ? error.message : String(error),
-    };
-    throw err;
+    });
   }
 }
 
@@ -198,10 +185,7 @@ function handleConversionError(error: unknown, format: string): never {
   debug.error('Handling conversion error: %O', error);
 
   if (error instanceof RangeError || (error instanceof Error && error.message.includes('format'))) {
-    const err: any = new Error(`Invalid format: ${error.message}`);
-    err.code = ErrorCode.InvalidParams;
-    err.data = { format, error: error.message };
-    throw err;
+    throw new ValidationError(`Invalid format: ${error.message}`, { format, error: error.message });
   }
   throw error;
 }

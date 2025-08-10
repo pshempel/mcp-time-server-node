@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 
+import { mapToMcpError, McpError } from './adapters/mcp-sdk';
 import {
   getCurrentTime,
   convertTimezone,
@@ -321,45 +322,33 @@ export function handleRateLimit(
 // eslint-disable-next-line max-lines-per-function
 /**
  * Helper function to format tool execution errors
+ * Now uses our adapter to properly map errors to MCP format
  */
 function formatToolError(
   error: unknown,
   toolName: string
-): { error: { code: string; message: string; details?: unknown } } {
+): { error: { code: number; message: string; data?: unknown } } {
   debug.trace('Tool %s execution failed: %O', toolName, error);
 
-  // Check if error already has MCP error code format (from our tools)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-  const err = error as any;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  if (err && typeof err === 'object' && 'code' in err && typeof err.code === 'number') {
-    // This is already a properly formatted MCP error from our tools
+  // If it's already an McpError, return it in the expected format
+  if (error instanceof McpError) {
     return {
       error: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        code: err.code,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        message: err.message,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        details: err.data, // Use 'details' as per the type definition
+        code: error.code,
+        message: error.message,
+        data: error.data,
       },
     };
   }
 
-  // Check if error is an object with error property (legacy format)
-  if (err && typeof err === 'object' && 'error' in err) {
-    return err as { error: { code: string; message: string; details?: unknown } };
-  }
-
-  // Otherwise, wrap it in the expected format
-  const errorMessage = error instanceof Error ? error.message : 'Tool execution failed';
-  const errorString = error instanceof Error ? error.toString() : String(error);
+  // Map any other error to McpError using our adapter
+  const mcpError = mapToMcpError(error, toolName);
 
   return {
     error: {
-      code: 'TOOL_ERROR',
-      message: errorMessage,
-      details: { name: toolName, error: errorString },
+      code: mcpError.code,
+      message: mcpError.message,
+      data: mcpError.data,
     },
   };
 }
@@ -369,7 +358,7 @@ export async function executeToolFunction(
   args: unknown
 ): Promise<
   | { content: Array<{ type: string; text: string }> }
-  | { error: { code: string; message: string; details?: unknown } }
+  | { error: { code: number; message: string; data?: unknown } }
 > {
   debug.trace('Executing tool: %s with args: %O', name, args);
 
@@ -410,7 +399,7 @@ export async function handleToolCall(
   rateLimiter: SlidingWindowRateLimiter
 ): Promise<
   | { content: Array<{ type: string; text: string }> }
-  | { error: { code: string | number; message: string; data?: unknown; details?: unknown } }
+  | { error: { code: number; message: string; data?: unknown } }
 > {
   debug.server('Handling tool call: %s', request.params.name);
 

@@ -1,6 +1,7 @@
 import { addYears, addMonths, addDays, addHours, addMinutes, addSeconds } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 
+import { ValidationError, TimezoneError, DateParsingError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
 import type { AddTimeParams, AddTimeResult } from '../types';
 import { getConfig } from '../utils/config';
@@ -9,10 +10,6 @@ import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import { validateTimezone, validateDateInput } from '../utils/validation';
 import { withCache } from '../utils/withCache';
-
-// Import ErrorCode for MCP SDK compatibility
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const { ErrorCode } = require('@modelcontextprotocol/sdk/types.js');
 
 const unitFunctions = {
   years: addYears,
@@ -32,13 +29,10 @@ export function validateUnit(unit: string): void {
   if (!Object.prototype.hasOwnProperty.call(unitFunctions, unit)) {
     debug.validation('Invalid unit: %s', unit);
     debug.error('Invalid unit: %s', unit);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const err: any = new Error(`Invalid unit: ${unit}. Must be one of: years, months, days, hours, minutes, seconds`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    err.code = ErrorCode.InvalidParams;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    err.data = { unit };
-    throw err;
+    throw new ValidationError(
+      `Invalid unit: ${unit}. Must be one of: years, months, days, hours, minutes, seconds`,
+      { unit }
+    );
   }
 
   debug.validation('Unit validation passed');
@@ -53,13 +47,7 @@ export function validateAmount(amount: number): void {
   if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
     debug.validation('Invalid amount: %s', amount);
     debug.error('Invalid amount: %s', amount);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const err: any = new Error(`Invalid amount: ${amount}. Must be a finite number`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    err.code = ErrorCode.InvalidParams;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    err.data = { amount };
-    throw err;
+    throw new ValidationError(`Invalid amount: ${amount}. Must be a finite number`, { amount });
   }
 
   debug.validation('Amount validation passed');
@@ -129,16 +117,10 @@ export function parseDateWithTimezone(
   } catch (error) {
     debug.parse('Parse error: %s', error);
     debug.error('Invalid time format: %s, error: %O', time, error);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const err: any = new Error(`Invalid time format: ${time}`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    err.code = ErrorCode.InvalidParams;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    err.data = {
+    throw new DateParsingError(`Invalid time format: ${time}`, {
       time,
       error: error instanceof Error ? error.message : String(error),
-    };
-    throw err;
+    });
   }
 }
 
@@ -268,13 +250,7 @@ export function formatWithExplicitOffset(
   const offsetMatch = offset.match(/([+-])(\d{2}):(\d{2})/);
   if (!offsetMatch) {
     debug.error('Invalid offset format: %s', offset);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const err: any = new Error(`Invalid offset format: ${offset}`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    err.code = ErrorCode.InvalidParams;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    err.data = { offset };
-    throw err;
+    throw new DateParsingError(`Invalid offset format: ${offset}`, { offset });
   }
 
   const sign = offsetMatch[1] === '+' ? 1 : -1;
@@ -319,13 +295,7 @@ export function addTime(params: AddTimeParams): AddTimeResult {
     // Validate timezone if provided
     if (params.timezone && !validateTimezone(timezone)) {
       debug.error('Invalid timezone: %s', timezone);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const err: any = new Error(`Invalid timezone: ${timezone}`);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-      err.code = ErrorCode.InvalidParams;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      err.data = { timezone };
-      throw err;
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
 
     // Parse the input date with timezone handling

@@ -1,11 +1,7 @@
 import { differenceInCalendarDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-// SDK 1.17.2 export issue workaround
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
+import { ValidationError, TimezoneError, DateParsingError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
 import type { DaysUntilParams, DaysUntilResult } from '../types';
 import { getConfig } from '../utils/config';
@@ -60,10 +56,7 @@ export function daysUntil(params: DaysUntilParams): DaysUntilResult {
   // Validate required parameter
   if (!params.target_date) {
     debug.error('target_date is required');
-    const err: any = new Error('target_date is required');
-    err.code = ErrorCode.InvalidParams;
-    err.data = { field: 'target_date' };
-    throw err;
+    throw new ValidationError('target_date is required', { field: 'target_date' });
   }
 
   // Validate string length first (general limit for very long strings)
@@ -84,10 +77,7 @@ export function daysUntil(params: DaysUntilParams): DaysUntilResult {
       // Validate timezone if provided
       if (userTimezone !== undefined && !validateTimezone(timezone)) {
         debug.error('Invalid timezone: %s', timezone);
-        const err: any = new Error(`Invalid timezone: ${timezone}`);
-        err.code = ErrorCode.InvalidParams;
-        err.data = { timezone, field: 'timezone' };
-        throw err;
+        throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
       }
 
       // Parse target date
@@ -97,15 +87,15 @@ export function daysUntil(params: DaysUntilParams): DaysUntilResult {
         targetDate = parseTargetDate(target_date, timezone);
         debug.parse('Parsed date: %s', targetDate.toISOString());
       } catch (error) {
-        debug.error('Invalid target_date format: %s, error: %s', target_date, error instanceof Error ? error.message : String(error));
-        const err: any = new Error(`Invalid target_date format: ${target_date}`);
-        err.code = ErrorCode.InvalidParams;
-        err.data = {
+        debug.error(
+          'Invalid target_date format: %s, error: %s',
+          target_date,
+          error instanceof Error ? error.message : String(error)
+        );
+        throw new DateParsingError(`Invalid target_date format: ${target_date}`, {
           target_date,
           error: error instanceof Error ? error.message : String(error),
-          field: 'target_date'
-        };
-        throw err;
+        });
       }
 
       // Get current date in the specified timezone

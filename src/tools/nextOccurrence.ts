@@ -1,11 +1,7 @@
 import { differenceInDays, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-// SDK 1.17.2 export issue workaround
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
+import { TimezoneError, DateParsingError, TimeCalculationError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
 import type { NextOccurrenceParams, NextOccurrenceResult } from '../types';
 import type { RecurrenceParams } from '../types/recurrence';
@@ -114,10 +110,7 @@ function calculateNextOccurrence(
       debug.parse('Parsed start_from date: %s', startFrom.toISOString());
     } catch (error) {
       debug.error('Invalid start_from date: %s', params.start_from);
-      const err: any = new Error('Invalid start_from date');
-      err.code = ErrorCode.InvalidParams;
-      err.data = { start_from: params.start_from };
-      throw err;
+      throw new DateParsingError('Invalid start_from date', { start_from: params.start_from });
     }
   } else {
     startFrom = new Date();
@@ -154,10 +147,7 @@ function handleCalculationError(error: unknown): never {
   // Wrap other errors
   const message = error instanceof Error ? error.message : 'Unknown error';
   debug.error('Failed to calculate next occurrence: %s', message);
-  const err: any = new Error(`Failed to calculate next occurrence: ${message}`);
-  err.code = ErrorCode.InternalError;
-  err.data = {};
-  throw err;
+  throw new TimeCalculationError(`Failed to calculate next occurrence: ${message}`);
 }
 
 /**
@@ -181,10 +171,7 @@ export function nextOccurrence(params: NextOccurrenceParams): NextOccurrenceResu
     debug.validation('Validating timezone: %s', timezone);
     if (!validateTimezone(timezone)) {
       debug.error('Invalid timezone: %s', timezone);
-      const err: any = new Error(`Invalid timezone: ${timezone}`);
-      err.code = ErrorCode.InvalidParams;
-      err.data = { timezone };
-      throw err;
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
   }
   const cacheKey = getCacheKey(params, fallbackTimezone, timezone);

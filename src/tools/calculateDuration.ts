@@ -1,13 +1,13 @@
 import { differenceInMilliseconds } from 'date-fns';
 
+import { ValidationError, TimezoneError, DateParsingError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { CalculateDurationParams, CalculateDurationResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone as resolveTimezoneUtil } from '../utils/timezoneUtils';
-import { validateTimezone, createError, validateDateString } from '../utils/validation';
+import { validateTimezone, validateDateString } from '../utils/validation';
 import { withCache } from '../utils/withCache';
 
 const validUnits = ['auto', 'milliseconds', 'seconds', 'minutes', 'hours', 'days'];
@@ -36,15 +36,7 @@ export function calculateDuration(params: CalculateDurationParams): CalculateDur
       // Validate timezone
       if (!validateTimezone(timezone)) {
         debug.error('Invalid timezone: %s', timezone);
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_TIMEZONE,
-            `Invalid timezone: ${timezone}`,
-            {
-              timezone,
-            }
-          ),
-        };
+        throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
       }
 
       // Parse dates with proper error context
@@ -121,13 +113,10 @@ export function validateUnit(unit: string | undefined): string {
   if (!validUnits.includes(resolved)) {
     debug.validation('Invalid unit detected: %s', resolved);
     debug.error('Invalid unit: %s', resolved);
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `Invalid unit: ${resolved}. Must be one of: ${validUnits.join(', ')}`,
-        { unit: resolved }
-      ),
-    };
+    throw new ValidationError(
+      `Invalid unit: ${resolved}. Must be one of: ${validUnits.join(', ')}`,
+      { unit: resolved }
+    );
   }
 
   debug.validation('Resolved unit: %s', resolved);
@@ -152,14 +141,7 @@ function parseDateWithContext(time: string, timezone: string, paramName: string)
   } catch (error) {
     debug.parse('Failed to parse %s: %s', paramName, error);
     debug.error('Failed to parse %s: %s', paramName, error);
-    const errorDetails = error as { error?: { details?: { time?: string } } };
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid ${paramName} format: ${time}`,
-        { [paramName]: time, error: errorDetails.error?.details?.time ?? time }
-      ),
-    };
+    throw new DateParsingError(`Invalid ${paramName} format: ${time}`, { [paramName]: time });
   }
 }
 
@@ -176,12 +158,7 @@ export function parseTimeParameter(time: string, timezone: string): Date {
   } catch (error) {
     debug.parse('Parse error: %s', error);
     debug.error('Parse error: %s', error);
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, `Invalid date format: ${time}`, {
-        time,
-        timezone,
-      }),
-    };
+    throw new DateParsingError(`Invalid date format: ${time}`, { time, timezone });
   }
 }
 

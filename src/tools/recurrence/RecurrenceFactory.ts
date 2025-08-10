@@ -1,11 +1,7 @@
+import { ValidationError } from '../../adapters/mcp-sdk';
 import type { RecurrenceParams, RecurrencePattern } from '../../types/recurrence';
-
-// SDK 1.17.2 export issue workaround
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
 import { debug } from '../../utils/debug';
+
 import { DailyRecurrence } from './DailyRecurrence';
 import { MonthlyRecurrence } from './MonthlyRecurrence';
 import { RecurrenceValidator } from './RecurrenceValidator';
@@ -37,10 +33,7 @@ export class RecurrenceFactory {
     if (!pattern) {
       // This should never happen if validation works correctly
       debug.error('Unknown pattern (should never happen): %s', params.pattern);
-      const err: any = new Error(`Unknown pattern: ${params.pattern}`);
-      err.code = ErrorCode.InvalidParams;
-      err.data = { pattern: params.pattern };
-      throw err;
+      throw new ValidationError(`Unknown pattern: ${params.pattern}`, { pattern: params.pattern });
     }
 
     return pattern;

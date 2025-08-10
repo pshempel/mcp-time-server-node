@@ -1,10 +1,6 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
-// SDK 1.17.2 export issue workaround - correct path without .js
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
+import { ValidationError, TimezoneError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
 import type { GetCurrentTimeParams, GetCurrentTimeResult } from '../types';
 import { getConfig } from '../utils/config';
@@ -67,10 +63,7 @@ export function buildTimeResult(
  */
 export function handleFormatError(error: unknown, format: string): never {
   if (error instanceof RangeError || (error instanceof Error && error.message.includes('format'))) {
-    const err: any = new Error(`Invalid format: ${error.message}`);
-    err.code = ErrorCode.InvalidParams;
-    err.data = { format, error: error.message };
-    throw err;
+    throw new ValidationError(`Invalid format: ${error.message}`, { format, error: error.message });
   }
   throw error;
 }
@@ -93,10 +86,7 @@ export function getCurrentTime(params: GetCurrentTimeParams): GetCurrentTimeResu
   return withCache(getCacheKey(timezone, formatStr, includeOffset), CacheTTL.CURRENT_TIME, () => {
     // Validate timezone
     if (!validateTimezone(timezone)) {
-      const err: any = new Error(`Invalid timezone: ${timezone}`);
-      err.code = ErrorCode.InvalidParams;
-      err.data = { timezone };
-      throw err;
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
 
     const now = new Date();
