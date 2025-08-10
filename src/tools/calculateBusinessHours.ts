@@ -41,6 +41,157 @@ function isWeeklyBusinessHours(
 }
 
 /**
+ * Validate input parameters for calculateBusinessHours
+ * @internal
+ */
+function validateBusinessHoursParams(params: {
+  start_time: string;
+  end_time: string;
+  holidays: string[];
+  timezone: string;
+  business_hours?: BusinessHours | WeeklyBusinessHours;
+}): void {
+  const { start_time, end_time, holidays, timezone, business_hours } = params;
+
+  // Validate string lengths first
+  validateDateString(start_time, 'start_time');
+  validateDateString(end_time, 'end_time');
+  validateArrayLength(holidays, LIMITS.MAX_ARRAY_LENGTH, 'holidays');
+
+  // Validate timezone if provided
+  if (timezone && !validateTimezone(timezone)) {
+    debug.error('Invalid timezone: %s', timezone);
+    throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
+  }
+
+  // Validate business hours structure using helper
+  validateBusinessHoursStructure(business_hours);
+}
+
+/**
+ * Validate date range for business hours calculation
+ * @internal
+ */
+function validateBusinessDateRange(
+  startDate: Date,
+  endDate: Date,
+  start_time: string,
+  end_time: string
+): void {
+  // Validate that end is after start
+  if (endDate < startDate) {
+    debug.error('End time must be after start time: start=%s, end=%s', start_time, end_time);
+    throw new ValidationError('End time must be after start time', { start_time, end_time });
+  }
+
+  // DoS protection: Limit date range to 10 years (3,650 days) for business hours
+  const daysDifference = Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+  if (daysDifference > 3650) {
+    debug.error('Date range too large for business hours: %d days (max 3650)', daysDifference);
+    throw new ValidationError(
+      'Date range exceeds maximum limit of 10 years for business hours calculation',
+      {
+        start_time,
+        end_time,
+        days: Math.floor(daysDifference),
+        max_days: 3650,
+      }
+    );
+  }
+}
+
+/**
+ * Get business hours for a specific day of week
+ * @internal
+ */
+function getBusinessHoursForDay(
+  dayOfWeek: number,
+  businessHours?: BusinessHours | WeeklyBusinessHours
+): BusinessHours | null {
+  if (!businessHours) {
+    return DEFAULT_BUSINESS_HOURS;
+  }
+
+  if (isWeeklyBusinessHours(businessHours)) {
+    // eslint-disable-next-line security/detect-object-injection -- Day of week index (0-6)
+    return businessHours[dayOfWeek] ?? DEFAULT_BUSINESS_HOURS;
+  }
+
+  return businessHours;
+}
+
+/**
+ * Build cache key for business hours calculation
+ * @internal
+ */
+function buildBusinessHoursCacheKey(params: {
+  start_time: string;
+  end_time: string;
+  timezone: string;
+  business_hours?: BusinessHours | WeeklyBusinessHours;
+  holidays: string[];
+  include_weekends: boolean;
+}): string {
+  const { start_time, end_time, timezone, business_hours, holidays, include_weekends } = params;
+  const businessHoursKey = business_hours ? JSON.stringify(business_hours) : 'default';
+  return `business_hours_${start_time}_${end_time}_${timezone}_${businessHoursKey}_${holidays.join(',')}_${include_weekends}`;
+}
+
+/**
+ * Process all days in date range and calculate business hours
+ * @internal
+ */
+function processDateRange(params: {
+  dateStrings: string[];
+  startDate: Date;
+  endDate: Date;
+  timezone: string;
+  holidayDates: Date[];
+  include_weekends: boolean;
+  business_hours?: BusinessHours | WeeklyBusinessHours;
+}): { breakdown: DayBusinessHours[]; totalMinutes: number } {
+  const {
+    dateStrings,
+    startDate,
+    endDate,
+    timezone,
+    holidayDates,
+    include_weekends,
+    business_hours,
+  } = params;
+  const breakdown: DayBusinessHours[] = [];
+  let totalBusinessMinutes = 0;
+
+  for (const dayDateStr of dateStrings) {
+    // Get day information
+    const day = parseTimeInput(dayDateStr + 'T12:00:00', timezone).date;
+    const dayOfWeek = parseInt(formatInTimeZone(day, timezone, 'c'), 10) - 1;
+    const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+
+    // Get business hours for this day
+    const dayBusinessHours = getBusinessHoursForDay(dayOfWeek, business_hours);
+
+    // Process the single day
+    const { dayResult, minutes } = processSingleBusinessDay({
+      dayDateStr,
+      startDate,
+      endDate,
+      timezone,
+      businessHours: dayBusinessHours,
+      holidayDates,
+      include_weekends,
+      dayOfWeek,
+      isWeekend: isWeekendDay,
+    });
+
+    breakdown.push(dayResult);
+    totalBusinessMinutes += minutes;
+  }
+
+  return { breakdown, totalMinutes: totalBusinessMinutes };
+}
+
+/**
  * Generate array of date strings between start and end dates
  * @internal
  */
@@ -185,7 +336,6 @@ export function buildBusinessHoursResult(
   return result;
 }
 
-// eslint-disable-next-line complexity -- Business domain complexity: handles timezones, holidays, multiple business hour formats, weekend rules, partial days
 export function calculateBusinessHours(
   params: CalculateBusinessHoursParams
 ): CalculateBusinessHoursResult {
@@ -201,56 +351,36 @@ export function calculateBusinessHours(
     include_weekends,
   });
 
-  // Validate string lengths first
-  validateDateString(start_time, 'start_time');
-  validateDateString(end_time, 'end_time');
-  validateArrayLength(holidays, LIMITS.MAX_ARRAY_LENGTH, 'holidays');
-
   const config = getConfig();
   const timezone = resolveTimezone(params.timezone, config.defaultTimezone);
 
-  // Generate cache key
-  const businessHoursKey = params.business_hours
-    ? JSON.stringify(params.business_hours)
-    : 'default';
-  const cacheKey = `business_hours_${start_time}_${end_time}_${timezone}_${businessHoursKey}_${holidays.join(',')}_${include_weekends}`;
+  // Validate all input parameters
+  validateBusinessHoursParams({
+    start_time,
+    end_time,
+    holidays,
+    timezone,
+    business_hours: params.business_hours,
+  });
 
-  // Use withCache wrapper instead of manual cache management
+  // Build cache key
+  const cacheKey = buildBusinessHoursCacheKey({
+    start_time,
+    end_time,
+    timezone,
+    business_hours: params.business_hours,
+    holidays,
+    include_weekends,
+  });
+
+  // Use withCache wrapper for the calculation
   return withCache(cacheKey, CacheTTL.CALCULATIONS, () => {
-    // Validate timezone if provided
-    if (timezone && !validateTimezone(timezone)) {
-      debug.error('Invalid timezone: %s', timezone);
-      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
-    }
-
-    // Validate business hours structure using helper
-    validateBusinessHoursStructure(params.business_hours);
-
     // Parse dates
     const startDate = parseDateWithTimezone(start_time, timezone, 'start_time');
     const endDate = parseDateWithTimezone(end_time, timezone, 'end_time');
 
-    // Validate that end is after start
-    if (endDate < startDate) {
-      debug.error('End time must be after start time: start=%s, end=%s', start_time, end_time);
-      throw new ValidationError('End time must be after start time', { start_time, end_time });
-    }
-
-    // DoS protection: Limit date range to 10 years (3,650 days) for business hours
-    const daysDifference =
-      Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysDifference > 3650) {
-      debug.error('Date range too large for business hours: %d days (max 3650)', daysDifference);
-      throw new ValidationError(
-        'Date range exceeds maximum limit of 10 years for business hours calculation',
-        {
-          start_time,
-          end_time,
-          days: Math.floor(daysDifference),
-          max_days: 3650,
-        }
-      );
-    }
+    // Validate date range
+    validateBusinessDateRange(startDate, endDate, start_time, end_time);
 
     // Log the calculation context
     debug.business(
@@ -266,55 +396,22 @@ export function calculateBusinessHours(
       debug.business('Holidays to exclude: %O', holidayDates);
     }
 
-    // Get business hours for a specific day
-    const getBusinessHoursForDay = (dayOfWeek: number): BusinessHours | null => {
-      if (!params.business_hours) {
-        return DEFAULT_BUSINESS_HOURS;
-      }
-
-      if (isWeeklyBusinessHours(params.business_hours)) {
-        // eslint-disable-next-line security/detect-object-injection -- Day of week index (0-6)
-        return params.business_hours[dayOfWeek] ?? DEFAULT_BUSINESS_HOURS;
-      }
-
-      return params.business_hours;
-    };
-
     // Generate date range to process
     const dateStrings = generateDateRange(startDate, endDate, timezone);
 
-    // Calculate business hours for each day
-    const breakdown: DayBusinessHours[] = [];
-    let totalBusinessMinutes = 0;
-
-    for (const dayDateStr of dateStrings) {
-      // Get day information
-      const day = parseTimeInput(dayDateStr + 'T12:00:00', timezone).date;
-      const dayOfWeek = parseInt(formatInTimeZone(day, timezone, 'c'), 10) - 1;
-      const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
-
-      // Get business hours for this day
-      const businessHours = getBusinessHoursForDay(dayOfWeek);
-
-      // Process the single day
-      const { dayResult, minutes } = processSingleBusinessDay({
-        dayDateStr,
-        startDate,
-        endDate,
-        timezone,
-        businessHours,
-        holidayDates,
-        include_weekends,
-        dayOfWeek,
-        isWeekend: isWeekendDay,
-      });
-
-      breakdown.push(dayResult);
-      totalBusinessMinutes += minutes;
-    }
+    // Process all days in the date range
+    const { breakdown, totalMinutes } = processDateRange({
+      dateStrings,
+      startDate,
+      endDate,
+      timezone,
+      holidayDates,
+      include_weekends,
+      business_hours: params.business_hours,
+    });
 
     // Build and return the final result
-    const result = buildBusinessHoursResult(breakdown, totalBusinessMinutes);
+    const result = buildBusinessHoursResult(breakdown, totalMinutes);
 
     // Log successful completion
     debug.business(
