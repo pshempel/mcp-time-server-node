@@ -1,6 +1,5 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import type { ListToolsRequest } from '@modelcontextprotocol/sdk/types.js';
 import * as tools from '../src/tools';
 
 // Mock all the tools
@@ -207,10 +206,10 @@ describe('MCP Time Server', () => {
 
     it('should return all 8 tools', async () => {
       // Create a mock request
-      const request: ListToolsRequest = {
-        method: 'tools/list',
+      const request = {
+        method: 'tools/list' as const,
         params: {},
-      };
+      } as const;
 
       // Get the handler and call it
       const handler = server['_requestHandlers'].get('tools/list');
@@ -221,10 +220,10 @@ describe('MCP Time Server', () => {
     });
 
     it('should return correct tool names', async () => {
-      const request: ListToolsRequest = {
-        method: 'tools/list',
+      const request = {
+        method: 'tools/list' as const,
         params: {},
-      };
+      } as const;
 
       const handler = server['_requestHandlers'].get('tools/list');
       const result = await handler?.(request, {});
@@ -243,10 +242,10 @@ describe('MCP Time Server', () => {
     });
 
     it('should include proper input schemas for each tool', async () => {
-      const request: ListToolsRequest = {
-        method: 'tools/list',
+      const request = {
+        method: 'tools/list' as const,
         params: {},
-      };
+      } as const;
 
       const handler = server['_requestHandlers'].get('tools/list');
       const result = await handler?.(request, {});

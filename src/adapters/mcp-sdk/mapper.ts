@@ -41,6 +41,7 @@ const ERROR_TYPE_MAPPINGS = [
 /**
  * Safely extracts error message from unknown error type
  */
+// eslint-disable-next-line complexity
 function extractErrorMessage(error: unknown): string {
   // Handle null/undefined
   if (error == null) {
@@ -77,8 +78,17 @@ function extractErrorMessage(error: unknown): string {
     }
   }
 
-  // Fallback for other types
-  return String(error);
+  // Fallback for other types - handle objects specially
+  if (typeof error === 'object' && error !== null) {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return '[Circular object]';
+    }
+  }
+  // Only primitives left (string, number, boolean, undefined, null, symbol, bigint)
+  // TypeScript doesn't know we've already handled all objects, so we assert
+  return String(error as string | number | boolean | undefined | null | symbol | bigint);
 }
 
 /**

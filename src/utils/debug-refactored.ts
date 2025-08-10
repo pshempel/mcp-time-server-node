@@ -50,9 +50,7 @@ export function clearDebugCache(): void {
 class DebugEnhanced {
   // Lazy-loaded cache for debug instances
   private get debuggerCache(): Map<string, ReturnType<typeof createDebugger>> {
-    if (!instanceCache) {
-      instanceCache = new Map();
-    }
+    instanceCache ??= new Map();
     return instanceCache;
   }
 

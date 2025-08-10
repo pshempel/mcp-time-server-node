@@ -62,7 +62,7 @@ export interface AddTimeParams {
   timezone?: string;
 }
 
-export interface SubtractTimeParams extends AddTimeParams {}
+export type SubtractTimeParams = AddTimeParams;
 
 export interface TimeCalculationResult {
   original: string;
