@@ -185,6 +185,7 @@ export function buildBusinessHoursResult(
   return result;
 }
 
+// eslint-disable-next-line complexity -- Business domain complexity: handles timezones, holidays, multiple business hour formats, weekend rules, partial days
 export function calculateBusinessHours(
   params: CalculateBusinessHoursParams
 ): CalculateBusinessHoursResult {
