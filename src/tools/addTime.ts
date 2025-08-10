@@ -3,17 +3,16 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 import { CacheTTL } from '../cache/timeCache';
 import type { AddTimeParams, AddTimeResult } from '../types';
-
-// SDK 1.17.2 export issue workaround
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import { validateTimezone, validateDateInput } from '../utils/validation';
 import { withCache } from '../utils/withCache';
+
+// Import ErrorCode for MCP SDK compatibility
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const { ErrorCode } = require('@modelcontextprotocol/sdk/types.js');
 
 const unitFunctions = {
   years: addYears,
@@ -33,8 +32,11 @@ export function validateUnit(unit: string): void {
   if (!Object.prototype.hasOwnProperty.call(unitFunctions, unit)) {
     debug.validation('Invalid unit: %s', unit);
     debug.error('Invalid unit: %s', unit);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: any = new Error(`Invalid unit: ${unit}. Must be one of: years, months, days, hours, minutes, seconds`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     err.code = ErrorCode.InvalidParams;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.data = { unit };
     throw err;
   }
@@ -51,8 +53,11 @@ export function validateAmount(amount: number): void {
   if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
     debug.validation('Invalid amount: %s', amount);
     debug.error('Invalid amount: %s', amount);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: any = new Error(`Invalid amount: ${amount}. Must be a finite number`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     err.code = ErrorCode.InvalidParams;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.data = { amount };
     throw err;
   }
@@ -124,8 +129,11 @@ export function parseDateWithTimezone(
   } catch (error) {
     debug.parse('Parse error: %s', error);
     debug.error('Invalid time format: %s, error: %O', time, error);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: any = new Error(`Invalid time format: ${time}`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     err.code = ErrorCode.InvalidParams;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.data = {
       time,
       error: error instanceof Error ? error.message : String(error),
@@ -260,8 +268,11 @@ export function formatWithExplicitOffset(
   const offsetMatch = offset.match(/([+-])(\d{2}):(\d{2})/);
   if (!offsetMatch) {
     debug.error('Invalid offset format: %s', offset);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: any = new Error(`Invalid offset format: ${offset}`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     err.code = ErrorCode.InvalidParams;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.data = { offset };
     throw err;
   }
@@ -308,8 +319,11 @@ export function addTime(params: AddTimeParams): AddTimeResult {
     // Validate timezone if provided
     if (params.timezone && !validateTimezone(timezone)) {
       debug.error('Invalid timezone: %s', timezone);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const err: any = new Error(`Invalid timezone: ${timezone}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       err.code = ErrorCode.InvalidParams;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       err.data = { timezone };
       throw err;
     }

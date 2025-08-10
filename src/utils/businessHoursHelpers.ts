@@ -6,13 +6,11 @@
 
 import { format, differenceInMinutes, eachDayOfInterval } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
-
-// SDK 1.17.2 export issue workaround
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
 import type { BusinessHours, WeeklyBusinessHours, DayBusinessHours } from '../types';
+
+// Import ErrorCode for MCP SDK compatibility
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const { ErrorCode } = require('@modelcontextprotocol/sdk/types.js');
 
 import { debug } from './debug';
 
@@ -39,15 +37,19 @@ function isWeeklyBusinessHours(
  */
 function validateSingleBusinessHours(hours: BusinessHours): void {
   if (hours.start.hour < 0 || hours.start.hour > 23) {
+    debug.error('Invalid start hour: %d', hours.start.hour);
     throw new Error('Invalid start hour');
   }
   if (hours.start.minute < 0 || hours.start.minute > 59) {
+    debug.error('Invalid start minute: %d', hours.start.minute);
     throw new Error('Invalid start minute');
   }
   if (hours.end.hour < 0 || hours.end.hour > 23) {
+    debug.error('Invalid end hour: %d', hours.end.hour);
     throw new Error('Invalid end hour');
   }
   if (hours.end.minute < 0 || hours.end.minute > 59) {
+    debug.error('Invalid end minute: %d', hours.end.minute);
     throw new Error('Invalid end minute');
   }
 }
@@ -69,8 +71,11 @@ export function validateBusinessHoursStructure(
       const dayNum = parseInt(day, 10);
       if (dayNum < 0 || dayNum > 6) {
         debug.error('Invalid day of week: %s', day);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const err: any = new Error(`Invalid day of week: ${day}`);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         err.code = ErrorCode.InvalidParams;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         err.data = { day, field: 'business_hours' };
         throw err;
       }
@@ -79,8 +84,11 @@ export function validateBusinessHoursStructure(
           validateSingleBusinessHours(dayHours as BusinessHours);
         } catch (error) {
           debug.error('Invalid business hours for day %s: %s', day, error instanceof Error ? error.message : String(error));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const err: any = new Error(`Invalid business hours for day ${day}: ${error instanceof Error ? error.message : String(error)}`);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           err.code = ErrorCode.InvalidParams;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           err.data = { day, hours: dayHours as BusinessHours, field: 'business_hours' };
           throw err;
         }
@@ -92,8 +100,11 @@ export function validateBusinessHoursStructure(
       validateSingleBusinessHours(hours);
     } catch (error) {
       debug.error('Invalid business hours: %s', error instanceof Error ? error.message : String(error));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const err: any = new Error(`Invalid business hours: ${error instanceof Error ? error.message : String(error)}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       err.code = ErrorCode.InvalidParams;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       err.data = { business_hours: hours, field: 'business_hours' };
       throw err;
     }

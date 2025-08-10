@@ -16,6 +16,7 @@ import {
 } from '../utils/validation';
 
 // Import ErrorCode for MCP SDK compatibility
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const { ErrorCode } = require('@modelcontextprotocol/sdk/types.js');
 import { withCache } from '../utils/withCache';
 
@@ -65,8 +66,12 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
   return withCache(cacheKey, CacheTTL.BUSINESS_DAYS, () => {
     // Validate timezone if provided
     if (timezone && !validateTimezone(timezone)) {
+      debug.error('Invalid timezone: %s', timezone);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const err: any = new Error(`Invalid timezone: ${timezone}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       err.code = ErrorCode.InvalidParams;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       err.data = { timezone };
       throw err;
     }
@@ -74,15 +79,23 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
     // Validate holiday_calendar if provided
     if (holiday_calendar) {
       if (holiday_calendar.includes('\0') || holiday_calendar.includes('\x00')) {
+        debug.error('Invalid holiday_calendar contains null bytes: %s', holiday_calendar);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const err: any = new Error('Invalid holiday_calendar: contains null bytes');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
         err.code = ErrorCode.InvalidParams;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         err.data = { holiday_calendar };
         throw err;
       }
 
       if (!/^[A-Z]{2,3}$/.test(holiday_calendar)) {
+        debug.error('Invalid holiday_calendar format: %s', holiday_calendar);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const err: any = new Error('Invalid holiday_calendar: must be a 2-3 letter country code');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
         err.code = ErrorCode.InvalidParams;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         err.data = { holiday_calendar };
         throw err;
       }

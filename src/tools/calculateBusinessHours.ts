@@ -1,10 +1,5 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
-// SDK 1.17.2 export issue workaround
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
 import { CacheTTL } from '../cache/timeCache';
 import type {
   CalculateBusinessHoursParams,
@@ -31,6 +26,10 @@ import {
   LIMITS,
 } from '../utils/validation';
 import { withCache } from '../utils/withCache';
+
+// Import ErrorCode for MCP SDK compatibility
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const { ErrorCode } = require('@modelcontextprotocol/sdk/types.js');
 
 // Default business hours: 9 AM - 5 PM
 const DEFAULT_BUSINESS_HOURS: BusinessHours = {
@@ -223,8 +222,11 @@ export function calculateBusinessHours(
     // Validate timezone if provided
     if (timezone && !validateTimezone(timezone)) {
       debug.error('Invalid timezone: %s', timezone);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const err: any = new Error(`Invalid timezone: ${timezone}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       err.code = ErrorCode.InvalidParams;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       err.data = { timezone, field: 'timezone' };
       throw err;
     }
@@ -239,8 +241,11 @@ export function calculateBusinessHours(
     // Validate that end is after start
     if (endDate < startDate) {
       debug.error('End time must be after start time: start=%s, end=%s', start_time, end_time);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const err: any = new Error('End time must be after start time');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       err.code = ErrorCode.InvalidParams;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       err.data = { start_time, end_time };
       throw err;
     }

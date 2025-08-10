@@ -319,6 +319,51 @@ export function handleRateLimit(
 
 // Execute a tool function and format the result
 // eslint-disable-next-line max-lines-per-function
+/**
+ * Helper function to format tool execution errors
+ */
+function formatToolError(
+  error: unknown,
+  toolName: string
+): { error: { code: string; message: string; details?: unknown } } {
+  debug.trace('Tool %s execution failed: %O', toolName, error);
+
+  // Check if error already has MCP error code format (from our tools)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+  const err = error as any;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (err && typeof err === 'object' && 'code' in err && typeof err.code === 'number') {
+    // This is already a properly formatted MCP error from our tools
+    return {
+      error: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        code: err.code,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        message: err.message,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        details: err.data, // Use 'details' as per the type definition
+      },
+    };
+  }
+
+  // Check if error is an object with error property (legacy format)
+  if (err && typeof err === 'object' && 'error' in err) {
+    return err as { error: { code: string; message: string; details?: unknown } };
+  }
+
+  // Otherwise, wrap it in the expected format
+  const errorMessage = error instanceof Error ? error.message : 'Tool execution failed';
+  const errorString = error instanceof Error ? error.toString() : String(error);
+
+  return {
+    error: {
+      code: 'TOOL_ERROR',
+      message: errorMessage,
+      details: { name: toolName, error: errorString },
+    },
+  };
+}
+
 export async function executeToolFunction(
   name: string,
   args: unknown
@@ -331,11 +376,13 @@ export async function executeToolFunction(
   try {
     // Get the tool function - validate against known tools
     if (!Object.prototype.hasOwnProperty.call(TOOL_FUNCTIONS, name)) {
+      debug.error('Unknown tool: %s', name);
       throw new Error(`Unknown tool: ${name}`);
     }
     // eslint-disable-next-line security/detect-object-injection -- Tool name validated above
     const toolFunction = TOOL_FUNCTIONS[name];
     if (!toolFunction) {
+      debug.error('Tool function is null for: %s', name);
       throw new Error(`Unknown tool: ${name}`);
     }
 
@@ -352,37 +399,8 @@ export async function executeToolFunction(
         },
       ],
     };
-  } catch (error: any) {
-    debug.trace('Tool %s execution failed: %O', name, error);
-
-    // Check if error already has MCP error code format (from our tools)
-    if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'number') {
-      // This is already a properly formatted MCP error from our tools
-      return {
-        error: {
-          code: error.code,
-          message: error.message,
-          details: error.data, // Use 'details' as per the type definition
-        },
-      };
-    }
-
-    // Check if error is an object with error property (legacy format)
-    if (error && typeof error === 'object' && 'error' in error) {
-      return error as { error: { code: string; message: string; details?: unknown } };
-    }
-
-    // Otherwise, wrap it in the expected format
-    const errorMessage = error instanceof Error ? error.message : 'Tool execution failed';
-    const errorString = error instanceof Error ? error.toString() : String(error);
-
-    return {
-      error: {
-        code: 'TOOL_ERROR',
-        message: errorMessage,
-        details: { name, error: errorString },
-      },
-    };
+  } catch (error: unknown) {
+    return formatToolError(error, name);
   }
 }
 

@@ -1,14 +1,13 @@
 import { parseISO, isValid } from 'date-fns';
 import { getTimezoneOffset } from 'date-fns-tz';
-
-// SDK 1.17.2 export issue workaround - correct path without .js
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { TimeServerErrorCodes } from '../types';
 import type { TimeServerError, TimeUnit, RecurrencePattern } from '../types';
+import { debug } from './debug';
+
+// Import ErrorCode for MCP SDK compatibility
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const { ErrorCode } = require('@modelcontextprotocol/sdk/types.js');
 
 // Security limits for input validation
 export const LIMITS = {
@@ -96,8 +95,12 @@ export function validateDateString(dateStr: string | undefined | null, fieldName
 export function validateDateInput(dateInput: unknown, fieldName = 'date'): void {
   // Strict type checking - only allow string or number
   if (typeof dateInput !== 'string' && typeof dateInput !== 'number') {
+    debug.error('%s must be a string or number, got: %s', fieldName, typeof dateInput);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: any = new Error(`${fieldName} must be a string or number`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.code = ErrorCode.InvalidParams;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.data = { fieldName, type: typeof dateInput };
     throw err;
   }
@@ -160,8 +163,12 @@ export function validateStringLength(
 ): boolean {
   if (!str) return true; // undefined/null are handled elsewhere
   if (str.length > maxLength) {
+    debug.error('%s exceeds maximum length of %d characters (got %d)', fieldName, maxLength, str.length);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: any = new Error(`${fieldName} exceeds maximum length of ${maxLength} characters`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.code = ErrorCode.InvalidParams;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.data = { fieldName, length: str.length, maxLength };
     throw err;
   }
@@ -182,8 +189,12 @@ export function validateArrayLength<T>(
 ): boolean {
   if (!arr) return true; // undefined/null are handled elsewhere
   if (arr.length > maxLength) {
+    debug.error('%s exceeds maximum array length of %d items (got %d)', fieldName, maxLength, arr.length);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err: any = new Error(`${fieldName} exceeds maximum array length of ${maxLength} items`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.code = ErrorCode.InvalidParams;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     err.data = { fieldName, length: arr.length, maxLength };
     throw err;
   }

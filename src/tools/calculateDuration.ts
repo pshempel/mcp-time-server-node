@@ -35,6 +35,7 @@ export function calculateDuration(params: CalculateDurationParams): CalculateDur
     () => {
       // Validate timezone
       if (!validateTimezone(timezone)) {
+        debug.error('Invalid timezone: %s', timezone);
         throw {
           error: createError(
             TimeServerErrorCodes.INVALID_TIMEZONE,
@@ -119,6 +120,7 @@ export function validateUnit(unit: string | undefined): string {
 
   if (!validUnits.includes(resolved)) {
     debug.validation('Invalid unit detected: %s', resolved);
+    debug.error('Invalid unit: %s', resolved);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_PARAMETER,
@@ -149,6 +151,7 @@ function parseDateWithContext(time: string, timezone: string, paramName: string)
     return result;
   } catch (error) {
     debug.parse('Failed to parse %s: %s', paramName, error);
+    debug.error('Failed to parse %s: %s', paramName, error);
     const errorDetails = error as { error?: { details?: { time?: string } } };
     throw {
       error: createError(
@@ -172,6 +175,7 @@ export function parseTimeParameter(time: string, timezone: string): Date {
     return result.date;
   } catch (error) {
     debug.parse('Parse error: %s', error);
+    debug.error('Parse error: %s', error);
     throw {
       error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, `Invalid date format: ${time}`, {
         time,
