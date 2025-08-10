@@ -88,6 +88,19 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
     const startDate = parseDateWithTimezone(start_date, timezone, 'start_date');
     const endDate = parseDateWithTimezone(end_date, timezone, 'end_date');
 
+    // DoS protection: Limit date range to 100 years (36,500 days)
+    const daysDifference =
+      Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysDifference > 36500) {
+      debug.error('Date range too large: %d days (max 36500)', daysDifference);
+      throw new ValidationError('Date range exceeds maximum limit of 100 years', {
+        start_date,
+        end_date,
+        days: Math.floor(daysDifference),
+        max_days: 36500,
+      });
+    }
+
     // Log calculation context
     debug.business(
       'Business days calculation: %s to %s',

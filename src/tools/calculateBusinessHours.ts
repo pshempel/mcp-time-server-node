@@ -235,6 +235,22 @@ export function calculateBusinessHours(
       throw new ValidationError('End time must be after start time', { start_time, end_time });
     }
 
+    // DoS protection: Limit date range to 10 years (3,650 days) for business hours
+    const daysDifference =
+      Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysDifference > 3650) {
+      debug.error('Date range too large for business hours: %d days (max 3650)', daysDifference);
+      throw new ValidationError(
+        'Date range exceeds maximum limit of 10 years for business hours calculation',
+        {
+          start_time,
+          end_time,
+          days: Math.floor(daysDifference),
+          max_days: 3650,
+        }
+      );
+    }
+
     // Log the calculation context
     debug.business(
       'Business hours calculation: %s to %s in %s',
