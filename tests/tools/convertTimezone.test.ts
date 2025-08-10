@@ -1,5 +1,4 @@
 import { convertTimezone } from '../../src/tools/convertTimezone';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { ConvertTimezoneResult } from '../../src/types';
 
 // Mock the cache module
@@ -218,82 +217,78 @@ describe('convertTimezone', () => {
         })
       ).toThrow();
 
-      expect(() =>
+      // Updated for new error format - plain Error with code property
+      try {
         convertTimezone({
           time: '2025-07-18T12:00:00',
           from_timezone: 'Invalid/Zone',
           to_timezone: 'UTC',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid from_timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone', field: 'from_timezone' },
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe('Invalid from_timezone: Invalid/Zone');
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.data).toEqual({ timezone: 'Invalid/Zone', field: 'from_timezone' });
+      }
     });
 
     it('should throw error for invalid to_timezone', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      // Updated for new error format - plain Error with code property
+      try {
         convertTimezone({
           time: '2025-07-18T12:00:00',
           from_timezone: 'UTC',
           to_timezone: 'Invalid/Zone',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid to_timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone', field: 'to_timezone' },
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe('Invalid to_timezone: Invalid/Zone');
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.data).toEqual({ timezone: 'Invalid/Zone', field: 'to_timezone' });
+      }
     });
 
     it('should throw error for invalid time format', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      // Updated for new error format - plain Error with code property
+      try {
         convertTimezone({
           time: 'not-a-date',
           from_timezone: 'UTC',
           to_timezone: 'America/New_York',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid time format'),
-            details: expect.objectContaining({ time: 'not-a-date' }),
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toContain('Invalid time format');
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.data).toHaveProperty('time', 'not-a-date');
+      }
     });
 
     it('should throw error for invalid custom format', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      // Updated for new error format - plain Error with code property
+      try {
         convertTimezone({
           time: '2025-07-18T12:00:00',
           from_timezone: 'UTC',
           to_timezone: 'America/New_York',
           format: 'invalid-format-$$$$',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid format'),
-            details: expect.objectContaining({ format: 'invalid-format-$$$$' }),
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toContain('Invalid format');
+        expect(error.code).toBe(-32602); // ErrorCode.InvalidParams
+        expect(error.data).toHaveProperty('format', 'invalid-format-$$$$');
+      }
     });
   });
 

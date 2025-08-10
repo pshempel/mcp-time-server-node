@@ -2,13 +2,17 @@ import { addYears, addMonths, addDays, addHours, addMinutes, addSeconds } from '
 import { formatInTimeZone } from 'date-fns-tz';
 
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { AddTimeParams, AddTimeResult } from '../types';
+
+// SDK 1.17.2 export issue workaround
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
-import { validateTimezone, createError, validateDateInput } from '../utils/validation';
+import { validateTimezone, validateDateInput } from '../utils/validation';
 import { withCache } from '../utils/withCache';
 
 const unitFunctions = {
@@ -28,13 +32,11 @@ export function validateUnit(unit: string): void {
 
   if (!Object.prototype.hasOwnProperty.call(unitFunctions, unit)) {
     debug.validation('Invalid unit: %s', unit);
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `Invalid unit: ${unit}. Must be one of: years, months, days, hours, minutes, seconds`,
-        { unit }
-      ),
-    };
+    debug.error('Invalid unit: %s', unit);
+    const err: any = new Error(`Invalid unit: ${unit}. Must be one of: years, months, days, hours, minutes, seconds`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = { unit };
+    throw err;
   }
 
   debug.validation('Unit validation passed');
@@ -48,13 +50,11 @@ export function validateAmount(amount: number): void {
 
   if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
     debug.validation('Invalid amount: %s', amount);
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `Invalid amount: ${amount}. Must be a finite number`,
-        { amount }
-      ),
-    };
+    debug.error('Invalid amount: %s', amount);
+    const err: any = new Error(`Invalid amount: ${amount}. Must be a finite number`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = { amount };
+    throw err;
   }
 
   debug.validation('Amount validation passed');
@@ -123,12 +123,14 @@ export function parseDateWithTimezone(
     };
   } catch (error) {
     debug.parse('Parse error: %s', error);
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, `Invalid time format: ${time}`, {
-        time,
-        error: error instanceof Error ? error.message : String(error),
-      }),
+    debug.error('Invalid time format: %s, error: %O', time, error);
+    const err: any = new Error(`Invalid time format: ${time}`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = {
+      time,
+      error: error instanceof Error ? error.message : String(error),
     };
+    throw err;
   }
 }
 
@@ -257,7 +259,11 @@ export function formatWithExplicitOffset(
   // Parse the offset to calculate the result
   const offsetMatch = offset.match(/([+-])(\d{2}):(\d{2})/);
   if (!offsetMatch) {
-    throw new Error(`Invalid offset format: ${offset}`);
+    debug.error('Invalid offset format: %s', offset);
+    const err: any = new Error(`Invalid offset format: ${offset}`);
+    err.code = ErrorCode.InvalidParams;
+    err.data = { offset };
+    throw err;
   }
 
   const sign = offsetMatch[1] === '+' ? 1 : -1;
@@ -301,11 +307,11 @@ export function addTime(params: AddTimeParams): AddTimeResult {
 
     // Validate timezone if provided
     if (params.timezone && !validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      const err: any = new Error(`Invalid timezone: ${timezone}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { timezone };
+      throw err;
     }
 
     // Parse the input date with timezone handling

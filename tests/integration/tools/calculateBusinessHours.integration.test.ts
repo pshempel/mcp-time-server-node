@@ -134,7 +134,7 @@ describe('calculate_business_hours integration', () => {
           timezone: 'Invalid/Zone',
         }),
       ).rejects.toMatchObject({
-        code: 'INVALID_TIMEZONE',
+        code: -32602,
         message: 'Invalid timezone: Invalid/Zone',
       });
     } finally {
@@ -152,7 +152,7 @@ describe('calculate_business_hours integration', () => {
           end_time: '2025-01-20T14:00:00',
         }),
       ).rejects.toMatchObject({
-        code: 'INVALID_DATE_FORMAT',
+        code: -32602,
         message: 'Invalid start_time format: not-a-date',
       });
     } finally {

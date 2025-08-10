@@ -51,7 +51,7 @@ describe('subtract_time integration', () => {
           unit: 'invalid-unit',
         }),
       ).rejects.toMatchObject({
-        code: 'INVALID_PARAMETER',
+        code: -32602,
         message: expect.stringContaining('Invalid unit'),
       });
     } finally {

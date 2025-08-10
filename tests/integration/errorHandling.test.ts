@@ -60,7 +60,7 @@ describe('Error Handling Integration', () => {
         expect(response.error).toBeDefined();
 
         const error = response.error as any;
-        expect(error.code).toBe('INVALID_TIMEZONE');
+        expect(error.code).toBe(-32602);
         expect(error.message).toContain('Invalid to_timezone: Invalid/Timezone');
       } finally {
         await cleanup();
@@ -91,7 +91,7 @@ describe('Error Handling Integration', () => {
         expect(response.error).toBeDefined();
 
         const error = response.error as any;
-        expect(error.code).toBe('INVALID_DATE_FORMAT');
+        expect(error.code).toBe(-32602);
         expect(error.message).toContain('Invalid time format');
       } finally {
         await cleanup();

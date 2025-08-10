@@ -70,7 +70,7 @@ describe('next_occurrence integration', () => {
           pattern: 'invalid-pattern',
         }),
       ).rejects.toMatchObject({
-        code: 'INVALID_PARAMETER',
+        code: -32602,
         message: expect.stringContaining('Invalid pattern'),
       });
     } finally {

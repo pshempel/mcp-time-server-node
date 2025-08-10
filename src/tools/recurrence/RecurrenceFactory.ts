@@ -1,5 +1,11 @@
 import type { RecurrenceParams, RecurrencePattern } from '../../types/recurrence';
 
+// SDK 1.17.2 export issue workaround
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
+
+import { debug } from '../../utils/debug';
 import { DailyRecurrence } from './DailyRecurrence';
 import { MonthlyRecurrence } from './MonthlyRecurrence';
 import { RecurrenceValidator } from './RecurrenceValidator';
@@ -30,7 +36,11 @@ export class RecurrenceFactory {
     const pattern = this.patterns.get(params.pattern);
     if (!pattern) {
       // This should never happen if validation works correctly
-      throw new Error(`Unknown pattern: ${params.pattern}`);
+      debug.error('Unknown pattern (should never happen): %s', params.pattern);
+      const err: any = new Error(`Unknown pattern: ${params.pattern}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { pattern: params.pattern };
+      throw err;
     }
 
     return pattern;

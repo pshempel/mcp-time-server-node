@@ -109,7 +109,7 @@ describe('Advanced Integration Tests', () => {
 
         // Second should be an error
         expect(results[1]).toBeInstanceOf(Error);
-        expect(results[1]).toHaveProperty('code', 'INVALID_DATE_FORMAT');
+        expect(results[1]).toHaveProperty('code', -32602);
 
         // Third should succeed
         expect(results[2]).toHaveProperty('formatted');

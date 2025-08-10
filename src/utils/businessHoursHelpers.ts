@@ -7,11 +7,14 @@
 import { format, differenceInMinutes, eachDayOfInterval } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 
+// SDK 1.17.2 export issue workaround
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
+
 import type { BusinessHours, WeeklyBusinessHours, DayBusinessHours } from '../types';
-import { TimeServerErrorCodes } from '../types';
 
 import { debug } from './debug';
-import { createError } from './validation';
 
 // Day names for output
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -65,25 +68,21 @@ export function validateBusinessHoursStructure(
     for (const [day, dayHours] of Object.entries(hours)) {
       const dayNum = parseInt(day, 10);
       if (dayNum < 0 || dayNum > 6) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_PARAMETER,
-            `Invalid day of week: ${day}`,
-            { day }
-          ),
-        };
+        debug.error('Invalid day of week: %s', day);
+        const err: any = new Error(`Invalid day of week: ${day}`);
+        err.code = ErrorCode.InvalidParams;
+        err.data = { day, field: 'business_hours' };
+        throw err;
       }
       if (dayHours !== null) {
         try {
           validateSingleBusinessHours(dayHours as BusinessHours);
         } catch (error) {
-          throw {
-            error: createError(
-              TimeServerErrorCodes.INVALID_PARAMETER,
-              `Invalid business hours for day ${day}: ${error instanceof Error ? error.message : String(error)}`,
-              { day, hours: dayHours as BusinessHours }
-            ),
-          };
+          debug.error('Invalid business hours for day %s: %s', day, error instanceof Error ? error.message : String(error));
+          const err: any = new Error(`Invalid business hours for day ${day}: ${error instanceof Error ? error.message : String(error)}`);
+          err.code = ErrorCode.InvalidParams;
+          err.data = { day, hours: dayHours as BusinessHours, field: 'business_hours' };
+          throw err;
         }
       }
     }
@@ -92,13 +91,11 @@ export function validateBusinessHoursStructure(
     try {
       validateSingleBusinessHours(hours);
     } catch (error) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          `Invalid business hours: ${error instanceof Error ? error.message : String(error)}`,
-          { business_hours: hours }
-        ),
-      };
+      debug.error('Invalid business hours: %s', error instanceof Error ? error.message : String(error));
+      const err: any = new Error(`Invalid business hours: ${error instanceof Error ? error.message : String(error)}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { business_hours: hours, field: 'business_hours' };
+      throw err;
     }
   }
 }

@@ -82,7 +82,7 @@ describe('format_time integration', () => {
           format: 'relative',
         }),
       ).rejects.toMatchObject({
-        code: 'INVALID_DATE_FORMAT',
+        code: -32602,
         message: expect.stringContaining('Invalid'),
       });
     } finally {

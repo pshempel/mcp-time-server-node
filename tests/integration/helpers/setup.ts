@@ -340,8 +340,20 @@ export async function createTestEnvironment(options?: {
           },
         ],
       };
-    } catch (error) {
-      // Check if error is an object with error property
+    } catch (error: any) {
+      // Check if error already has MCP error code format (from our tools)
+      if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'number') {
+        // This is already a properly formatted MCP error from our tools
+        return {
+          error: {
+            code: error.code,
+            message: error.message,
+            details: error.data, // Use 'details' as per the type definition
+          },
+        };
+      }
+
+      // Check if error is an object with error property (legacy format)
       if (error && typeof error === 'object' && 'error' in error) {
         return error as { error: { code: string; message: string; details?: unknown } };
       }
@@ -465,8 +477,20 @@ export async function createTestEnvironmentWithInterceptor(options?: {
           },
         ],
       };
-    } catch (error) {
-      // Check if error is an object with error property
+    } catch (error: any) {
+      // Check if error already has MCP error code format (from our tools)
+      if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'number') {
+        // This is already a properly formatted MCP error from our tools
+        return {
+          error: {
+            code: error.code,
+            message: error.message,
+            details: error.data, // Use 'details' as per the type definition
+          },
+        };
+      }
+
+      // Check if error is an object with error property (legacy format)
       if (error && typeof error === 'object' && 'error' in error) {
         return error as { error: { code: string; message: string; details?: unknown } };
       }

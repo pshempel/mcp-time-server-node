@@ -1,4 +1,8 @@
-import { TimeServerErrorCodes } from '../../types';
+// SDK 1.17.2 export issue workaround
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
+
 import type {
   RecurrenceParams,
   DailyParams,
@@ -6,12 +10,12 @@ import type {
   MonthlyParams,
   YearlyParams,
 } from '../../types/recurrence';
+import { debug } from '../../utils/debug';
 import {
   validateTimezone,
   validateRecurrencePattern,
   validateDayOfWeek,
   validateStringLength,
-  createError,
   LIMITS,
 } from '../../utils/validation';
 
@@ -25,11 +29,11 @@ export class RecurrenceValidator {
 
     // Validate pattern
     if (!validateRecurrencePattern(validParams.pattern)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid pattern', {
-          pattern: validParams.pattern,
-        }),
-      };
+      debug.error('Invalid pattern: %s', validParams.pattern);
+      const err: any = new Error('Invalid pattern');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { pattern: validParams.pattern };
+      throw err;
     }
 
     // Validate common fields
@@ -55,11 +59,11 @@ export class RecurrenceValidator {
   private validatePatternExists(params: RecurrenceParams): asserts params is RecurrenceParams {
     const p = params as { pattern?: string } | null | undefined;
     if (!p?.pattern) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Pattern is required', {
-          pattern: p?.pattern,
-        }),
-      };
+      debug.error('Pattern is required');
+      const err: any = new Error('Pattern is required');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { pattern: p?.pattern };
+      throw err;
     }
   }
 
@@ -80,11 +84,11 @@ export class RecurrenceValidator {
 
     // Empty string is valid (means UTC)
     if (timezone !== '' && !validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      const err: any = new Error(`Invalid timezone: ${timezone}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { timezone };
+      throw err;
     }
   }
 
@@ -95,17 +99,21 @@ export class RecurrenceValidator {
 
     const timeMatch = time.match(/^(\d{1,2}):(\d{2})$/);
     if (!timeMatch) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid time format', { time }),
-      };
+      debug.error('Invalid time format: %s', time);
+      const err: any = new Error('Invalid time format');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { time };
+      throw err;
     }
 
     const hours = parseInt(timeMatch[1], 10);
     const minutes = parseInt(timeMatch[2], 10);
     if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid time format', { time }),
-      };
+      debug.error('Invalid time format (hours/minutes out of range): %s', time);
+      const err: any = new Error('Invalid time format');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { time };
+      throw err;
     }
   }
 
@@ -116,24 +124,22 @@ export class RecurrenceValidator {
   private validateWeeklyParams(params: WeeklyParams): void {
     // dayOfWeek is optional, but if provided must be valid
     if (params.dayOfWeek !== undefined && !validateDayOfWeek(params.dayOfWeek)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid day of week', {
-          dayOfWeek: params.dayOfWeek,
-        }),
-      };
+      debug.error('Invalid day_of_week: %s', params.dayOfWeek);
+      const err: any = new Error('Invalid day_of_week');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { dayOfWeek: params.dayOfWeek };
+      throw err;
     }
   }
 
   private validateMonthlyParams(params: MonthlyParams): void {
     // dayOfMonth is required for monthly
     if (params.dayOfMonth === undefined) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'dayOfMonth is required for monthly pattern',
-          { pattern: params.pattern },
-        ),
-      };
+      debug.error('dayOfMonth is required for monthly pattern');
+      const err: any = new Error('dayOfMonth is required for monthly pattern');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { pattern: params.pattern };
+      throw err;
     }
 
     // Special case: -1 means last day of month
@@ -142,11 +148,11 @@ export class RecurrenceValidator {
       (Number.isInteger(params.dayOfMonth) && params.dayOfMonth >= 1 && params.dayOfMonth <= 31);
 
     if (!isValidDay) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid day of month', {
-          dayOfMonth: params.dayOfMonth,
-        }),
-      };
+      debug.error('Invalid day_of_month: %s', params.dayOfMonth);
+      const err: any = new Error('Invalid day_of_month');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { dayOfMonth: params.dayOfMonth };
+      throw err;
     }
   }
 
@@ -165,13 +171,11 @@ export class RecurrenceValidator {
     params: YearlyParams,
   ): void {
     if (hasMonth !== hasDayOfMonth) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'Both month and dayOfMonth must be provided together for yearly pattern',
-          { month: params.month, dayOfMonth: params.dayOfMonth },
-        ),
-      };
+      debug.error('Both month and dayOfMonth must be provided together for yearly pattern');
+      const err: any = new Error('Both month and dayOfMonth must be provided together for yearly pattern');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { month: params.month, dayOfMonth: params.dayOfMonth };
+      throw err;
     }
   }
 
@@ -182,11 +186,11 @@ export class RecurrenceValidator {
 
     const isValidMonth = Number.isInteger(month) && month >= 0 && month <= 11;
     if (!isValidMonth) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid month (must be 0-11)', {
-          month,
-        }),
-      };
+      debug.error('Invalid month (must be 0-11): %s', month);
+      const err: any = new Error('Invalid month (must be 0-11)');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { month };
+      throw err;
     }
   }
 
@@ -199,11 +203,11 @@ export class RecurrenceValidator {
       dayOfMonth === -1 || (Number.isInteger(dayOfMonth) && dayOfMonth >= 1 && dayOfMonth <= 31);
 
     if (!isValidDay) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid day of month', {
-          dayOfMonth,
-        }),
-      };
+      debug.error('Invalid day_of_month: %s', dayOfMonth);
+      const err: any = new Error('Invalid day_of_month');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { dayOfMonth };
+      throw err;
     }
   }
 }

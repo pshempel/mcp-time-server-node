@@ -1,7 +1,11 @@
 import { formatInTimeZone } from 'date-fns-tz';
 
+// SDK 1.17.2 export issue workaround
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
+
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type {
   CalculateBusinessHoursParams,
   CalculateBusinessHoursResult,
@@ -22,7 +26,6 @@ import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import {
   validateTimezone,
-  createError,
   validateDateString,
   validateArrayLength,
   LIMITS,
@@ -219,11 +222,11 @@ export function calculateBusinessHours(
   return withCache(cacheKey, CacheTTL.CALCULATIONS, () => {
     // Validate timezone if provided
     if (timezone && !validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      const err: any = new Error(`Invalid timezone: ${timezone}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { timezone, field: 'timezone' };
+      throw err;
     }
 
     // Validate business hours structure using helper
@@ -235,13 +238,11 @@ export function calculateBusinessHours(
 
     // Validate that end is after start
     if (endDate < startDate) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'End time must be after start time',
-          { start_time, end_time }
-        ),
-      };
+      debug.error('End time must be after start time: start=%s, end=%s', start_time, end_time);
+      const err: any = new Error('End time must be after start time');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { start_time, end_time };
+      throw err;
     }
 
     // Log the calculation context

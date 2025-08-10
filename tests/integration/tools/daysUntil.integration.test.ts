@@ -147,7 +147,7 @@ describe('days_until integration', () => {
 
     try {
       await expect(callTool(client, 'days_until', {})).rejects.toMatchObject({
-        code: 'INVALID_PARAMETER',
+        code: -32602,
         message: expect.stringContaining('target_date is required'),
       });
     } finally {
@@ -164,7 +164,7 @@ describe('days_until integration', () => {
           target_date: 'not-a-date',
         }),
       ).rejects.toMatchObject({
-        code: 'INVALID_DATE_FORMAT',
+        code: -32602,
         message: expect.stringContaining('Invalid target_date format'),
       });
     } finally {
@@ -182,7 +182,7 @@ describe('days_until integration', () => {
           timezone: 'Invalid/Timezone',
         }),
       ).rejects.toMatchObject({
-        code: 'INVALID_TIMEZONE',
+        code: -32602,
         message: expect.stringContaining('Invalid timezone'),
       });
     } finally {

@@ -2,15 +2,18 @@ import { startOfDay, differenceInDays } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { FormatTimeParams, FormatTimeResult } from '../types';
+
+// SDK 1.17.2 export issue workaround
+const path = require('path');
+const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
+const { ErrorCode } = require(sdkPath);
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import {
   validateTimezone,
-  createError,
   validateDateString,
   validateStringLength,
   LIMITS,
@@ -198,34 +201,28 @@ export function validateFormatParams(params: FormatTimeParams): void {
   // Validate format type
   const validFormats = ['relative', 'calendar', 'custom'];
   if (!validFormats.includes(formatType)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid format type', {
-        format: params.format,
-      }),
-    };
+    debug.error('Invalid format type: %s', params.format);
+    const err: any = new Error('Invalid format type');
+    err.code = ErrorCode.InvalidParams;
+    err.data = { format: params.format };
+    throw err;
   }
 
   // Validate custom format requirements
   if (formatType === 'custom') {
     if (params.custom_format === undefined || params.custom_format === null) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'custom_format is required when format is "custom"',
-          {}
-        ),
-      };
+      debug.error('custom_format is required when format is "custom"');
+      const err: any = new Error('custom_format is required when format is "custom"');
+      err.code = ErrorCode.InvalidParams;
+      err.data = {};
+      throw err;
     }
     if (params.custom_format === '') {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'custom_format cannot be empty',
-          {
-            custom_format: '',
-          }
-        ),
-      };
+      debug.error('custom_format cannot be empty');
+      const err: any = new Error('custom_format cannot be empty');
+      err.code = ErrorCode.InvalidParams;
+      err.data = { custom_format: '' };
+      throw err;
     }
   }
 
@@ -234,11 +231,11 @@ export function validateFormatParams(params: FormatTimeParams): void {
     const config = getConfig();
     const timezone = resolveTimezone(params.timezone, config.defaultTimezone);
     if (!validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      const err: any = new Error(`Invalid timezone: ${timezone}`);
+      err.code = ErrorCode.InvalidParams;
+      err.data = { timezone };
+      throw err;
     }
   }
 
@@ -270,12 +267,14 @@ export function parseTimeWithFallback(timeInput: string | number, timezone: stri
       debug.parse('Fallback succeeded: %s', date.toISOString());
     } catch (fallbackError) {
       debug.parse('Fallback also failed: %s', fallbackError);
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, 'Invalid time', {
-          time: timeInput,
-          error: error instanceof Error ? error.message : String(error),
-        }),
+      debug.error('Invalid time: %s', timeInput);
+      const err: any = new Error('Invalid time');
+      err.code = ErrorCode.InvalidParams;
+      err.data = {
+        time: timeInput,
+        error: error instanceof Error ? error.message : String(error),
       };
+      throw err;
     }
   }
 
@@ -341,12 +340,14 @@ export function formatCustomTime(date: Date, customFormat: string, timezone: str
 
   // Validate format string for security
   if (!isValidFormatString(customFormat)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid custom format string', {
-        custom_format: customFormat,
-        reason: 'Format string contains invalid characters',
-      }),
+    debug.error('Invalid custom format string: %s', customFormat);
+    const err: any = new Error('Invalid custom format string');
+    err.code = ErrorCode.InvalidParams;
+    err.data = {
+      custom_format: customFormat,
+      reason: 'Format string contains invalid characters',
     };
+    throw err;
   }
 
   debug.timing('Formatting with: %s', customFormat);
@@ -395,11 +396,11 @@ export function formatTime(params: FormatTimeParams): FormatTimeResult {
 
         default:
           // Should never reach here due to validation
-          throw {
-            error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid format type', {
-              format: formatType,
-            }),
-          };
+          debug.error('Invalid format type (should never reach): %s', formatType);
+          const err: any = new Error('Invalid format type');
+          err.code = ErrorCode.InvalidParams;
+          err.data = { format: formatType };
+          throw err;
       }
 
       const result: FormatTimeResult = {

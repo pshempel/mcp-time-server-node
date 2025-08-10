@@ -1,5 +1,4 @@
 import { nextOccurrence } from '../../src/tools/nextOccurrence';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { NextOccurrenceResult } from '../../src/types';
 
 // Mock the cache module
@@ -363,11 +362,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: 'Invalid pattern',
-            details: { pattern: 'DAILY' },
-          },
+          code: -32602,
+          message: expect.stringContaining('Invalid pattern'),
+          data: expect.objectContaining({ pattern: 'DAILY' }),
         })
       );
     });
@@ -390,11 +387,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('dayOfMonth is required for monthly pattern'),
-            details: { pattern: 'monthly' },
-          },
+          code: -32602,
+          message: expect.stringContaining('dayOfMonth is required'),
+          data: expect.objectContaining({ pattern: 'monthly' }),
         })
       );
     });
@@ -425,11 +420,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid pattern'),
-            details: { pattern: 'invalid' },
-          },
+          code: -32602,
+          message: expect.stringContaining('Invalid pattern'),
+          data: expect.objectContaining({ pattern: 'invalid' }),
         })
       );
     });
@@ -444,11 +437,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid day of week'),
-            details: { dayOfWeek: 7 },
-          },
+          code: -32602,
+          message: expect.stringContaining('Invalid day_of_week'),
+          data: expect.objectContaining({ dayOfWeek: 7 }),
         })
       );
     });
@@ -463,11 +454,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid day of month'),
-            details: { dayOfMonth: 32 },
-          },
+          code: -32602,
+          message: expect.stringContaining('Invalid day_of_month'),
+          data: expect.objectContaining({ dayOfMonth: 32 }),
         })
       );
 
@@ -478,11 +467,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid day of month'),
-            details: { dayOfMonth: 0 },
-          },
+          code: -32602,
+          message: expect.stringContaining('Invalid day_of_month'),
+          data: expect.objectContaining({ dayOfMonth: 0 }),
         })
       );
     });
@@ -497,11 +484,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid time format'),
-            details: { time: 'invalid' },
-          },
+          code: -32602,
+          message: expect.stringContaining('Invalid time format'),
+          data: expect.objectContaining({ time: 'invalid' }),
         })
       );
 
@@ -512,11 +497,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid time format'),
-            details: { time: '25:00' },
-          },
+          code: -32602,
+          message: expect.stringContaining('Invalid time format'),
+          data: expect.objectContaining({ time: '25:00' }),
         })
       );
     });
@@ -531,11 +514,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone' },
-          },
+          code: -32602,
+          message: 'Invalid timezone: Invalid/Zone',
+          data: { timezone: 'Invalid/Zone' },
         })
       );
     });
@@ -550,8 +531,9 @@ describe('nextOccurrence', () => {
         })
       ).toThrowError(
         expect.objectContaining({
-          code: TimeServerErrorCodes.INTERNAL_ERROR,
-          message: expect.stringContaining('Failed to calculate next occurrence'),
+          code: -32602,
+          message: 'Invalid start_from date',
+          data: { start_from: 'not-a-date' },
         })
       );
     });

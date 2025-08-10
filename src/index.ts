@@ -318,6 +318,7 @@ export function handleRateLimit(
 }
 
 // Execute a tool function and format the result
+// eslint-disable-next-line max-lines-per-function
 export async function executeToolFunction(
   name: string,
   args: unknown
@@ -351,10 +352,22 @@ export async function executeToolFunction(
         },
       ],
     };
-  } catch (error) {
+  } catch (error: any) {
     debug.trace('Tool %s execution failed: %O', name, error);
 
-    // Check if error is an object with error property
+    // Check if error already has MCP error code format (from our tools)
+    if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'number') {
+      // This is already a properly formatted MCP error from our tools
+      return {
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.data, // Use 'details' as per the type definition
+        },
+      };
+    }
+
+    // Check if error is an object with error property (legacy format)
     if (error && typeof error === 'object' && 'error' in error) {
       return error as { error: { code: string; message: string; details?: unknown } };
     }
