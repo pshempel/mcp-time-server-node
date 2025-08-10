@@ -1,8 +1,14 @@
-import { eachDayOfInterval, isWeekend, format } from 'date-fns';
+import { eachDayOfInterval, format } from 'date-fns';
 
-import { ValidationError, TimezoneError } from '../adapters/mcp-sdk';
+import { TimezoneError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
 import type { GetBusinessDaysParams, GetBusinessDaysResult } from '../types';
+import {
+  validateHolidayCalendar,
+  validateDateRange,
+  categorizeDays,
+  adjustForWeekends,
+} from '../utils/businessDayHelpers';
 import { parseDateWithTimezone } from '../utils/businessUtils';
 import { buildCacheKey } from '../utils/cacheKeyBuilder';
 import { getConfig } from '../utils/config';
@@ -69,37 +75,15 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
 
     // Validate holiday_calendar if provided
     if (holiday_calendar) {
-      if (holiday_calendar.includes('\0') || holiday_calendar.includes('\x00')) {
-        debug.error('Invalid holiday_calendar contains null bytes: %s', holiday_calendar);
-        throw new ValidationError('Invalid holiday_calendar: contains null bytes', {
-          holiday_calendar,
-        });
-      }
-
-      if (!/^[A-Z]{2,3}$/.test(holiday_calendar)) {
-        debug.error('Invalid holiday_calendar format: %s', holiday_calendar);
-        throw new ValidationError('Invalid holiday_calendar: must be a 2-3 letter country code', {
-          holiday_calendar,
-        });
-      }
+      validateHolidayCalendar(holiday_calendar);
     }
 
     // Parse dates
     const startDate = parseDateWithTimezone(start_date, timezone, 'start_date');
     const endDate = parseDateWithTimezone(end_date, timezone, 'end_date');
 
-    // DoS protection: Limit date range to 100 years (36,500 days)
-    const daysDifference =
-      Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysDifference > 36500) {
-      debug.error('Date range too large: %d days (max 36500)', daysDifference);
-      throw new ValidationError('Date range exceeds maximum limit of 100 years', {
-        start_date,
-        end_date,
-        days: Math.floor(daysDifference),
-        max_days: 36500,
-      });
-    }
+    // DoS protection: Validate date range
+    validateDateRange(startDate, endDate, start_date, end_date);
 
     // Log calculation context
     debug.business(
@@ -133,37 +117,13 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
     });
     debug.timing('Processing %d days from %s to %s', days.length, start_date, end_date);
 
-    // Calculate different categories
-    let businessDays = 0;
-    let weekendDays = 0;
-    let holidayCount = 0;
+    // Categorize days into business, weekend, and holiday
+    const categories = categorizeDays(days, allHolidayDates);
 
-    for (const day of days) {
-      const isWeekendDay = isWeekend(day);
-      const isHolidayDay = allHolidayDates.has(day.toDateString());
-      const dayStr = format(day, 'yyyy-MM-dd');
+    // Adjust for weekend inclusion preference
+    const adjustedCategories = adjustForWeekends(categories, excludeWeekends);
 
-      if (isWeekendDay) {
-        weekendDays++;
-        debug.trace('  %s: weekend', dayStr);
-      } else if (isHolidayDay) {
-        holidayCount++;
-        debug.trace('  %s: holiday', dayStr);
-      } else {
-        businessDays++;
-        debug.trace('  %s: business day', dayStr);
-      }
-    }
-
-    // If not excluding weekends, add weekend days to business days
-    if (!excludeWeekends) {
-      debug.decision('Including weekends', {
-        weekendDays,
-        businessDaysBefore: businessDays,
-        businessDaysAfter: businessDays + weekendDays,
-      });
-      businessDays += weekendDays;
-    }
+    const { businessDays, weekendDays, holidayCount } = adjustedCategories;
 
     // Log summary
     debug.business(
