@@ -447,8 +447,10 @@ async function main(): Promise<void> {
   console.error('MCP Time Server Node running on stdio');
 }
 
-// Run the server
-main().catch((error) => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+// Only run the server if this is the main module
+if (require.main === module) {
+  main().catch((error) => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}
