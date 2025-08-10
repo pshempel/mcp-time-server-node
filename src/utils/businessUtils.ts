@@ -6,10 +6,7 @@
  * Tool-specific logic remains in each tool.
  */
 
-// SDK 1.17.2 export issue workaround
-const path = require('path');
-const sdkPath = path.resolve(__dirname, '../../node_modules/@modelcontextprotocol/sdk/dist/cjs/types');
-const { ErrorCode } = require(sdkPath);
+import { DateParsingError, HolidayDataError } from '../adapters/mcp-sdk/errors';
 
 import { debug } from './debug';
 import { parseTimeInput } from './parseTimeInput';
@@ -28,15 +25,16 @@ export function parseDateWithTimezone(dateStr: string, timezone: string, fieldNa
   try {
     return parseTimeInput(dateStr, timezone).date;
   } catch (error) {
-    debug.error('Invalid %s format: %s, error: %s', fieldName, dateStr, error instanceof Error ? error.message : String(error));
-    const err: any = new Error(`Invalid ${fieldName} format: ${dateStr}`);
-    err.code = ErrorCode.InvalidParams;
-    err.data = {
+    debug.error(
+      'Invalid %s format: %s, error: %s',
+      fieldName,
+      dateStr,
+      error instanceof Error ? error.message : String(error)
+    );
+    throw new DateParsingError(`Invalid ${fieldName} format: ${dateStr}`, {
       [fieldName]: dateStr,
-      error: error instanceof Error ? error.message : String(error),
-      field: fieldName
-    };
-    throw err;
+      originalError: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -58,16 +56,17 @@ export function parseHolidayDates(holidays: string[], timezone: string): Date[] 
     try {
       holidayDates.push(parseTimeInput(holiday, timezone).date);
     } catch (error) {
-      debug.error('Invalid holiday date: %s at index %d, error: %s', holiday, i, error instanceof Error ? error.message : String(error));
-      const err: any = new Error(`Invalid holiday date: ${holiday}`);
-      err.code = ErrorCode.InvalidParams;
-      err.data = {
+      debug.error(
+        'Invalid holiday date: %s at index %d, error: %s',
+        holiday,
+        i,
+        error instanceof Error ? error.message : String(error)
+      );
+      throw new HolidayDataError(`Invalid holiday date: ${holiday}`, {
         holiday,
         index: i,
-        error: error instanceof Error ? error.message : String(error),
-        field: 'holidays'
-      };
-      throw err;
+        originalError: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
