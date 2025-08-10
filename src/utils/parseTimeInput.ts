@@ -1,10 +1,9 @@
 import { parseISO, isValid } from 'date-fns';
 import { toDate } from 'date-fns-tz';
 
-import { TimeServerErrorCodes } from '../types';
+import { DateParsingError } from '../adapters/mcp-sdk/errors';
 
 import { debug } from './debug';
-import { createError } from './validation';
 
 /**
  * Result of parsing a time input
@@ -52,14 +51,7 @@ function parseUnixTimestamp(timeStr: string): ParseResult | null {
   const timestamp = parseInt(timeStr, 10);
   if (isNaN(timestamp)) {
     debug.error('Invalid Unix timestamp: %s', timeStr);
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid Unix timestamp: ${timeStr}`,
-        { input: timeStr }
-      ),
-    };
+    throw new DateParsingError(`Invalid Unix timestamp: ${timeStr}`, { input: timeStr });
   }
 
   // Heuristic: > 10 digits likely milliseconds (after year 2286)
@@ -90,14 +82,7 @@ function parseISOWithTimezone(timeStr: string): ParseResult | null {
   const date = parseISO(timeStr);
   if (!isValid(date)) {
     debug.error('Invalid ISO date string: %s', timeStr);
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid ISO date string: ${timeStr}`,
-        { input: timeStr }
-      ),
-    };
+    throw new DateParsingError(`Invalid ISO date string: ${timeStr}`, { input: timeStr });
   }
 
   const offset = extractOffset(timeStr);
@@ -139,26 +124,16 @@ function parseLocalTime(timeStr: string, timezone?: string): ParseResult {
       timezone,
       String(error)
     );
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Failed to parse date: ${timeStr}`,
-        { input: timeStr, timezone, error: String(error) }
-      ),
-    };
+    throw new DateParsingError(`Failed to parse date: ${timeStr}`, {
+      input: timeStr,
+      timezone,
+      error: String(error),
+    });
   }
 
   if (!isValid(date)) {
     debug.error('Invalid date format: %s in timezone: %s', timeStr, timezone);
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        `Invalid date format: ${timeStr}`,
-        { input: timeStr, timezone }
-      ),
-    };
+    throw new DateParsingError(`Invalid date format: ${timeStr}`, { input: timeStr, timezone });
   }
 
   debug.parsing('Parsed local time:', {
@@ -198,14 +173,7 @@ export function parseTimeInput(
   // Handle undefined/null/empty
   if (input == null || input === '') {
     debug.error('Input cannot be null, undefined, or empty: %O', input);
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_DATE_FORMAT,
-        'Input cannot be null, undefined, or empty',
-        { input }
-      ),
-    };
+    throw new DateParsingError('Input cannot be null, undefined, or empty', { input });
   }
 
   // Normalize to string

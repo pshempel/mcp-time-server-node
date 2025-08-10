@@ -12,6 +12,7 @@
  * - Deduplication across sources
  */
 
+import { DateParsingError } from '../adapters/mcp-sdk/errors';
 import { getHolidaysForYear } from '../data/holidays';
 
 import { parseHolidayDates } from './businessUtils';
@@ -87,14 +88,10 @@ export function aggregateHolidays(params: HolidayAggregatorParams): Set<string> 
         invalidHoliday ?? 'unknown',
         originalMessage
       );
-      // eslint-disable-next-line @typescript-eslint/only-throw-error
-      throw {
-        error: {
-          code: 'INVALID_DATE_FORMAT',
-          message: `Invalid custom holiday date: ${invalidHoliday ?? 'unknown'}`,
-          data: { holiday: invalidHoliday, error: originalMessage },
-        },
-      };
+      throw new DateParsingError(`Invalid custom holiday date: ${invalidHoliday ?? 'unknown'}`, {
+        holiday: invalidHoliday,
+        error: originalMessage,
+      });
     }
 
     let addedCount = 0;
