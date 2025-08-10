@@ -59,7 +59,16 @@ function valueToString(value: unknown): string {
   if (typeof value === 'number') {
     return String(value);
   }
-  return escapeValue(String(value));
+  if (typeof value === 'object' && value !== null) {
+    try {
+      return escapeValue(JSON.stringify(value));
+    } catch {
+      return escapeValue('[Circular object]');
+    }
+  }
+  // Only primitives left (string, undefined, null, symbol, bigint)
+  // TypeScript doesn't know we've already handled all objects, so we assert
+  return escapeValue(String(value as string | undefined | null | symbol | bigint));
 }
 
 /**
