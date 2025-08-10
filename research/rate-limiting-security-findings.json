@@ -1,0 +1,34 @@
+{
+  "timestamp": "2025-07-28 19:17:21",
+  "findings": [
+    {
+      "issue": "Memory exhaustion vulnerability",
+      "severity": "Medium",
+      "description": "Attacker could fill memory by making requests just under limit",
+      "mitigation": "Add maximum array size limit or periodic cleanup"
+    },
+    {
+      "issue": "Per-instance bypass",
+      "severity": "High",
+      "description": "Multiple MCP clients can bypass rate limits",
+      "mitigation": "Consider distributed rate limiting or document limitation"
+    },
+    {
+      "issue": "Clock manipulation",
+      "severity": "Low",
+      "description": "System time changes affect rate limiting",
+      "mitigation": "Use monotonic clock or accept as limitation"
+    },
+    {
+      "issue": "No client differentiation",
+      "severity": "Medium",
+      "description": "Cannot implement per-user or per-API-key limits",
+      "mitigation": "Document as stdio transport limitation"
+    }
+  ],
+  "summary": {
+    "high": 1,
+    "medium": 2,
+    "low": 1
+  }
+}
