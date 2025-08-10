@@ -286,7 +286,7 @@ export async function createTestEnvironment(options?: {
       capabilities: {
         tools: {},
       },
-    },
+    }
   );
 
   // Create rate limiter
@@ -296,7 +296,7 @@ export async function createTestEnvironment(options?: {
   server.setRequestHandler(ListToolsRequestSchema, () =>
     Promise.resolve({
       tools: TOOL_DEFINITIONS,
-    }),
+    })
   );
 
   // Register tools/call handler
@@ -391,6 +391,9 @@ export async function createTestEnvironment(options?: {
     if (options?.rateLimitWindow !== undefined) {
       delete process.env.RATE_LIMIT_WINDOW;
     }
+
+    // Clear any pending timers to prevent Jest worker leak warnings
+    jest.clearAllTimers();
   };
 
   return { client, server, cleanup };
@@ -423,7 +426,7 @@ export async function createTestEnvironmentWithInterceptor(options?: {
       capabilities: {
         tools: {},
       },
-    },
+    }
   );
 
   // Create rate limiter
@@ -433,7 +436,7 @@ export async function createTestEnvironmentWithInterceptor(options?: {
   server.setRequestHandler(ListToolsRequestSchema, () =>
     Promise.resolve({
       tools: TOOL_DEFINITIONS,
-    }),
+    })
   );
 
   // Register tools/call handler
@@ -528,6 +531,9 @@ export async function createTestEnvironmentWithInterceptor(options?: {
     if (options?.rateLimitWindow !== undefined) {
       delete process.env.RATE_LIMIT_WINDOW;
     }
+
+    // Clear any pending timers to prevent Jest worker leak warnings
+    jest.clearAllTimers();
   };
 
   return { client, server, cleanup, clientInterceptor, serverInterceptor };

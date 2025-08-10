@@ -3,6 +3,11 @@ import { createTestEnvironment } from '../integration/helpers/setup';
 import { callTool } from '../integration/helpers/tools';
 
 describe('MCP Security Tests - Attack Vectors', () => {
+  afterEach(() => {
+    // Clear any lingering timers after each test
+    jest.clearAllTimers();
+  });
+
   describe('Path Traversal Attacks', () => {
     it('should reject path traversal in date parameters', async () => {
       const { client, cleanup } = await createTestEnvironment();
