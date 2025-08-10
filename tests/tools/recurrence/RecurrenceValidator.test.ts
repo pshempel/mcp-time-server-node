@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 
 import { RecurrenceValidator } from '../../../src/tools/recurrence/RecurrenceValidator';
+import { ValidationError, TimezoneError } from '../../../src/adapters/mcp-sdk/errors';
 import type {
   DailyParams,
   WeeklyParams,
@@ -23,26 +24,28 @@ describe('RecurrenceValidator', () => {
     it('should reject invalid patterns', () => {
       const invalidPatterns = ['hourly', 'invalid', 'DAILY'];
       invalidPatterns.forEach((pattern) => {
-        expect(() => validator.validate({ pattern } as any)).toThrow(
-          expect.objectContaining({
-            error: expect.objectContaining({
-              code: 'INVALID_PARAMETER',
-              message: expect.stringContaining('Invalid pattern'),
-            }),
-          }),
-        );
+        expect(() => validator.validate({ pattern } as any)).toThrow();
+
+        try {
+          validator.validate({ pattern } as any);
+        } catch (error: any) {
+          expect(error).toBeInstanceOf(ValidationError);
+          expect(error.code).toBe('VALIDATION_ERROR');
+          expect(error.message).toContain('Invalid pattern');
+        }
       });
     });
 
     it('should reject missing pattern', () => {
-      expect(() => validator.validate({} as any)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('Pattern is required'),
-          }),
-        }),
-      );
+      expect(() => validator.validate({} as any)).toThrow();
+
+      try {
+        validator.validate({} as any);
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Pattern is required');
+      }
     });
   });
 
@@ -67,14 +70,15 @@ describe('RecurrenceValidator', () => {
 
     it('should reject invalid timezones', () => {
       const params: DailyParams = { pattern: 'daily', timezone: 'Invalid/Zone' };
-      expect(() => validator.validate(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_TIMEZONE',
-            message: expect.stringContaining('Invalid timezone'),
-          }),
-        }),
-      );
+      expect(() => validator.validate(params)).toThrow();
+
+      try {
+        validator.validate(params);
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.message).toContain('Invalid timezone');
+      }
     });
   });
 
@@ -96,14 +100,15 @@ describe('RecurrenceValidator', () => {
       const invalidTimes = ['24:00', '12:60', '14:30:00', '14', '14:3', 'invalid'];
       invalidTimes.forEach((time) => {
         const params: DailyParams = { pattern: 'daily', time };
-        expect(() => validator.validate(params)).toThrow(
-          expect.objectContaining({
-            error: expect.objectContaining({
-              code: 'INVALID_PARAMETER',
-              message: expect.stringContaining('Invalid time format'),
-            }),
-          }),
-        );
+        expect(() => validator.validate(params)).toThrow();
+
+        try {
+          validator.validate(params);
+        } catch (error: any) {
+          expect(error).toBeInstanceOf(ValidationError);
+          expect(error.code).toBe('VALIDATION_ERROR');
+          expect(error.message).toContain('Invalid time format');
+        }
       });
     });
   });
@@ -126,14 +131,15 @@ describe('RecurrenceValidator', () => {
       const invalidDays = [-1, 7, 0.5, NaN];
       invalidDays.forEach((dayOfWeek) => {
         const params: WeeklyParams = { pattern: 'weekly', dayOfWeek };
-        expect(() => validator.validate(params)).toThrow(
-          expect.objectContaining({
-            error: expect.objectContaining({
-              code: 'INVALID_PARAMETER',
-              message: expect.stringContaining('Invalid day of week'),
-            }),
-          }),
-        );
+        expect(() => validator.validate(params)).toThrow();
+
+        try {
+          validator.validate(params);
+        } catch (error: any) {
+          expect(error).toBeInstanceOf(ValidationError);
+          expect(error.code).toBe('VALIDATION_ERROR');
+          expect(error.message).toContain('Invalid day_of_week');
+        }
       });
     });
   });
@@ -149,28 +155,30 @@ describe('RecurrenceValidator', () => {
 
     it('should reject missing day of month', () => {
       const params = { pattern: 'monthly' } as MonthlyParams;
-      expect(() => validator.validate(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('dayOfMonth is required'),
-          }),
-        }),
-      );
+      expect(() => validator.validate(params)).toThrow();
+
+      try {
+        validator.validate(params);
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('dayOfMonth is required');
+      }
     });
 
     it('should reject invalid day of month', () => {
       const invalidDays = [-2, 0, 32, 1.5, NaN];
       invalidDays.forEach((dayOfMonth) => {
         const params: MonthlyParams = { pattern: 'monthly', dayOfMonth };
-        expect(() => validator.validate(params)).toThrow(
-          expect.objectContaining({
-            error: expect.objectContaining({
-              code: 'INVALID_PARAMETER',
-              message: expect.stringContaining('Invalid day of month'),
-            }),
-          }),
-        );
+        expect(() => validator.validate(params)).toThrow();
+
+        try {
+          validator.validate(params);
+        } catch (error: any) {
+          expect(error).toBeInstanceOf(ValidationError);
+          expect(error.code).toBe('VALIDATION_ERROR');
+          expect(error.message).toContain('Invalid day_of_month');
+        }
       });
     });
   });
@@ -193,39 +201,42 @@ describe('RecurrenceValidator', () => {
       const invalidMonths = [-1, 12, 0.5, NaN];
       invalidMonths.forEach((month) => {
         const params: YearlyParams = { pattern: 'yearly', month, dayOfMonth: 15 };
-        expect(() => validator.validate(params)).toThrow(
-          expect.objectContaining({
-            error: expect.objectContaining({
-              code: 'INVALID_PARAMETER',
-              message: expect.stringContaining('Invalid month'),
-            }),
-          }),
-        );
+        expect(() => validator.validate(params)).toThrow();
+
+        try {
+          validator.validate(params);
+        } catch (error: any) {
+          expect(error).toBeInstanceOf(ValidationError);
+          expect(error.code).toBe('VALIDATION_ERROR');
+          expect(error.message).toContain('Invalid month');
+        }
       });
     });
 
     it('should reject month without dayOfMonth', () => {
       const params: YearlyParams = { pattern: 'yearly', month: 5 };
-      expect(() => validator.validate(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('Both month and dayOfMonth'),
-          }),
-        }),
-      );
+      expect(() => validator.validate(params)).toThrow();
+
+      try {
+        validator.validate(params);
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Both month and dayOfMonth');
+      }
     });
 
     it('should reject dayOfMonth without month', () => {
       const params: YearlyParams = { pattern: 'yearly', dayOfMonth: 15 };
-      expect(() => validator.validate(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('Both month and dayOfMonth'),
-          }),
-        }),
-      );
+      expect(() => validator.validate(params)).toThrow();
+
+      try {
+        validator.validate(params);
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Both month and dayOfMonth');
+      }
     });
   });
 
@@ -235,14 +246,15 @@ describe('RecurrenceValidator', () => {
         pattern: 'daily',
         timezone: 'A'.repeat(101), // Over 100 char limit
       };
-      expect(() => validator.validate(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_PARAMETER',
-            message: expect.stringContaining('exceeds maximum length'),
-          }),
-        }),
-      );
+      expect(() => validator.validate(params)).toThrow();
+
+      try {
+        validator.validate(params);
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('exceeds maximum length');
+      }
     });
 
     it('should accept timezone at max length', () => {
@@ -251,13 +263,15 @@ describe('RecurrenceValidator', () => {
         timezone: 'A'.repeat(100), // At 100 char limit
       };
       // Will fail timezone validation but not length validation
-      expect(() => validator.validate(params)).toThrow(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'INVALID_TIMEZONE', // Not length error
-          }),
-        }),
-      );
+      expect(() => validator.validate(params)).toThrow();
+
+      try {
+        validator.validate(params);
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR'); // should be timezone error for invalid timezone
+        expect(error.message).toContain('Invalid timezone');
+      }
     });
   });
 });

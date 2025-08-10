@@ -1,9 +1,12 @@
 import { parseISO, isValid } from 'date-fns';
 import { getTimezoneOffset } from 'date-fns-tz';
 
+import { ValidationError } from '../adapters/mcp-sdk/errors';
+import type { TimeUnit, RecurrencePattern, TimeServerError } from '../types';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { TimeServerErrorCodes } from '../types';
-import type { TimeServerError, TimeUnit, RecurrencePattern } from '../types';
+
+import { debug } from './debug';
 
 // Security limits for input validation
 export const LIMITS = {
@@ -91,13 +94,11 @@ export function validateDateString(dateStr: string | undefined | null, fieldName
 export function validateDateInput(dateInput: unknown, fieldName = 'date'): void {
   // Strict type checking - only allow string or number
   if (typeof dateInput !== 'string' && typeof dateInput !== 'number') {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `${fieldName} must be a string or number`,
-        { fieldName, type: typeof dateInput },
-      ),
-    };
+    debug.error('%s must be a string or number, got: %s', fieldName, typeof dateInput);
+    throw new ValidationError(`${fieldName} must be a string or number`, {
+      fieldName,
+      type: typeof dateInput,
+    });
   }
 
   // Additional validation for strings
@@ -154,17 +155,21 @@ export function validateDayOfMonth(day: number): boolean {
 export function validateStringLength(
   str: string | undefined | null,
   maxLength: number,
-  fieldName: string,
+  fieldName: string
 ): boolean {
   if (!str) return true; // undefined/null are handled elsewhere
   if (str.length > maxLength) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `${fieldName} exceeds maximum length of ${maxLength} characters`,
-        { fieldName, length: str.length, maxLength },
-      ),
-    };
+    debug.error(
+      '%s exceeds maximum length of %d characters (got %d)',
+      fieldName,
+      maxLength,
+      str.length
+    );
+    throw new ValidationError(`${fieldName} exceeds maximum length of ${maxLength} characters`, {
+      fieldName,
+      length: str.length,
+      maxLength,
+    });
   }
   return true;
 }
@@ -179,17 +184,21 @@ export function validateStringLength(
 export function validateArrayLength<T>(
   arr: T[] | undefined | null,
   maxLength: number,
-  fieldName: string,
+  fieldName: string
 ): boolean {
   if (!arr) return true; // undefined/null are handled elsewhere
   if (arr.length > maxLength) {
-    throw {
-      error: createError(
-        TimeServerErrorCodes.INVALID_PARAMETER,
-        `${fieldName} exceeds maximum array length of ${maxLength} items`,
-        { fieldName, length: arr.length, maxLength },
-      ),
-    };
+    debug.error(
+      '%s exceeds maximum array length of %d items (got %d)',
+      fieldName,
+      maxLength,
+      arr.length
+    );
+    throw new ValidationError(`${fieldName} exceeds maximum array length of ${maxLength} items`, {
+      fieldName,
+      length: arr.length,
+      maxLength,
+    });
   }
 
   // Also validate each string in the array if it's a string array
@@ -214,7 +223,7 @@ export function validateArrayLength<T>(
 export function createError(
   code: TimeServerErrorCodes,
   message: string,
-  details?: unknown,
+  details?: unknown
 ): TimeServerError {
   const error: TimeServerError = { code, message };
   if (details !== undefined) {

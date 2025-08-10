@@ -1,6 +1,10 @@
 import { addTime } from '../../src/tools/addTime';
-import { TimeServerErrorCodes } from '../../src/types';
 import type { AddTimeResult } from '../../src/types';
+import {
+  DateParsingError,
+  ValidationError,
+  TimezoneError,
+} from '../../src/adapters/mcp-sdk/errors';
 
 // Mock the cache module
 jest.mock('../../src/cache/timeCache', () => ({
@@ -301,102 +305,93 @@ describe('addTime', () => {
     it('should throw error for invalid time format', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      try {
         addTime({
           time: 'not-a-date',
           amount: 1,
           unit: 'days',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_DATE_FORMAT,
-            message: expect.stringContaining('Invalid time format'),
-            details: expect.objectContaining({ time: 'not-a-date' }),
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(DateParsingError);
+        expect(error.message).toContain('Invalid time format');
+        expect(error.code).toBe('DATE_PARSING_ERROR');
+        expect(error.details).toHaveProperty('time', 'not-a-date');
+      }
     });
 
     it('should throw error for invalid unit', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      try {
         addTime({
           time: '2025-01-15T10:30:00Z',
           amount: 1,
           unit: 'fortnights' as any,
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid unit'),
-            details: expect.objectContaining({ unit: 'fortnights' }),
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.message).toContain('Invalid unit');
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.details).toHaveProperty('unit', 'fortnights');
+      }
     });
 
     it('should throw error for invalid timezone', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      try {
         addTime({
           time: '2025-01-15T10:30:00',
           amount: 1,
           unit: 'days',
           timezone: 'Invalid/Zone',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_TIMEZONE,
-            message: 'Invalid timezone: Invalid/Zone',
-            details: { timezone: 'Invalid/Zone' },
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.message).toBe('Invalid timezone: Invalid/Zone');
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
+      }
     });
 
     it('should throw error for NaN amount', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      try {
         addTime({
           time: '2025-01-15T10:30:00Z',
           amount: NaN,
           unit: 'days',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid amount'),
-            details: expect.objectContaining({ amount: NaN }),
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.message).toContain('Invalid amount');
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.details).toHaveProperty('amount');
+        expect(Number.isNaN(error.details.amount)).toBe(true);
+      }
     });
 
     it('should throw error for Infinity amount', () => {
       mockedCache.get.mockReturnValue(undefined);
 
-      expect(() =>
+      try {
         addTime({
           time: '2025-01-15T10:30:00Z',
           amount: Infinity,
           unit: 'days',
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          error: {
-            code: TimeServerErrorCodes.INVALID_PARAMETER,
-            message: expect.stringContaining('Invalid amount'),
-            details: expect.objectContaining({ amount: Infinity }),
-          },
-        })
-      );
+        });
+        fail('Should have thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.message).toContain('Invalid amount');
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.details).toHaveProperty('amount', Infinity);
+      }
     });
   });
 

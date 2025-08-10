@@ -36,6 +36,8 @@ yarn-error.log*
 sessions/
 research/
 tmp/
+internal/
+scripts/git-pushall*.sh
 
 # Private files
 CLAUDE.md

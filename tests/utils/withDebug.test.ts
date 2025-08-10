@@ -82,10 +82,26 @@ describe('withDebug wrapper', () => {
       });
 
       await expect(testFn()).rejects.toThrow('async boom');
-      // The async function returns a promise immediately, so it logs success first
-      // then the promise rejection is caught and logged
-      // This is a known limitation - async errors are logged after apparent success
+
+      // Known limitation: async functions that throw immediately still log "succeeded"
+      // because they return a promise, then the error is logged separately when caught
       expect(debugSpy).toHaveBeenCalledWith('→ testAsync called with:', []);
+      expect(debugSpy).toHaveBeenCalledWith('✓ testAsync succeeded');
+      // The actual error logging happens in the promise chain which our mock doesn't capture
+    });
+
+    it('handles async functions that reject after delay', async () => {
+      const testError = new Error('delayed boom');
+      const testFn = withDebug(async function testAsyncDelayed(): Promise<never> {
+        await new Promise((resolve) => setTimeout(resolve, 1));
+        throw testError;
+      });
+
+      await expect(testFn()).rejects.toThrow('delayed boom');
+
+      expect(debugSpy).toHaveBeenCalledWith('→ testAsyncDelayed called with:', []);
+      expect(debugSpy).toHaveBeenCalledWith('✓ testAsyncDelayed succeeded');
+      // The error logging happens in the promise chain which our mock doesn't capture
     });
   });
 
@@ -96,6 +112,31 @@ describe('withDebug wrapper', () => {
       testFn(5);
 
       expect(debugSpy).toHaveBeenCalledWith('→ anonymous called with:', [5]);
+    });
+
+    it('handles error that is a Promise (edge case)', async () => {
+      // This is a very unusual case but the code handles it
+      const promiseError = Promise.reject(new Error('promise error'));
+      // Catch the rejection to prevent unhandled promise rejection
+      promiseError.catch(() => {}); // Silently handle to prevent test failure
+
+      const testFn = withDebug(function throwPromise(): any {
+        throw promiseError;
+      });
+
+      // The function returns the promise when error instanceof Promise
+      const result = testFn();
+      expect(result).toBe(promiseError);
+
+      // Also catch the result to prevent unhandled rejection
+      result.catch(() => {});
+
+      // No error logging because it's handled as a return value
+      expect(debugSpy).toHaveBeenCalledWith('→ throwPromise called with:', []);
+      expect(debugSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('failed'),
+        expect.anything()
+      );
     });
 
     it('handles circular references in arguments', () => {
@@ -164,6 +205,49 @@ describe('withDebug wrapper', () => {
       expect(cacheSpy).toHaveBeenCalledWith('✓ cacheFunction succeeded');
 
       cacheSpy.mockRestore();
+    });
+
+    it('supports different namespaces', () => {
+      const businessSpy = jest.spyOn(debugModule.debug, 'business').mockImplementation(() => {});
+      const errorSpy = jest.spyOn(debugModule.debug, 'error').mockImplementation(() => {});
+      const parseSpy = jest.spyOn(debugModule.debug, 'parse').mockImplementation(() => {});
+
+      // Test business namespace
+      const businessFn = withDebug(
+        function businessOp(): string {
+          return 'business';
+        },
+        'businessOp',
+        'business'
+      );
+      businessFn();
+      expect(businessSpy).toHaveBeenCalledWith('→ businessOp called with:', []);
+
+      // Test error namespace
+      const errorFn = withDebug(
+        function errorOp(): string {
+          return 'error';
+        },
+        'errorOp',
+        'error'
+      );
+      errorFn();
+      expect(errorSpy).toHaveBeenCalledWith('→ errorOp called with:', []);
+
+      // Test parse namespace
+      const parseFn = withDebug(
+        function parseOp(): string {
+          return 'parse';
+        },
+        'parseOp',
+        'parse'
+      );
+      parseFn();
+      expect(parseSpy).toHaveBeenCalledWith('→ parseOp called with:', []);
+
+      businessSpy.mockRestore();
+      errorSpy.mockRestore();
+      parseSpy.mockRestore();
     });
   });
 });

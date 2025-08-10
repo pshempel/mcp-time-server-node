@@ -1,5 +1,5 @@
 import { validateTimezones } from '../../src/tools/convertTimezone';
-import { TimeServerErrorCodes } from '../../src/types';
+import { TimezoneError } from '../../src/adapters/mcp-sdk/errors';
 
 describe('convertTimezone validation helpers', () => {
   describe('validateTimezones', () => {
@@ -14,11 +14,12 @@ describe('convertTimezone validation helpers', () => {
 
       try {
         validateTimezones('Invalid/Zone', 'UTC');
-        fail('Should have thrown');
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
-        expect(error.error.message).toContain('Invalid from_timezone: Invalid/Zone');
-        expect(error.error.details.field).toBe('from_timezone');
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.message).toContain('Invalid from_timezone: Invalid/Zone');
+        expect(error.invalidTimezone).toBe('Invalid/Zone');
       }
     });
 
@@ -27,11 +28,12 @@ describe('convertTimezone validation helpers', () => {
 
       try {
         validateTimezones('UTC', 'Bad/Zone');
-        fail('Should have thrown');
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_TIMEZONE);
-        expect(error.error.message).toContain('Invalid to_timezone: Bad/Zone');
-        expect(error.error.details.field).toBe('to_timezone');
+        expect(error).toBeInstanceOf(TimezoneError);
+        expect(error.code).toBe('TIMEZONE_ERROR');
+        expect(error.message).toContain('Invalid to_timezone: Bad/Zone');
+        expect(error.invalidTimezone).toBe('Bad/Zone');
       }
     });
 

@@ -1,5 +1,5 @@
 import { validateUnit, validateAmount } from '../../src/tools/addTime';
-import { TimeServerErrorCodes } from '../../src/types';
+import { ValidationError } from '../../src/adapters/mcp-sdk/errors';
 
 describe('addTime validation helpers', () => {
   describe('validateUnit', () => {
@@ -20,14 +20,15 @@ describe('addTime validation helpers', () => {
     it('should throw with correct error code and message', () => {
       try {
         validateUnit('weeks');
-        fail('Should have thrown');
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-        expect(error.error.message).toContain('Invalid unit: weeks');
-        expect(error.error.message).toContain(
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid unit: weeks');
+        expect(error.message).toContain(
           'Must be one of: years, months, days, hours, minutes, seconds'
         );
-        expect(error.error.details).toEqual({ unit: 'weeks' });
+        expect(error.details).toEqual({ unit: 'weeks' });
       }
     });
   });
@@ -54,12 +55,13 @@ describe('addTime validation helpers', () => {
     it('should throw with correct error code and message', () => {
       try {
         validateAmount(NaN);
-        fail('Should have thrown');
+        expect(true).toBe(false); // Should have thrown
       } catch (error: any) {
-        expect(error.error.code).toBe(TimeServerErrorCodes.INVALID_PARAMETER);
-        expect(error.error.message).toContain('Invalid amount: NaN');
-        expect(error.error.message).toContain('Must be a finite number');
-        expect(error.error.details).toEqual({ amount: NaN });
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe('VALIDATION_ERROR');
+        expect(error.message).toContain('Invalid amount: NaN');
+        expect(error.message).toContain('Must be a finite number');
+        expect(error.details).toEqual({ amount: NaN });
       }
     });
   });

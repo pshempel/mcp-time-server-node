@@ -1,8 +1,14 @@
-import { eachDayOfInterval, isWeekend, format } from 'date-fns';
+import { eachDayOfInterval, format } from 'date-fns';
 
+import { TimezoneError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { GetBusinessDaysParams, GetBusinessDaysResult } from '../types';
+import {
+  validateHolidayCalendar,
+  validateDateRange,
+  categorizeDays,
+  adjustForWeekends,
+} from '../utils/businessDayHelpers';
 import { parseDateWithTimezone } from '../utils/businessUtils';
 import { buildCacheKey } from '../utils/cacheKeyBuilder';
 import { getConfig } from '../utils/config';
@@ -11,7 +17,6 @@ import { aggregateHolidays } from '../utils/holidayAggregator';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import {
   validateTimezone,
-  createError,
   validateArrayLength,
   validateDateString,
   LIMITS,
@@ -64,39 +69,21 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
   return withCache(cacheKey, CacheTTL.BUSINESS_DAYS, () => {
     // Validate timezone if provided
     if (timezone && !validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
 
     // Validate holiday_calendar if provided
     if (holiday_calendar) {
-      if (holiday_calendar.includes('\0') || holiday_calendar.includes('\x00')) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_PARAMETER,
-            'Invalid holiday_calendar: contains null bytes',
-            { holiday_calendar }
-          ),
-        };
-      }
-
-      if (!/^[A-Z]{2,3}$/.test(holiday_calendar)) {
-        throw {
-          error: createError(
-            TimeServerErrorCodes.INVALID_PARAMETER,
-            'Invalid holiday_calendar: must be a 2-3 letter country code',
-            { holiday_calendar }
-          ),
-        };
-      }
+      validateHolidayCalendar(holiday_calendar);
     }
 
     // Parse dates
     const startDate = parseDateWithTimezone(start_date, timezone, 'start_date');
     const endDate = parseDateWithTimezone(end_date, timezone, 'end_date');
+
+    // DoS protection: Validate date range
+    validateDateRange(startDate, endDate, start_date, end_date);
 
     // Log calculation context
     debug.business(
@@ -130,37 +117,13 @@ export function getBusinessDays(params: GetBusinessDaysParams): GetBusinessDaysR
     });
     debug.timing('Processing %d days from %s to %s', days.length, start_date, end_date);
 
-    // Calculate different categories
-    let businessDays = 0;
-    let weekendDays = 0;
-    let holidayCount = 0;
+    // Categorize days into business, weekend, and holiday
+    const categories = categorizeDays(days, allHolidayDates);
 
-    for (const day of days) {
-      const isWeekendDay = isWeekend(day);
-      const isHolidayDay = allHolidayDates.has(day.toDateString());
-      const dayStr = format(day, 'yyyy-MM-dd');
+    // Adjust for weekend inclusion preference
+    const adjustedCategories = adjustForWeekends(categories, excludeWeekends);
 
-      if (isWeekendDay) {
-        weekendDays++;
-        debug.trace('  %s: weekend', dayStr);
-      } else if (isHolidayDay) {
-        holidayCount++;
-        debug.trace('  %s: holiday', dayStr);
-      } else {
-        businessDays++;
-        debug.trace('  %s: business day', dayStr);
-      }
-    }
-
-    // If not excluding weekends, add weekend days to business days
-    if (!excludeWeekends) {
-      debug.decision('Including weekends', {
-        weekendDays,
-        businessDaysBefore: businessDays,
-        businessDaysAfter: businessDays + weekendDays,
-      });
-      businessDays += weekendDays;
-    }
+    const { businessDays, weekendDays, holidayCount } = adjustedCategories;
 
     // Log summary
     debug.business(

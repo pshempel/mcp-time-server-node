@@ -1,15 +1,15 @@
 import { differenceInDays, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
+import { TimezoneError, DateParsingError, TimeCalculationError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { NextOccurrenceParams, NextOccurrenceResult } from '../types';
 import type { RecurrenceParams } from '../types/recurrence';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
 import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
-import { validateTimezone, createError, validateDateString } from '../utils/validation';
+import { validateTimezone, validateDateString } from '../utils/validation';
 import { withCache } from '../utils/withCache';
 
 import { RecurrenceFactory } from './recurrence/RecurrenceFactory';
@@ -108,8 +108,9 @@ function calculateNextOccurrence(
     try {
       startFrom = parseTimeInput(params.start_from, timezone).date;
       debug.parse('Parsed start_from date: %s', startFrom.toISOString());
-    } catch {
-      throw createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, 'Invalid start_from date');
+    } catch (error) {
+      debug.error('Invalid start_from date: %s', params.start_from);
+      throw new DateParsingError('Invalid start_from date', { start_from: params.start_from });
     }
   } else {
     startFrom = new Date();
@@ -138,22 +139,15 @@ function calculateNextOccurrence(
  * Handles errors from the calculation, re-throwing validation errors as-is
  */
 function handleCalculationError(error: unknown): never {
-  // Re-throw validation errors wrapped in { error: ... } format
-  if (error && typeof error === 'object' && 'error' in error) {
-    throw error;
-  }
-
-  // Re-throw our own validation errors
+  // Re-throw validation errors that already have error code
   if (error instanceof Error && 'code' in error) {
     throw error;
   }
 
   // Wrap other errors
   const message = error instanceof Error ? error.message : 'Unknown error';
-  throw createError(
-    TimeServerErrorCodes.INTERNAL_ERROR,
-    `Failed to calculate next occurrence: ${message}`
-  );
+  debug.error('Failed to calculate next occurrence: %s', message);
+  throw new TimeCalculationError(`Failed to calculate next occurrence: ${message}`);
 }
 
 /**
@@ -176,11 +170,8 @@ export function nextOccurrence(params: NextOccurrenceParams): NextOccurrenceResu
   if (params.timezone) {
     debug.validation('Validating timezone: %s', timezone);
     if (!validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
   }
   const cacheKey = getCacheKey(params, fallbackTimezone, timezone);

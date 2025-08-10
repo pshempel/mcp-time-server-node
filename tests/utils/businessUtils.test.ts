@@ -1,5 +1,5 @@
-import { TimeServerErrorCodes } from '../../src/types';
 import { parseDateWithTimezone, parseHolidayDates } from '../../src/utils/businessUtils';
+import { DateParsingError, HolidayDataError } from '../../src/adapters/mcp-sdk';
 
 // Mock parseTimeInput since it's a dependency
 jest.mock('../../src/utils/parseTimeInput', () => ({
@@ -45,10 +45,10 @@ describe('businessUtils', () => {
       try {
         parseDateWithTimezone('invalid-date', 'UTC', 'end_time');
       } catch (e: any) {
-        expect(e.error).toBeDefined();
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_DATE_FORMAT);
-        expect(e.error.message).toContain('Invalid end_time format');
-        expect(e.error.details.end_time).toBe('invalid-date');
+        expect(e).toBeInstanceOf(DateParsingError);
+        expect(e.code).toBe('DATE_PARSING_ERROR');
+        expect(e.message).toContain('Invalid end_time format');
+        expect(e.details.end_time).toBe('invalid-date');
       }
     });
 
@@ -56,8 +56,10 @@ describe('businessUtils', () => {
       try {
         parseDateWithTimezone('invalid-date', 'UTC', 'custom_field');
       } catch (e: any) {
-        expect(e.error.message).toContain('Invalid custom_field format');
-        expect(e.error.details.custom_field).toBe('invalid-date');
+        expect(e).toBeInstanceOf(DateParsingError);
+        expect(e.code).toBe('DATE_PARSING_ERROR');
+        expect(e.message).toContain('Invalid custom_field format');
+        expect(e.details.custom_field).toBe('invalid-date');
       }
     });
 
@@ -103,11 +105,11 @@ describe('businessUtils', () => {
       try {
         parseHolidayDates(holidays, 'UTC');
       } catch (e: any) {
-        expect(e.error).toBeDefined();
-        expect(e.error.code).toBe(TimeServerErrorCodes.INVALID_DATE_FORMAT);
-        expect(e.error.message).toContain('Invalid holiday date');
-        expect(e.error.details.holiday).toBe('invalid-date');
-        expect(e.error.details.index).toBe(1);
+        expect(e).toBeInstanceOf(HolidayDataError);
+        expect(e.code).toBe('HOLIDAY_DATA_ERROR');
+        expect(e.message).toContain('Invalid holiday date');
+        expect(e.details.holiday).toBe('invalid-date');
+        expect(e.details.index).toBe(1);
       }
     });
 
@@ -118,8 +120,10 @@ describe('businessUtils', () => {
         parseHolidayDates(holidays, 'UTC');
       } catch (e: any) {
         // Should fail on first invalid date
-        expect(e.error.details.index).toBeDefined();
-        expect(typeof e.error.details.index).toBe('number');
+        expect(e).toBeInstanceOf(HolidayDataError);
+        expect(e.code).toBe('HOLIDAY_DATA_ERROR');
+        expect(e.details.index).toBeDefined();
+        expect(typeof e.details.index).toBe('number');
       }
     });
 
@@ -141,9 +145,11 @@ describe('businessUtils', () => {
       try {
         parseHolidayDates(holidays, 'UTC');
       } catch (e: any) {
-        expect(e.error.details.error).toBeDefined();
+        expect(e).toBeInstanceOf(HolidayDataError);
+        expect(e.code).toBe('HOLIDAY_DATA_ERROR');
+        expect(e.details.originalError).toBeDefined();
         // Just verify error is preserved, exact message may vary
-        expect(typeof e.error.details.error).toBe('string');
+        expect(typeof e.details.originalError).toBe('string');
       }
     });
   });

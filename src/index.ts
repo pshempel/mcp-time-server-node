@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 
+import { mapToMcpError, McpError } from './adapters/mcp-sdk';
 import {
   getCurrentTime,
   convertTimezone,
@@ -318,23 +319,59 @@ export function handleRateLimit(
 }
 
 // Execute a tool function and format the result
+// eslint-disable-next-line max-lines-per-function
+/**
+ * Helper function to format tool execution errors
+ * Now uses our adapter to properly map errors to MCP format
+ */
+function formatToolError(
+  error: unknown,
+  toolName: string
+): { error: { code: number; message: string; data?: unknown } } {
+  debug.trace('Tool %s execution failed: %O', toolName, error);
+
+  // If it's already an McpError, return it in the expected format
+  if (error instanceof McpError) {
+    return {
+      error: {
+        code: error.code,
+        message: error.message,
+        data: error.data,
+      },
+    };
+  }
+
+  // Map any other error to McpError using our adapter
+  const mcpError = mapToMcpError(error, toolName);
+
+  return {
+    error: {
+      code: mcpError.code,
+      message: mcpError.message,
+      data: mcpError.data,
+    },
+  };
+}
+
 export async function executeToolFunction(
   name: string,
   args: unknown
 ): Promise<
   | { content: Array<{ type: string; text: string }> }
-  | { error: { code: string; message: string; details?: unknown } }
+  | { error: { code: number; message: string; data?: unknown } }
 > {
   debug.trace('Executing tool: %s with args: %O', name, args);
 
   try {
     // Get the tool function - validate against known tools
     if (!Object.prototype.hasOwnProperty.call(TOOL_FUNCTIONS, name)) {
+      debug.error('Unknown tool: %s', name);
       throw new Error(`Unknown tool: ${name}`);
     }
     // eslint-disable-next-line security/detect-object-injection -- Tool name validated above
     const toolFunction = TOOL_FUNCTIONS[name];
     if (!toolFunction) {
+      debug.error('Tool function is null for: %s', name);
       throw new Error(`Unknown tool: ${name}`);
     }
 
@@ -351,25 +388,8 @@ export async function executeToolFunction(
         },
       ],
     };
-  } catch (error) {
-    debug.trace('Tool %s execution failed: %O', name, error);
-
-    // Check if error is an object with error property
-    if (error && typeof error === 'object' && 'error' in error) {
-      return error as { error: { code: string; message: string; details?: unknown } };
-    }
-
-    // Otherwise, wrap it in the expected format
-    const errorMessage = error instanceof Error ? error.message : 'Tool execution failed';
-    const errorString = error instanceof Error ? error.toString() : String(error);
-
-    return {
-      error: {
-        code: 'TOOL_ERROR',
-        message: errorMessage,
-        details: { name, error: errorString },
-      },
-    };
+  } catch (error: unknown) {
+    return formatToolError(error, name);
   }
 }
 
@@ -379,7 +399,7 @@ export async function handleToolCall(
   rateLimiter: SlidingWindowRateLimiter
 ): Promise<
   | { content: Array<{ type: string; text: string }> }
-  | { error: { code: string | number; message: string; data?: unknown; details?: unknown } }
+  | { error: { code: number; message: string; data?: unknown } }
 > {
   debug.server('Handling tool call: %s', request.params.name);
 
@@ -427,8 +447,10 @@ async function main(): Promise<void> {
   console.error('MCP Time Server Node running on stdio');
 }
 
-// Run the server
-main().catch((error) => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+// Only run the server if this is the main module
+if (require.main === module) {
+  main().catch((error) => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}

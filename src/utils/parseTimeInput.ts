@@ -51,6 +51,7 @@ function parseUnixTimestamp(timeStr: string): ParseResult | null {
 
   const timestamp = parseInt(timeStr, 10);
   if (isNaN(timestamp)) {
+    debug.error('Invalid Unix timestamp: %s', timeStr);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_DATE_FORMAT,
@@ -87,6 +88,7 @@ function parseISOWithTimezone(timeStr: string): ParseResult | null {
 
   const date = parseISO(timeStr);
   if (!isValid(date)) {
+    debug.error('Invalid ISO date string: %s', timeStr);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_DATE_FORMAT,
@@ -129,6 +131,7 @@ function parseLocalTime(timeStr: string, timezone?: string): ParseResult {
       date = parseISO(timeStr);
     }
   } catch (error) {
+    debug.error('Failed to parse date: %s in timezone: %s, error: %s', timeStr, timezone, String(error));
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_DATE_FORMAT,
@@ -139,6 +142,7 @@ function parseLocalTime(timeStr: string, timezone?: string): ParseResult {
   }
 
   if (!isValid(date)) {
+    debug.error('Invalid date format: %s in timezone: %s', timeStr, timezone);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_DATE_FORMAT,
@@ -184,6 +188,7 @@ export function parseTimeInput(
 
   // Handle undefined/null/empty
   if (input == null || input === '') {
+    debug.error('Input cannot be null, undefined, or empty: %O', input);
     throw {
       error: createError(
         TimeServerErrorCodes.INVALID_DATE_FORMAT,

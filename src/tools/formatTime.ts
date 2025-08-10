@@ -1,8 +1,8 @@
 import { startOfDay, differenceInDays } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
+import { ValidationError, TimezoneError, DateParsingError } from '../adapters/mcp-sdk';
 import { CacheTTL } from '../cache/timeCache';
-import { TimeServerErrorCodes } from '../types';
 import type { FormatTimeParams, FormatTimeResult } from '../types';
 import { getConfig } from '../utils/config';
 import { debug } from '../utils/debug';
@@ -10,7 +10,6 @@ import { parseTimeInput } from '../utils/parseTimeInput';
 import { resolveTimezone } from '../utils/timezoneUtils';
 import {
   validateTimezone,
-  createError,
   validateDateString,
   validateStringLength,
   LIMITS,
@@ -198,34 +197,19 @@ export function validateFormatParams(params: FormatTimeParams): void {
   // Validate format type
   const validFormats = ['relative', 'calendar', 'custom'];
   if (!validFormats.includes(formatType)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid format type', {
-        format: params.format,
-      }),
-    };
+    debug.error('Invalid format type: %s', params.format);
+    throw new ValidationError('Invalid format type', { format: params.format });
   }
 
   // Validate custom format requirements
   if (formatType === 'custom') {
     if (params.custom_format === undefined || params.custom_format === null) {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'custom_format is required when format is "custom"',
-          {}
-        ),
-      };
+      debug.error('custom_format is required when format is "custom"');
+      throw new ValidationError('custom_format is required when format is "custom"');
     }
     if (params.custom_format === '') {
-      throw {
-        error: createError(
-          TimeServerErrorCodes.INVALID_PARAMETER,
-          'custom_format cannot be empty',
-          {
-            custom_format: '',
-          }
-        ),
-      };
+      debug.error('custom_format cannot be empty');
+      throw new ValidationError('custom_format cannot be empty', { custom_format: '' });
     }
   }
 
@@ -234,11 +218,8 @@ export function validateFormatParams(params: FormatTimeParams): void {
     const config = getConfig();
     const timezone = resolveTimezone(params.timezone, config.defaultTimezone);
     if (!validateTimezone(timezone)) {
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_TIMEZONE, `Invalid timezone: ${timezone}`, {
-          timezone,
-        }),
-      };
+      debug.error('Invalid timezone: %s', timezone);
+      throw new TimezoneError(`Invalid timezone: ${timezone}`, timezone);
     }
   }
 
@@ -270,12 +251,11 @@ export function parseTimeWithFallback(timeInput: string | number, timezone: stri
       debug.parse('Fallback succeeded: %s', date.toISOString());
     } catch (fallbackError) {
       debug.parse('Fallback also failed: %s', fallbackError);
-      throw {
-        error: createError(TimeServerErrorCodes.INVALID_DATE_FORMAT, 'Invalid time', {
-          time: timeInput,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      };
+      debug.error('Invalid time: %s', timeInput);
+      throw new DateParsingError('Invalid time', {
+        time: timeInput,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -341,12 +321,11 @@ export function formatCustomTime(date: Date, customFormat: string, timezone: str
 
   // Validate format string for security
   if (!isValidFormatString(customFormat)) {
-    throw {
-      error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid custom format string', {
-        custom_format: customFormat,
-        reason: 'Format string contains invalid characters',
-      }),
-    };
+    debug.error('Invalid custom format string: %s', customFormat);
+    throw new ValidationError('Invalid custom format string', {
+      custom_format: customFormat,
+      reason: 'Format string contains invalid characters',
+    });
   }
 
   debug.timing('Formatting with: %s', customFormat);
@@ -395,11 +374,8 @@ export function formatTime(params: FormatTimeParams): FormatTimeResult {
 
         default:
           // Should never reach here due to validation
-          throw {
-            error: createError(TimeServerErrorCodes.INVALID_PARAMETER, 'Invalid format type', {
-              format: formatType,
-            }),
-          };
+          debug.error('Invalid format type (should never reach): %s', formatType);
+          throw new ValidationError('Invalid format type', { format: formatType });
       }
 
       const result: FormatTimeResult = {
