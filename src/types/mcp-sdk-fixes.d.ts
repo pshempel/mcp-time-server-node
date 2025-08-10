@@ -53,9 +53,7 @@ declare module '@modelcontextprotocol/sdk/types.js' {
     };
   }
 
-  export interface ListToolsRequest {
-    // Empty or minimal interface for list tools request
-  }
+  export type ListToolsRequest = Record<string, never>;
 
   // The schemas are exported at runtime, just need the types
   // These are Zod schemas but we'll type them as any for simplicity

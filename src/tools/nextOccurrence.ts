@@ -108,7 +108,7 @@ function calculateNextOccurrence(
     try {
       startFrom = parseTimeInput(params.start_from, timezone).date;
       debug.parse('Parsed start_from date: %s', startFrom.toISOString());
-    } catch (error) {
+    } catch {
       debug.error('Invalid start_from date: %s', params.start_from);
       throw new DateParsingError('Invalid start_from date', { start_from: params.start_from });
     }

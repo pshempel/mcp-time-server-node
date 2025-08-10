@@ -82,7 +82,12 @@ export function aggregateHolidays(params: HolidayAggregatorParams): Set<string> 
       const originalMessage = errorObj.error?.message ?? String(error);
       const invalidHoliday = errorObj.error?.data?.holiday;
 
-      debug.error('Invalid custom holiday date: %s, error: %s', invalidHoliday ?? 'unknown', originalMessage);
+      debug.error(
+        'Invalid custom holiday date: %s, error: %s',
+        invalidHoliday ?? 'unknown',
+        originalMessage
+      );
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw {
         error: {
           code: 'INVALID_DATE_FORMAT',
