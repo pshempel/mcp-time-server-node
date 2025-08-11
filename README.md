@@ -2,6 +2,10 @@
 
 A comprehensive Node.js time manipulation server implementing the Model Context Protocol (MCP) for LLMs like Claude. This server provides powerful time-related operations including timezone conversions, date arithmetic, business day calculations, and more.
 
+<a href="https://glama.ai/mcp/servers/@pshempel/mcp-time-server-node">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@pshempel/mcp-time-server-node/badge" alt="Time Server Node MCP server" />
+</a>
+
 ## Features
 
 - 🌍 **Timezone Operations**: Convert times between any IANA timezones
