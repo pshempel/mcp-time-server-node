@@ -279,9 +279,7 @@ The server returns structured errors with codes:
 
 ### Current Status
 
-We are actively refactoring the codebase to reduce duplication and improve maintainability. See:
-- [Refactoring Roadmap](docs/REFACTORING_ROADMAP.md) - Our plan to reduce code duplication from 18% to under 5%
-- [Refactoring Status](docs/REFACTORING_STATUS.md) - Current progress on the refactoring phases
+Refactoring completed
 
 ### Building from source
 
