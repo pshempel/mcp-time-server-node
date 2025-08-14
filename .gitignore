@@ -1,4 +1,3 @@
-.claude/
 # Dependencies
 node_modules/
 
@@ -32,24 +31,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Private directories
-sessions/
-tmp/
-internal/
-scripts/git-pushall*.sh
-
-# Private files
-CLAUDE.md
-**/CLAUDE.md
-
-# Quick references (internal)
-GIT_QUICK_REFERENCE.md
-REFACTOR_INITIATIVE.md
-
-# Generated files
-todos
-hooks/
-
 # Test reports (generated files)
 test-assertion-report.json
 test-quality-report.txt
@@ -60,15 +41,3 @@ eslint-output.json
 eslint-test.txt
 eslint-*.json
 eslint-*.txt
-
-# CLAUDE.md (project instructions)
-CLAUDE.md
-CLAUDE*.md
-
-# Claude-specific documentation
-NEXT_SESSION_CHECKLIST.md
-NEXT_SESSION_NOTES.md
-SESSION_*_NOTES.md
-PROJECT_STATUS.md
-docs/PROJECT_STATUS.md
-docs/PACKAGING_AND_TESTING_PLAN.md
